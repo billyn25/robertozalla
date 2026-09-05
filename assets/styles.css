@@ -1022,3 +1022,16 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   .company-logo-wrap{width:82px!important;min-width:82px!important;max-width:82px!important;height:62px!important;padding:6px!important;}
   .company-brand--no-logo{grid-template-columns:minmax(0,1fr)!important;}
 }
+
+/* v7 - salida A4 blindada: PDF e impresión reciben una única imagen de página */
+.pdf-image-page{
+  position:fixed!important;left:-10000px!important;top:0!important;
+  width:200mm!important;height:287mm!important;margin:0!important;padding:0!important;
+  background:#fff!important;overflow:hidden!important;display:flex!important;
+  align-items:center!important;justify-content:center!important;z-index:-99999!important;
+}
+.pdf-image-page img{
+  display:block!important;width:200mm!important;height:287mm!important;
+  max-width:200mm!important;max-height:287mm!important;object-fit:contain!important;object-position:center!important;
+}
+.output-stage{left:-10000px!important;top:0!important;z-index:0!important;opacity:1!important;visibility:visible!important;}

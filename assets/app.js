@@ -1158,6 +1158,7 @@
     els.pdfBtn.querySelector('span').textContent = 'Generando…';
 
     try {
+      if (typeof window.html2pdf !== 'function') throw new Error('Motor PDF no disponible');
       const canvas = await renderDocumentCanvas();
       const fields = serializeDocument().fields;
       const company = getActiveCompany();
@@ -1168,27 +1169,32 @@
         fields.documentDate || new Date().toISOString().slice(0, 10)
       ].filter(Boolean).map(slugify).join('_') + '.pdf';
 
-      if (!window.jspdf?.jsPDF) throw new Error('El generador PDF no se ha cargado');
-      const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
-      const margin = 5;
-      const maxW = 210 - margin * 2;
-      const maxH = 297 - margin * 2;
-      const ratio = canvas.width / canvas.height;
-      let outW = maxW;
-      let outH = outW / ratio;
-      if (outH > maxH) {
-        outH = maxH;
-        outW = outH * ratio;
+      // Convertimos primero la hoja completa a una sola imagen. Así el motor PDF
+      // nunca puede partir tablas o mandar el pie a una segunda página.
+      const holder = document.createElement('div');
+      holder.className = 'pdf-image-page';
+      const img = document.createElement('img');
+      img.alt = 'Documento';
+      img.src = canvas.toDataURL('image/jpeg', 0.96);
+      holder.appendChild(img);
+      document.body.appendChild(holder);
+      try {
+        await waitForImage(img);
+        await window.html2pdf().set({
+          margin: [5, 5, 5, 5],
+          filename,
+          image: { type: 'jpeg', quality: 0.96 },
+          html2canvas: { scale: 1, backgroundColor: '#ffffff', logging: false },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+          pagebreak: { mode: [] }
+        }).from(holder).save();
+      } finally {
+        holder.remove();
       }
-      const outX = (210 - outW) / 2;
-      const outY = (297 - outH) / 2;
-      const imgData = canvas.toDataURL('image/jpeg', 0.96);
-      pdf.addImage(imgData, 'JPEG', outX, outY, outW, outH, undefined, 'FAST');
-      pdf.save(filename);
       showToast('PDF generado en una página A4.');
     } catch (error) {
-      console.error(error);
-      showToast('No se pudo generar el PDF.', 'error');
+      console.error('PDF:', error);
+      showToast(`No se pudo generar el PDF${error?.message ? ': ' + error.message : '.'}`, 'error');
     } finally {
       els.pdfBtn.disabled = false;
       els.pdfBtn.querySelector('span').textContent = originalText;
@@ -1199,90 +1205,86 @@
     formatAllMoneyFields();
     calculateTotals();
 
-    // Abrimos la ventana inmediatamente para evitar el bloqueador de pop-ups.
     const printWindow = window.open('', '_blank');
-    if (printWindow) printWindow.opener = null;
     if (!printWindow) {
       showToast('Permite ventanas emergentes para imprimir.', 'error');
       return;
     }
-
+    printWindow.opener = null;
     try {
       printWindow.document.write('<!doctype html><html><head><title>Imprimir</title></head><body><p style="font-family:Arial,sans-serif;padding:20px">Preparando documento…</p></body></html>');
       printWindow.document.close();
       const canvas = await renderDocumentCanvas();
       const dataUrl = canvas.toDataURL('image/png');
       printWindow.document.open();
-      printWindow.document.write(`<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><title>Imprimir documento</title>
-<style>
-  @page{size:A4 portrait;margin:0}
-  html,body{margin:0;padding:0;width:210mm;height:297mm;background:#fff;overflow:hidden}
-  body{display:grid;place-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  img{display:block;max-width:200mm;max-height:287mm;width:auto;height:auto;object-fit:contain}
-</style></head><body><img id="page" alt="Documento listo para imprimir" src="${dataUrl}"></body></html>`);
+      printWindow.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Imprimir documento</title><style>
+        @page{size:A4 portrait;margin:5mm}
+        html,body{margin:0!important;padding:0!important;background:#fff!important}
+        body{width:200mm!important;height:287mm!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+        img{display:block!important;width:200mm!important;height:287mm!important;object-fit:contain!important;object-position:center!important}
+      </style></head><body><img id="page" src="${dataUrl}" alt="Documento"></body></html>`);
       printWindow.document.close();
       const image = printWindow.document.getElementById('page');
-      const doPrint = () => {
-        printWindow.focus();
-        printWindow.print();
-      };
-      if (image.complete) setTimeout(doPrint, 120);
-      else image.onload = () => setTimeout(doPrint, 120);
+      const doPrint = () => setTimeout(() => { printWindow.focus(); printWindow.print(); }, 180);
+      if (image.complete) doPrint(); else image.onload = doPrint;
     } catch (error) {
-      console.error(error);
+      console.error('Impresión:', error);
       printWindow.close();
-      showToast('No se pudo preparar la impresión.', 'error');
+      showToast(`No se pudo preparar la impresión${error?.message ? ': ' + error.message : '.'}`, 'error');
     }
   }
 
   async function renderDocumentCanvas() {
-    if (typeof window.html2canvas !== 'function') throw new Error('html2canvas no se ha cargado');
-
     const stage = document.createElement('div');
     stage.className = 'output-stage';
     const clone = els.sheet.cloneNode(true);
     clone.id = 'outputSheetClone';
     clone.classList.add('output-clone');
-
     syncOutputControls(els.sheet, clone);
     clone.querySelectorAll('.screen-only').forEach(node => node.remove());
     clone.querySelectorAll('.company-logo-placeholder').forEach(node => node.remove());
-
     stage.appendChild(clone);
     document.body.appendChild(stage);
 
     try {
-      await document.fonts?.ready;
-      await nextFrame();
-      await nextFrame();
-
-      // Damos a los textos editables el alto necesario antes de capturar.
+      if (document.fonts?.ready) await document.fonts.ready;
+      await nextFrame(); await nextFrame();
       clone.querySelectorAll('textarea').forEach(textarea => {
         textarea.style.height = 'auto';
-        textarea.style.height = `${Math.max(textarea.scrollHeight, textarea.id === 'generalObservations' ? 66 : 30)}px`;
+        textarea.style.height = `${Math.max(textarea.scrollHeight, textarea.id === 'generalObservations' ? 52 : 26)}px`;
         textarea.style.resize = 'none';
       });
+      clone.querySelectorAll('img').forEach(img => { if (img.src) img.crossOrigin = 'anonymous'; });
+      await Promise.all([...clone.querySelectorAll('img')].filter(i=>i.src).map(waitForImage));
 
-      const width = Math.ceil(Math.max(clone.scrollWidth, clone.getBoundingClientRect().width));
+      const width = 794;
       const height = Math.ceil(Math.max(clone.scrollHeight, clone.getBoundingClientRect().height));
-      const canvas = await window.html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width,
-        height,
-        windowWidth: width,
-        windowHeight: height,
-        scrollX: 0,
-        scrollY: 0
-      });
-      return canvas;
+
+      // html2pdf.bundle ya trae html2canvas internamente. Usarlo mediante su Worker
+      // evita depender de globals que cambian entre navegadores/CDN.
+      if (typeof window.html2pdf === 'function') {
+        const worker = window.html2pdf().set({
+          html2canvas: { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff', logging: false, width, height, windowWidth: width, windowHeight: height, scrollX: 0, scrollY: 0 }
+        }).from(clone).toCanvas();
+        return await worker.get('canvas');
+      }
+      if (typeof window.html2canvas === 'function') {
+        return await window.html2canvas(clone, {scale:2,useCORS:true,allowTaint:false,backgroundColor:'#fff',logging:false,width,height,windowWidth:width,windowHeight:height,scrollX:0,scrollY:0});
+      }
+      throw new Error('Motor de captura no disponible');
     } finally {
       stage.remove();
     }
+  }
+
+  function waitForImage(img) {
+    return new Promise(resolve => {
+      if (!img || !img.src || img.complete) return resolve();
+      const done = () => resolve();
+      img.addEventListener('load', done, { once:true });
+      img.addEventListener('error', done, { once:true });
+      setTimeout(done, 1800);
+    });
   }
 
   function syncOutputControls(source, clone) {
