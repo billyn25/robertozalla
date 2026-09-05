@@ -292,10 +292,6 @@
       } else if (field === 'qty' || field === 'price') {
         recalculateLine(row);
       }
-      // Al tocar una línea, los totales vuelven a seguir las líneas y el IVA automáticamente.
-      // Evita arrastrar un TOTAL final manual antiguo desde un borrador/localStorage.
-      state.subtotalMode = 'lines';
-      state.grandTotalMode = 'auto';
       toggleRowDataClass(row);
       if (event.target.matches('textarea')) autoGrow(event.target);
       calculateTotals();
@@ -1233,7 +1229,6 @@
     clone.id = 'outputSheetClone';
     clone.classList.add('output-clone');
     syncOutputControls(els.sheet, clone);
-    syncCriticalPdfValues(els.sheet, clone);
     clone.querySelectorAll('.screen-only').forEach(node => node.remove());
     clone.querySelectorAll('.company-logo-placeholder').forEach(node => node.remove());
     stage.appendChild(clone);
@@ -1333,37 +1328,6 @@
       img.addEventListener('error', done, { once:true });
       setTimeout(done, 1800);
     });
-  }
-
-  function syncCriticalPdfValues(source, clone) {
-    // Sincronización explícita de los campos que más importan en el presupuesto.
-    // Safari/iOS puede desalinear el copiado genérico de controles dinámicos.
-    const sourceRows = [...source.querySelectorAll('#itemsBody tr')];
-    const cloneRows = [...clone.querySelectorAll('#itemsBody tr')];
-    sourceRows.forEach((sourceRow, index) => {
-      const cloneRow = cloneRows[index];
-      if (!cloneRow) return;
-      ['qty', 'concept', 'price', 'amount'].forEach(field => {
-        const a = sourceRow.querySelector(`[data-field="${field}"]`);
-        const b = cloneRow.querySelector(`[data-field="${field}"]`);
-        if (!a || !b) return;
-        b.value = a.value;
-        b.setAttribute('value', a.value);
-        if (b instanceof HTMLTextAreaElement) b.textContent = a.value;
-      });
-    });
-
-    ['subtotalAmount', 'grandTotalAmount'].forEach(id => {
-      const a = source.querySelector(`#${id}`);
-      const b = clone.querySelector(`#${id}`);
-      if (a && b) {
-        b.value = a.value;
-        b.setAttribute('value', a.value);
-      }
-    });
-    const vatSource = source.querySelector('#vatAmount');
-    const vatClone = clone.querySelector('#vatAmount');
-    if (vatSource && vatClone) vatClone.textContent = vatSource.textContent;
   }
 
   function syncOutputControls(source, clone) {

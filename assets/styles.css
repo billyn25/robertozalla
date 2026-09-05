@@ -2250,23 +2250,3 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   .paper:not(.output-clone) .field{grid-template-columns:105px minmax(0,1fr)!important}
   .paper:not(.output-clone) .service-boxes{grid-template-columns:1fr 1fr!important}
 }
-
-/* v20 — importes/totales legibles y consistentes en PDF */
-.output-clone .items-table [data-field="price"],
-.output-clone .items-table [data-field="amount"]{
-  color:#111!important;
-  opacity:1!important;
-  -webkit-text-fill-color:#111!important;
-  text-align:right!important;
-  font-variant-numeric:tabular-nums!important;
-}
-.output-clone #subtotalAmount,
-.output-clone #grandTotalAmount,
-.output-clone #vatAmount{
-  color:#111!important;
-  opacity:1!important;
-  -webkit-text-fill-color:#111!important;
-  font-weight:700!important;
-  font-variant-numeric:tabular-nums!important;
-}
-.output-clone .total-row--grand{font-weight:800!important;background:#f3f7f4!important;}
