@@ -827,3 +827,96 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator { display:
   .company-brand { grid-template-columns: 112px minmax(0, 1fr); }
   .company-logo-wrap { width: 108px; height: 68px; }
 }
+
+
+/* v5 PRO: cabecera robusta, logos aislados y salida A4 estable */
+.temporarily-hidden, .draftbar { display:none !important; }
+
+.company-brand{
+  grid-template-columns: 30mm minmax(0,1fr) !important;
+  gap: 4mm !important;
+  align-items:center !important;
+  min-height:26mm !important;
+}
+.company-logo-wrap{
+  box-sizing:border-box !important;
+  width:30mm !important;
+  height:22mm !important;
+  min-width:30mm !important;
+  max-width:30mm !important;
+  padding:2mm !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  overflow:hidden !important;
+  background:#fff !important;
+  border:1px solid #d8e0db !important;
+  border-radius:2.5mm !important;
+}
+.company-logo-wrap img{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
+  max-width:100% !important;
+  max-height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+}
+.company-brand__text{min-width:0!important; overflow:hidden!important;}
+.company-brand h1{font-size:21px!important; line-height:1.05!important; overflow-wrap:normal!important; word-break:normal!important;}
+.company-contact{font-size:8.5px!important;}
+
+@media(max-width:700px){
+  .company-brand{grid-template-columns:82px minmax(0,1fr)!important;gap:10px!important;}
+  .company-logo-wrap{width:82px!important;min-width:82px!important;max-width:82px!important;height:62px!important;padding:7px!important;}
+  .company-brand h1{font-size:clamp(19px,5.8vw,27px)!important;}
+}
+
+/* Exportación: no fijar el alto; se captura la hoja completa y se escala a A4. */
+body.pdf-export{background:#fff!important;overflow:visible!important;}
+body.pdf-export .screen-only,body.pdf-export .appbar,body.pdf-export .draftbar,body.pdf-export .modal,body.pdf-export .toast-region{display:none!important;}
+body.pdf-export .workspace{width:210mm!important;min-width:210mm!important;margin:0!important;padding:0!important;}
+body.pdf-export #documentForm{width:210mm!important;margin:0!important;}
+body.pdf-export .paper{
+  box-sizing:border-box!important;
+  position:relative!important;left:0!important;top:0!important;
+  width:210mm!important;max-width:210mm!important;
+  height:auto!important;min-height:0!important;max-height:none!important;
+  margin:0!important;padding:7mm!important;overflow:visible!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+body.pdf-export .company-logo-wrap{background:#fff!important;}
+body.pdf-export .add-row,body.pdf-export .row-actions,body.pdf-export .clear-signature{display:none!important;}
+body.pdf-export textarea{resize:none!important;}
+body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:none!important;}
+
+@media print{
+  @page{size:A4 portrait;margin:5mm;}
+  html,body{width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;background:#fff!important;overflow:visible!important;}
+  body{margin:0!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .screen-only,.appbar,.draftbar,.modal,.toast-region,.add-row,.row-actions,.clear-signature{display:none!important;}
+  .workspace,#documentForm{width:auto!important;min-width:0!important;margin:0!important;padding:0!important;}
+  .paper{
+    box-sizing:border-box!important;
+    width:200mm!important;max-width:200mm!important;
+    height:auto!important;min-height:0!important;max-height:none!important;
+    margin:0 auto!important;padding:4mm!important;overflow:visible!important;
+    border:0!important;border-radius:0!important;box-shadow:none!important;
+    transform-origin:top center!important;
+  }
+  .paper-header{grid-template-columns:minmax(0,1.35fr) minmax(90px,.5fr) 47mm!important;gap:2mm!important;}
+  .company-brand{grid-template-columns:27mm minmax(0,1fr)!important;gap:3mm!important;min-height:23mm!important;}
+  .company-logo-wrap{width:27mm!important;min-width:27mm!important;max-width:27mm!important;height:19mm!important;padding:1.5mm!important;}
+  .company-brand h1{font-size:18px!important;}
+  .top-details{grid-template-columns:minmax(0,1.55fr) minmax(235px,1fr)!important;}
+  .service-boxes{grid-template-columns:1fr 1fr!important;}
+  .bottom-grid{grid-template-columns:minmax(0,1fr) 52mm!important;}
+  .consent-signatures{grid-template-columns:1.2fr 1fr 1fr!important;}
+  .items-table{display:table!important;table-layout:fixed!important;}
+  .items-table thead{display:table-header-group!important}.items-table tbody{display:table-row-group!important}.items-table tr{display:table-row!important}.items-table th,.items-table td{display:table-cell!important}
+  .items-table td::before{display:none!important}.items-table .col-actions,.items-table td:last-child{display:none!important}
+  input[type="date"]::-webkit-calendar-picker-indicator{display:none!important;}
+  .paper input::placeholder,.paper textarea::placeholder{color:transparent!important;}
+  .paper select{appearance:none!important;-webkit-appearance:none!important;background-image:none!important;}
+  .items-table tr,.bottom-grid,.consent-signatures{break-inside:avoid!important;page-break-inside:avoid!important;}
+}

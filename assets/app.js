@@ -223,13 +223,9 @@
     bindEvents();
     renderCompanySelect();
 
-    const storedDraft = loadJSON(STORAGE.draft, null);
-    if (storedDraft?.document) {
-      hydrateDocument(storedDraft.document, storedDraft.currentDocumentId || null);
-      els.draftStatus.textContent = 'Borrador recuperado';
-    } else {
-      hydrateDocument(makeBlankDocument(state.activeCompanyId), null);
-    }
+    // Fase de pruebas: cada carga empieza con una hoja realmente vacía.
+    // No recuperamos borradores ni documentos guardados.
+    hydrateDocument(makeBlankDocument(state.activeCompanyId), null);
 
     renderCompanyHeader();
     calculateTotals();
@@ -1128,19 +1124,12 @@
   function markDirty() {
     state.dirty = true;
     updateDraftStatus();
-    clearTimeout(state.draftTimer);
-    state.draftTimer = setTimeout(saveDraftNow, 550);
+    // Guardado/autoguardado desactivado temporalmente durante las pruebas.
   }
 
   function saveDraftNow() {
-    clearTimeout(state.draftTimer);
-    const payload = {
-      currentDocumentId: state.currentDocumentId,
-      document: serializeDocument(),
-      savedAt: new Date().toISOString()
-    };
-    saveJSON(STORAGE.draft, payload);
-    updateDraftStatus(state.currentDocumentId ? (state.dirty ? 'Cambios guardados en borrador' : 'Documento guardado') : 'Borrador guardado');
+    // Desactivado temporalmente: no persistir datos del parte durante las pruebas.
+    updateDraftStatus('Modo prueba · sin guardar');
   }
 
   function updateDraftStatus(message) {
@@ -1184,7 +1173,8 @@
         throw new Error('El generador PDF no se ha cargado');
       }
 
-      const rect = els.sheet.getBoundingClientRect();
+      // Capturamos TODO el alto real de la hoja. Después lo ajustamos proporcionalmente
+      // dentro de A4, evitando cualquier corte de la zona inferior.
       const canvas = await window.html2canvas(els.sheet, {
         scale: 2,
         useCORS: true,
@@ -1192,17 +1182,22 @@
         backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
-        x: 0,
-        y: 0,
-        width: Math.ceil(rect.width),
-        height: Math.ceil(rect.height),
-        windowWidth: Math.ceil(rect.width),
-        windowHeight: Math.ceil(rect.height)
+        windowWidth: Math.max(els.sheet.scrollWidth, 794),
+        windowHeight: els.sheet.scrollHeight
       });
 
       const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
-      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      const margin = 4;
+      const maxW = 210 - margin * 2;
+      const maxH = 297 - margin * 2;
+      const ratio = canvas.width / canvas.height;
+      let outW = maxW;
+      let outH = outW / ratio;
+      if (outH > maxH) { outH = maxH; outW = outH * ratio; }
+      const outX = (210 - outW) / 2;
+      const outY = (297 - outH) / 2;
+      pdf.addImage(imgData, 'JPEG', outX, outY, outW, outH, undefined, 'FAST');
       pdf.save(filename);
       showToast('PDF generado.');
     } catch (error) {
