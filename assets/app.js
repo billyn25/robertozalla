@@ -58,7 +58,6 @@
     newDocumentBtn: document.getElementById('newDocumentBtn'),
     documentsBtn: document.getElementById('documentsBtn'),
     saveDocumentBtn: document.getElementById('saveDocumentBtn'),
-    printBtn: document.getElementById('printBtn'),
     pdfBtn: document.getElementById('pdfBtn'),
     draftStatus: document.getElementById('draftStatus'),
     companyName: document.getElementById('companyName'),
@@ -409,7 +408,6 @@
     els.documentSearch.addEventListener('input', renderDocumentsList);
     els.documentsList.addEventListener('click', handleDocumentListAction);
 
-    els.printBtn.addEventListener('click', printDocument);
     els.pdfBtn.addEventListener('click', exportPdf);
 
     document.addEventListener('click', event => {
@@ -1153,13 +1151,33 @@
     formatAllMoneyFields();
     calculateTotals();
 
-    const originalText = els.pdfBtn.querySelector('span').textContent;
+    const label = els.pdfBtn.querySelector('span');
+    const originalText = label.textContent;
     els.pdfBtn.disabled = true;
-    els.pdfBtn.querySelector('span').textContent = 'Generando…';
+    label.textContent = 'Generando…';
 
+    let overlay;
     try {
-      if (typeof window.html2pdf !== 'function') throw new Error('Motor PDF no disponible');
+      if (typeof window.html2canvas !== 'function') throw new Error('No se cargó el motor de captura');
+      if (!window.jspdf?.jsPDF) throw new Error('No se cargó el motor PDF');
+
+      overlay = document.createElement('div');
+      overlay.className = 'pdf-progress-overlay';
+      overlay.innerHTML = '<div class="pdf-progress-card"><span class="pdf-spinner"></span><strong>Generando PDF</strong><small>Preparando una hoja A4…</small></div>';
+      document.body.appendChild(overlay);
+
       const canvas = await renderDocumentCanvas();
+      if (!canvas || canvas.width < 100 || canvas.height < 100) throw new Error('La captura de la hoja no es válida');
+
+      // Detectar una captura realmente vacía antes de crear el PDF.
+      const check = canvas.getContext('2d', { willReadFrequently: true });
+      const sample = check.getImageData(0, 0, Math.min(canvas.width, 500), Math.min(canvas.height, 500)).data;
+      let nonWhite = 0;
+      for (let i = 0; i < sample.length; i += 40) {
+        if (sample[i] < 245 || sample[i + 1] < 245 || sample[i + 2] < 245) { nonWhite++; if (nonWhite > 20) break; }
+      }
+      if (nonWhite <= 20) throw new Error('La hoja se capturó en blanco');
+
       const fields = serializeDocument().fields;
       const company = getActiveCompany();
       const filename = [
@@ -1169,74 +1187,32 @@
         fields.documentDate || new Date().toISOString().slice(0, 10)
       ].filter(Boolean).map(slugify).join('_') + '.pdf';
 
-      // Convertimos primero la hoja completa a una sola imagen. Así el motor PDF
-      // nunca puede partir tablas o mandar el pie a una segunda página.
-      const holder = document.createElement('div');
-      holder.className = 'pdf-image-page';
-      const img = document.createElement('img');
-      img.alt = 'Documento';
-      img.src = canvas.toDataURL('image/jpeg', 0.96);
-      holder.appendChild(img);
-      document.body.appendChild(holder);
-      try {
-        await waitForImage(img);
-        await window.html2pdf().set({
-          margin: [5, 5, 5, 5],
-          filename,
-          image: { type: 'jpeg', quality: 0.96 },
-          html2canvas: { scale: 1, backgroundColor: '#ffffff', logging: false },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
-          pagebreak: { mode: [] }
-        }).from(holder).save();
-      } finally {
-        holder.remove();
-      }
-      showToast('PDF generado en una página A4.');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+      const pageW = 210, pageH = 297, margin = 7;
+      const maxW = pageW - margin * 2, maxH = pageH - margin * 2;
+      const ratio = canvas.width / canvas.height;
+      let outW = maxW, outH = outW / ratio;
+      if (outH > maxH) { outH = maxH; outW = outH * ratio; }
+      const x = (pageW - outW) / 2;
+      const y = (pageH - outH) / 2;
+      const imgData = canvas.toDataURL('image/jpeg', 0.94);
+      pdf.addImage(imgData, 'JPEG', x, y, outW, outH, undefined, 'FAST');
+      pdf.save(filename);
+      showToast('PDF generado correctamente en una sola hoja A4.');
     } catch (error) {
       console.error('PDF:', error);
-      showToast(`No se pudo generar el PDF${error?.message ? ': ' + error.message : '.'}`, 'error');
+      showToast(`No se pudo generar el PDF${error?.message ? ': ' + error.message : ''}`, 'error');
     } finally {
+      overlay?.remove();
       els.pdfBtn.disabled = false;
-      els.pdfBtn.querySelector('span').textContent = originalText;
-    }
-  }
-
-  async function printDocument() {
-    formatAllMoneyFields();
-    calculateTotals();
-
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      showToast('Permite ventanas emergentes para imprimir.', 'error');
-      return;
-    }
-    printWindow.opener = null;
-    try {
-      printWindow.document.write('<!doctype html><html><head><title>Imprimir</title></head><body><p style="font-family:Arial,sans-serif;padding:20px">Preparando documento…</p></body></html>');
-      printWindow.document.close();
-      const canvas = await renderDocumentCanvas();
-      const dataUrl = canvas.toDataURL('image/png');
-      printWindow.document.open();
-      printWindow.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Imprimir documento</title><style>
-        @page{size:A4 portrait;margin:5mm}
-        html,body{margin:0!important;padding:0!important;background:#fff!important}
-        body{width:200mm!important;height:287mm!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-        img{display:block!important;width:200mm!important;height:287mm!important;object-fit:contain!important;object-position:center!important}
-      </style></head><body><img id="page" src="${dataUrl}" alt="Documento"></body></html>`);
-      printWindow.document.close();
-      const image = printWindow.document.getElementById('page');
-      const doPrint = () => setTimeout(() => { printWindow.focus(); printWindow.print(); }, 180);
-      if (image.complete) doPrint(); else image.onload = doPrint;
-    } catch (error) {
-      console.error('Impresión:', error);
-      printWindow.close();
-      showToast(`No se pudo preparar la impresión${error?.message ? ': ' + error.message : '.'}`, 'error');
+      label.textContent = originalText;
     }
   }
 
   async function renderDocumentCanvas() {
     const stage = document.createElement('div');
-    stage.className = 'output-stage';
+    stage.className = 'output-stage output-stage--capture';
     const clone = els.sheet.cloneNode(true);
     clone.id = 'outputSheetClone';
     clone.classList.add('output-clone');
@@ -1248,30 +1224,43 @@
 
     try {
       if (document.fonts?.ready) await document.fonts.ready;
-      await nextFrame(); await nextFrame();
+      await nextFrame();
+      await nextFrame();
+
+      // Limpiar controles de edición para que el PDF parezca un documento, no una web.
       clone.querySelectorAll('textarea').forEach(textarea => {
         textarea.style.height = 'auto';
         textarea.style.height = `${Math.max(textarea.scrollHeight, textarea.id === 'generalObservations' ? 52 : 26)}px`;
         textarea.style.resize = 'none';
+        textarea.style.overflow = 'hidden';
       });
-      clone.querySelectorAll('img').forEach(img => { if (img.src) img.crossOrigin = 'anonymous'; });
-      await Promise.all([...clone.querySelectorAll('img')].filter(i=>i.src).map(waitForImage));
+      clone.querySelectorAll('img').forEach(img => {
+        if (img.src && !img.src.startsWith('data:')) img.crossOrigin = 'anonymous';
+      });
+      await Promise.all([...clone.querySelectorAll('img')].filter(i => i.src).map(waitForImage));
+      await nextFrame();
 
-      const width = 794;
-      const height = Math.ceil(Math.max(clone.scrollHeight, clone.getBoundingClientRect().height));
+      const rect = clone.getBoundingClientRect();
+      const width = Math.ceil(rect.width);
+      const height = Math.ceil(Math.max(clone.scrollHeight, rect.height));
 
-      // html2pdf.bundle ya trae html2canvas internamente. Usarlo mediante su Worker
-      // evita depender de globals que cambian entre navegadores/CDN.
-      if (typeof window.html2pdf === 'function') {
-        const worker = window.html2pdf().set({
-          html2canvas: { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff', logging: false, width, height, windowWidth: width, windowHeight: height, scrollX: 0, scrollY: 0 }
-        }).from(clone).toCanvas();
-        return await worker.get('canvas');
-      }
-      if (typeof window.html2canvas === 'function') {
-        return await window.html2canvas(clone, {scale:2,useCORS:true,allowTaint:false,backgroundColor:'#fff',logging:false,width,height,windowWidth:width,windowHeight:height,scrollX:0,scrollY:0});
-      }
-      throw new Error('Motor de captura no disponible');
+      const canvas = await window.html2canvas(clone, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width,
+        height,
+        windowWidth: Math.max(width, 1200),
+        windowHeight: Math.max(height, 1600),
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        removeContainer: true
+      });
+      return canvas;
     } finally {
       stage.remove();
     }
