@@ -1,42 +1,18 @@
-# Parte Digital · Presupuestador multiempresa
+# Parte Digital - Presupuestador multiempresa v6 PRO
 
-Aplicación web estática para crear presupuestos, partes de trabajo, albaranes y facturas con una hoja visual tipo papel.
+Versión lista para desplegar directamente en Netlify (sitio estático).
 
-## Incluye
+Cambios de esta versión:
+- Sin logos predeterminados: Antena City y Antenas Abaso arrancan sin logo.
+- Si ya existían los antiguos logos de fábrica en localStorage, se eliminan automáticamente.
+- El único logo que se conserva es el que el usuario elige desde el editor de empresa.
+- Los logos personalizados se redimensionan y se guardan en localStorage del navegador junto a los datos de empresa.
+- Si una empresa no tiene logo, la cabecera no reserva hueco vacío: el nombre usa todo el espacio.
+- Si tiene logo, queda aislado en una caja `contain`, sin superponer nunca las letras de la empresa.
+- Guardar/Recuperar documentos siguen ocultos durante esta fase.
+- Cada recarga inicia una hoja nueva vacía; los datos del parte no se recuperan automáticamente.
+- Exportar PDF e Imprimir usan exactamente el mismo render A4, generado desde un clon fijo de escritorio. Así se evita que móvil/PC, el scroll o el alto de la hoja recorten la parte inferior.
+- Fechas mediante selector de calendario.
 
-- Selector de empresa: cambia nombre, teléfono, correo, responsable, datos fiscales, condiciones y logo.
-- Gestor para crear, editar, duplicar y borrar empresas sin tocar el código.
-- Campos libres de cliente y servicio.
-- Casillas de tipo de solicitud y trabajo.
-- Líneas editables con cantidad, concepto, precio e importe.
-- Cálculo automático `cantidad × precio`, con posibilidad de escribir el importe manualmente.
-- Desglose de materiales, mano de obra, desplazamiento y plus.
-- IVA configurable y totales editables.
-- Firma del cliente y del técnico con ratón o dedo.
-- Guardado y recuperación de documentos en el navegador.
-- Exportación directa a PDF A4 e impresión.
-- Diseño adaptado a ordenador y móvil.
-
-## Publicar en Netlify
-
-No necesita compilación ni instalar paquetes.
-
-1. Descomprime el ZIP.
-2. En Netlify, crea un sitio nuevo mediante despliegue manual y arrastra la carpeta completa.
-3. También puedes subir estos archivos a un repositorio y conectar el repositorio con Netlify.
-
-El archivo `netlify.toml` ya indica que la carpeta de publicación es la raíz del proyecto.
-
-## Datos y copias de seguridad
-
-Las empresas, los borradores, los documentos y los logos se guardan en `localStorage` del navegador. Por tanto:
-
-- Permanecen en ese navegador y dispositivo.
-- No se sincronizan automáticamente entre móvil y ordenador.
-- Borrar los datos del navegador elimina la información guardada.
-
-Para una siguiente versión se puede añadir una base de datos en Netlify/MongoDB para sincronizar todos los dispositivos.
-
-## PDF
-
-La exportación usa `html2pdf.js` desde CDN. Si el navegador o la conexión bloquean la librería, el botón abre la impresión del navegador para elegir **Guardar como PDF**.
+## Netlify
+Sube el contenido de esta carpeta o arrastra el ZIP descomprimido a Netlify. No necesita build.
