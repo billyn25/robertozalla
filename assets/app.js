@@ -1280,6 +1280,10 @@
         currentRows.push(emptyRow);
       }
 
+      // Safari/iOS y html2canvas no siempre pintan el valor de inputs en la última
+      // columna. Para el PDF convertimos los valores visibles en texto real.
+      staticizeOutputValues(clone);
+
       await nextFrame();
 
       // Render A4 virtual FIJO. Nunca usamos el alto/ancho calculado por el viewport del móvil.
@@ -1318,6 +1322,36 @@
     } finally {
       stage.remove();
     }
+  }
+
+
+  function staticizeOutputValues(clone) {
+    // Líneas: la copia PDF deja de depender de cómo Safari pinte los inputs.
+    clone.querySelectorAll('#itemsBody tr').forEach(row => {
+      const fields = [
+        ['qty', 'center'],
+        ['concept', 'left'],
+        ['price', 'right'],
+        ['amount', 'right']
+      ];
+      fields.forEach(([name, align]) => {
+        const control = row.querySelector(`[data-field="${name}"]`);
+        if (!control) return;
+        const value = String(control.value || '').trim();
+        const node = document.createElement('div');
+        node.className = `output-static-value output-static-value--${align}`;
+        node.textContent = value;
+        control.replaceWith(node);
+      });
+    });
+
+    // Totales/desglose: texto estático y separador vertical de altura completa.
+    clone.querySelectorAll('.totals-panel input.money-input, .totals-panel #grandTotalAmount').forEach(control => {
+      const node = document.createElement('div');
+      node.className = 'output-static-value output-static-value--right';
+      node.textContent = String(control.value || '').trim();
+      control.replaceWith(node);
+    });
   }
 
   function waitForImage(img) {
