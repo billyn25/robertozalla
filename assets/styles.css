@@ -914,7 +914,7 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   .consent-signatures{grid-template-columns:1.2fr 1fr 1fr!important;}
   .items-table{display:table!important;table-layout:fixed!important;}
   .items-table thead{display:table-header-group!important}.items-table tbody{display:table-row-group!important}.items-table tr{display:table-row!important}.items-table th,.items-table td{display:table-cell!important}
-  .items-table td::before{display:none!important}.items-table .col-actions,.items-table td:last-child{display:none!important}
+  .items-table td::before{display:none!important}.items-table .col-actions{display:none!important}
   input[type="date"]::-webkit-calendar-picker-indicator{display:none!important;}
   .paper input::placeholder,.paper textarea::placeholder{color:transparent!important;}
   .paper select{appearance:none!important;-webkit-appearance:none!important;background-image:none!important;}
@@ -1010,7 +1010,7 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 .output-clone .items-table tr{display:table-row!important;}
 .output-clone .items-table th,.output-clone .items-table td{display:table-cell!important;}
 .output-clone .items-table td::before{display:none!important;}
-.output-clone .items-table .col-actions,.output-clone .items-table td:last-child{display:none!important;}
+.output-clone .items-table .col-actions,.output-clone 
 .output-clone input[type="date"]::-webkit-calendar-picker-indicator{display:none!important;}
 .output-clone input::placeholder,.output-clone textarea::placeholder{color:transparent!important;}
 .output-clone select{appearance:none!important;-webkit-appearance:none!important;background-image:none!important;}
@@ -1118,832 +1118,358 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 .items-table td{height:8.1mm!important;}
 .paper-section{margin-bottom:2.1mm!important;}
 .section-title{font-weight:800!important;letter-spacing:-.01em!important;}
-.totals-box strong{font-weight:800!important;}
-.paper-footer{font-size:6.4px!important;color:#56625b!important;}
-
-/* PDF: cabecera más arriba y densidad de documento real */
-.output-clone{
-  padding:20px 27px 22px!important;
-  font-family:Inter,Arial,Helvetica,sans-serif!important;
-}
-.output-clone .paper-header{align-items:start!important;margin-top:0!important;margin-bottom:7px!important;}
-.output-clone .company-brand{min-height:72px!important;align-items:center!important;}
-.output-clone .company-brand--no-logo{min-height:72px!important;}
-.output-clone .company-brand h1{font-size:21px!important;line-height:1!important;}
-.output-clone .company-brand__text p{font-size:8px!important;margin:5px 0 3px!important;}
-.output-clone .company-contact{font-size:8px!important;}
-.output-clone .company-brand__text strong{font-size:9px!important;}
-.output-clone .paper-section{margin-bottom:7px!important;}
-.output-clone .paper-footer{margin-top:5px!important;}
-\n\n/* v11 PRO — móvil compacto + PDF A4 idéntico desde cualquier dispositivo */\n@media (max-width:760px){\n  .appbar{gap:7px;padding:calc(7px + env(safe-area-inset-top)) 10px 7px}\n  .appbar__company{grid-template-columns:auto minmax(0,1fr) 40px}\n  .appbar__actions{grid-template-columns:1fr 1fr;max-width:390px}\n  .action-button{height:42px}\n  .workspace{padding:7px 6px 32px}\n  .paper{padding:10px;border-radius:8px}\n  .paper-header{gap:7px}\n  .company-brand{min-height:54px}\n  .company-brand--no-logo{min-height:44px}\n  .company-brand h1{font-size:21px}\n  .company-brand__text p,.company-contact{font-size:8.5px;line-height:1.25}\n  .document-meta label{min-height:38px}\n  .document-meta input,.document-meta select{font-size:14px}\n  .field,.field--wide{min-height:34px;grid-template-columns:104px minmax(0,1fr)}\n  .field input{min-height:34px;font-size:14px}\n  .check-list label{min-height:28px}\n  .check-list input{width:17px;height:17px}\n}\n\n/* El clon de exportación NO hereda nunca la maquetación móvil. */\n.output-clone .paper-section{margin-bottom:8px!important}\n.output-clone .top-details{display:grid!important;grid-template-columns:minmax(0,1.55fr) minmax(245px,1fr)!important;gap:9px!important}\n.output-clone .field-grid--client{display:grid!important;grid-template-columns:1fr 1fr!important}\n.output-clone .field{display:grid!important;grid-template-columns:92px minmax(0,1fr)!important;min-height:25px!important}\n.output-clone .field--wide{grid-column:1/-1!important}\n.output-clone .field input{min-height:25px!important;font-size:10px!important}\n.output-clone .service-boxes{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}\n.output-clone .check-list label{min-height:22px!important}\n.output-clone .check-list input{width:14px!important;height:14px!important}\n.output-clone .service-description textarea{min-height:52px!important;font-size:10px!important}\n.output-clone .items-table-wrap{overflow:visible!important;border:1px solid var(--line)!important}\n.output-clone .items-table tr{margin:0!important;border:0!important;border-radius:0!important;background:#fff!important}\n.output-clone .items-table td{height:31px!important;min-height:31px!important;border-right:1px solid var(--line)!important;border-top:1px solid var(--line)!important}\n.output-clone .items-table textarea,.output-clone .items-table input{min-height:29px!important;padding:3px 5px!important;font-size:10px!important}\n.output-clone .bottom-grid{display:grid!important;grid-template-columns:minmax(0,1fr) 205px!important;gap:9px!important}\n.output-clone .payment-row{display:grid!important;grid-template-columns:1.15fr 1fr 1fr!important}\n.output-clone .time-row{display:grid!important;grid-template-columns:1fr 1fr 1fr!important}\n.output-clone .payment-row input,.output-clone .time-row input{min-height:31px!important;font-size:10px!important}\n.output-clone .observations textarea{min-height:72px!important;font-size:10px!important;line-height:18px!important}\n.output-clone .total-row{min-height:31px!important;grid-template-columns:minmax(0,1fr) 90px!important}\n.output-clone .total-row--vat{grid-template-columns:minmax(0,1fr) 58px 86px!important}\n.output-clone .total-row input,.output-clone .total-row output{min-height:31px!important;font-size:10px!important;padding:4px!important}\n.output-clone .consent-signatures{display:grid!important;grid-template-columns:1.2fr 1fr 1fr!important}\n.output-clone .signature-box{min-height:86px!important}\n.output-clone input[type=date]{font-size:10px!important}\n
-/* v12 PRO — cabecera móvil y gestor de empresas rehechos */
-@media (max-width:760px){
-  /* Cabecera: más compacta, limpia y estable en iPhone */
-  .appbar{
-    position:sticky;
-    top:0;
-    z-index:40;
-    display:grid;
-    grid-template-columns:1fr;
-    gap:7px;
-    padding:calc(7px + env(safe-area-inset-top)) 10px 8px;
-    background:linear-gradient(180deg,#17261f 0%,#15221c 100%);
-    border-bottom:1px solid rgba(255,255,255,.08);
-    box-shadow:0 6px 18px rgba(8,18,12,.18);
-    backdrop-filter:blur(16px);
-  }
-  .appbar__brand{display:none!important}
-  .appbar__company{
-    display:grid;
-    grid-template-columns:minmax(0,1fr) 42px;
-    gap:8px;
-    align-items:center;
-  }
-  .appbar__company label{display:none!important}
-  .appbar select{
-    height:42px;
-    padding:0 38px 0 13px;
-    border-radius:11px;
-    font-size:15px;
-    font-weight:700;
-    letter-spacing:.01em;
-    background:#22352b;
-    border-color:rgba(255,255,255,.16);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
-  }
-  .appbar .icon-button{
-    width:42px;
-    height:42px;
-    border-radius:11px;
-    background:#22352b;
-  }
-  .appbar__actions{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
-    max-width:none;
-  }
-  .appbar__actions .action-button{
-    height:40px;
-    border-radius:10px;
-    font-size:13px;
-    font-weight:750;
-  }
-  .appbar__actions .action-button span{font-size:13px!important;overflow:visible}
-  #pdfBtn span{font-size:13px!important}
-  #pdfBtn span::after{content:none!important}
-  .draftbar{display:none!important}
-
-  /* Modal de empresas: hoja móvil real, sin pie flotante encima del formulario */
-  #companyModal .modal__backdrop{background:rgba(7,15,10,.66);backdrop-filter:blur(6px)}
-  #companyModal .modal__dialog{
-    width:calc(100vw - 12px)!important;
-    height:calc(100dvh - max(12px, env(safe-area-inset-top)));
-    max-height:none!important;
-    margin:max(6px, env(safe-area-inset-top)) 6px 0!important;
-    border-radius:18px 18px 0 0!important;
-    overflow:hidden;
-    background:#f7f9f7;
-    box-shadow:0 -8px 40px rgba(5,15,9,.30);
-  }
-  #companyModal .modal__header{
-    position:relative;
-    z-index:5;
-    flex:0 0 auto;
-    align-items:center;
-    min-height:70px;
-    padding:14px 14px 12px;
-    background:rgba(249,251,249,.98);
-    border-bottom:1px solid #dbe2dd;
-  }
-  #companyModal .modal__header h2{font-size:21px;line-height:1.05;letter-spacing:-.02em}
-  #companyModal .modal__header p{display:none}
-  #companyModal .modal__close{
-    width:40px;
-    height:40px;
-    flex-basis:40px;
-    border-radius:11px;
-    font-size:28px;
-    background:#fff;
-  }
-  #companyModal .company-manager{
-    display:flex!important;
-    flex:1 1 auto;
-    min-height:0;
-    overflow:hidden!important;
-    flex-direction:column;
-  }
-  #companyModal .company-list-panel{
-    flex:0 0 auto;
-    max-height:none!important;
-    padding:10px 12px 9px;
-    overflow:hidden!important;
-    background:#eef3ef;
-    border-right:0;
-    border-bottom:1px solid #d9e1db;
-  }
-  #companyModal .primary-wide{
-    min-height:38px;
-    border-radius:10px;
-    font-size:12px;
-    box-shadow:none;
-  }
-  #companyModal .company-list{
-    display:flex!important;
-    gap:7px;
-    margin-top:8px;
-    padding-bottom:2px;
-    overflow-x:auto;
-    overflow-y:hidden;
-    scroll-snap-type:x proximity;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-  }
-  #companyModal .company-list::-webkit-scrollbar{display:none}
-  #companyModal .company-list-item{
-    flex:0 0 auto;
-    min-width:145px;
-    max-width:210px;
-    min-height:52px;
-    padding:9px 10px;
-    border-radius:10px;
-    scroll-snap-align:start;
-  }
-  #companyModal .company-list-item strong{font-size:12px}
-  #companyModal .company-list-item small{font-size:9px;margin-top:3px}
-
-  #companyModal .company-editor{
-    flex:1 1 auto;
-    min-height:0;
-    overflow-y:auto!important;
-    -webkit-overflow-scrolling:touch;
-    padding:14px 14px calc(28px + env(safe-area-inset-bottom));
-    background:#fff;
-  }
-  #companyModal .company-editor__logo{
-    grid-template-columns:88px minmax(0,1fr)!important;
-    gap:12px;
-    margin-bottom:15px;
-    padding:12px;
-    background:#f7faf8;
-    border:1px solid #dce4df;
-    border-radius:12px;
-  }
-  #companyModal .logo-preview{
-    width:88px!important;
-    height:68px!important;
-    border-radius:9px;
-    background:#fff;
-  }
-  #companyModal .company-editor__logo > div:last-child{
-    display:flex;
-    flex-wrap:wrap;
-    align-items:center;
-    gap:7px;
-  }
-  #companyModal .file-button,
-  #companyModal .text-button{
-    min-height:34px;
-    margin:0;
-    padding:0 10px;
-    font-size:11px;
-  }
-  #companyModal .company-editor__logo small{
-    flex-basis:100%;
-    margin:0;
-    font-size:9px;
-    line-height:1.35;
-  }
-  #companyModal .editor-grid{gap:11px!important}
-  #companyModal .editor-field{gap:5px}
-  #companyModal .editor-field span{
-    font-size:11px;
-    color:#4b5e53;
-    letter-spacing:.01em;
-  }
-  #companyModal .editor-field input,
-  #companyModal .editor-field textarea{
-    min-height:44px;
-    padding:10px 12px;
-    border-radius:10px;
-    font-size:15px;
-    border-color:#c9d4cd;
-    background:#fff;
-  }
-  #companyModal .editor-field textarea{min-height:96px;line-height:1.35}
-  #companyModal .company-editor__footer{
-    position:static!important;
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
-    margin:18px 0 0!important;
-    padding:16px 0 0!important;
-    background:transparent!important;
-    box-shadow:none!important;
-    border-top:1px solid #e0e6e2;
-  }
-  #companyModal .company-editor__footer .primary-button{
-    grid-column:1/-1;
-    grid-row:1;
-    min-height:46px;
-    font-size:14px;
-    border-radius:11px;
-  }
-  #companyModal .company-editor__footer .danger-button,
-  #companyModal .company-editor__footer .secondary-button{
-    grid-row:2;
-    min-height:42px;
-    margin:0;
-    border-radius:10px;
-    font-size:12px;
-  }
-  #companyModal .company-editor__footer .danger-button{grid-column:1}
-  #companyModal .company-editor__footer .secondary-button{grid-column:2}
-}
-
-/* v13 PRO — A4 aprovechado al máximo + 10 líneas seguras */
-.output-clone{
-  /* El margen exterior real lo controla jsPDF (4 mm). Aquí solo dejamos aire técnico. */
-  padding:8px 10px 10px!important;
-}
-.output-clone .paper-header{margin-bottom:5px!important;gap:8px!important}
-.output-clone .company-brand,
-.output-clone .company-brand--no-logo{min-height:64px!important}
-.output-clone .paper-section{margin-bottom:5px!important}
-.output-clone .service-description textarea{min-height:46px!important}
-.output-clone .items-table th{height:20px!important;padding:2px 4px!important}
-.output-clone .items-table td{height:27px!important;min-height:27px!important}
-.output-clone .items-table textarea,
-.output-clone .items-table input{min-height:25px!important;height:25px!important;padding:2px 4px!important;line-height:18px!important}
-.output-clone .payment-row input,
-.output-clone .time-row input{min-height:27px!important;height:27px!important}
-.output-clone .observations textarea{min-height:64px!important}
-.output-clone .total-row{min-height:27px!important}
-.output-clone .total-row input,
-.output-clone .total-row output{min-height:27px!important;height:27px!important}
-.output-clone .signature-box{min-height:78px!important}
-.output-clone .paper-footer{margin-top:3px!important;padding-top:2px!important}
-
-/* En pantalla dejamos claro el límite A4 sin cargar la interfaz. */
-.section-heading small{white-space:normal}
-
-
-/* v14 — cabecera visual refinada: menos verde, controles discretos */
-.appbar{
-  background:rgba(17,24,20,.98)!important;
-  border-bottom-color:rgba(255,255,255,.075)!important;
-  box-shadow:0 5px 18px rgba(5,10,7,.16)!important;
-}
-.appbar select,
-.appbar button{
-  background:#1c2520!important;
-  border-color:rgba(255,255,255,.12)!important;
-}
-.appbar select:hover,
-.appbar select:focus{
-  background:#202b25!important;
-  border-color:rgba(255,255,255,.22)!important;
-}
-.appbar .icon-button{
-  color:#dce5df!important;
-  background:transparent!important;
-  border-color:rgba(255,255,255,.13)!important;
-  box-shadow:none!important;
-}
-.appbar .icon-button:hover{
-  background:rgba(255,255,255,.055)!important;
-  border-color:rgba(255,255,255,.24)!important;
-}
-.appbar .icon-button svg{
-  width:18px!important;
-  height:18px!important;
-  stroke-width:1.65!important;
-}
-.action-button--quiet{
-  background:transparent!important;
-}
-.action-button--quiet:hover{
-  background:rgba(255,255,255,.055)!important;
-}
-.action-button--primary{
-  background:#2d7b4a!important;
-  border-color:#37875a!important;
-  box-shadow:none!important;
-}
-.action-button--primary:hover{
-  background:#286f43!important;
-}
-
-@media (max-width:760px){
-  .appbar{
-    gap:6px!important;
-    padding:calc(6px + env(safe-area-inset-top)) 10px 7px!important;
-    background:#111914!important;
-    box-shadow:0 3px 12px rgba(0,0,0,.16)!important;
-  }
-  .appbar__company{
-    grid-template-columns:minmax(0,1fr) 38px!important;
-    gap:7px!important;
-  }
-  .appbar select{
-    height:39px!important;
-    border-radius:9px!important;
-    padding:0 34px 0 12px!important;
-    font-size:14px!important;
-    font-weight:650!important;
-    background:#1a241e!important;
-  }
-  .appbar .icon-button{
-    width:38px!important;
-    height:38px!important;
-    border-radius:9px!important;
-    background:rgba(255,255,255,.035)!important;
-  }
-  .appbar .icon-button svg{
-    width:17px!important;
-    height:17px!important;
-  }
-  .appbar__actions{
-    gap:7px!important;
-  }
-  .appbar__actions .action-button{
-    height:38px!important;
-    border-radius:9px!important;
-    font-size:12.5px!important;
-  }
-  .appbar__actions .action-button svg{
-    width:17px!important;
-    height:17px!important;
-  }
-  .action-button--primary{
-    background:#2f8050!important;
-    border-color:#398d5d!important;
-  }
-}
-
-/* v15 PRO — cabecera móvil limpia, modal Empresas usable y A4 realmente aprovechado */
-@media (max-width:760px){
-  /* Cabecera: dos filas compactas, sin que el select quede reducido a la flecha */
-  .appbar{
-    display:grid!important;
-    grid-template-columns:1fr!important;
-    gap:8px!important;
-    padding:calc(7px + env(safe-area-inset-top)) 10px 8px!important;
-    background:#121a16!important;
-  }
-  .appbar__company{
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) 38px!important;
-    gap:7px!important;
-    align-items:center!important;
-  }
-  .appbar__company label{display:none!important;}
-  .appbar__company select{
-    grid-column:1!important;
-    width:100%!important;
-    min-width:0!important;
-    height:40px!important;
-    padding:0 36px 0 12px!important;
-    font-size:14px!important;
-    font-weight:700!important;
-    border-radius:10px!important;
-    background:#1b2520!important;
-  }
-  .appbar__company .icon-button{
-    grid-column:2!important;
-    width:38px!important;
-    height:38px!important;
-    border-radius:10px!important;
-    background:transparent!important;
-  }
-  .appbar__actions{
-    display:grid!important;
-    grid-template-columns:1fr 1fr!important;
-    gap:7px!important;
-  }
-  .appbar__actions .action-button{
-    height:40px!important;
-    border-radius:10px!important;
-    font-size:12px!important;
-    background:transparent!important;
-  }
-  .appbar__actions .action-button--primary{
-    background:#25342c!important;
-    border-color:rgba(255,255,255,.15)!important;
-    color:#fff!important;
-  }
-  .appbar__actions .action-button--primary:hover{background:#2b3c32!important;}
-
-  /* Modal Empresas: ocupa el alto útil real de Safari y todo queda alcanzable */
-  #companyModal .modal__dialog{
-    display:flex!important;
-    flex-direction:column!important;
-    width:calc(100vw - 12px)!important;
-    height:calc(100dvh - max(12px, env(safe-area-inset-top)) - 12px)!important;
-    max-height:none!important;
-    margin:max(6px, env(safe-area-inset-top)) 6px 6px!important;
-    overflow:hidden!important;
-    border-radius:14px!important;
-  }
-  #companyModal .modal__header{
-    flex:0 0 auto!important;
-    padding:14px 14px 12px!important;
-    background:#fff!important;
-  }
-  #companyModal .modal__header p{margin-top:4px!important;line-height:1.35!important;}
-  #companyModal .company-manager{
-    display:flex!important;
-    flex:1 1 auto!important;
-    min-height:0!important;
-    overflow:hidden!important;
-    flex-direction:column!important;
-    background:#fff!important;
-  }
-  #companyModal .company-list-panel{
-    flex:0 0 auto!important;
-    max-height:none!important;
-    padding:10px 12px 9px!important;
-    overflow:hidden!important;
-    background:#f6f8f7!important;
-    border-bottom:1px solid #dde4df!important;
-  }
-  #companyModal .primary-wide{
-    width:auto!important;
-    min-height:34px!important;
-    padding:0 11px!important;
-    color:#33473c!important;
-    background:#fff!important;
-    border:1px solid #cbd6cf!important;
-    border-radius:9px!important;
-    box-shadow:none!important;
-    font-size:11px!important;
-    font-weight:750!important;
-  }
-  #companyModal .primary-wide:hover{background:#eef3f0!important;}
-  #companyModal .company-list{
-    display:flex!important;
-    gap:7px!important;
-    margin-top:8px!important;
-    overflow-x:auto!important;
-    overflow-y:hidden!important;
-  }
-  #companyModal .company-list-item{
-    min-width:136px!important;
-    min-height:46px!important;
-    padding:8px 9px!important;
-    border-radius:9px!important;
-  }
-  #companyModal .company-list-item.is-active{
-    color:#20352a!important;
-    background:#edf3ef!important;
-    border-color:#b7c8bd!important;
-    box-shadow:inset 3px 0 0 #6f8d7a!important;
-  }
-  #companyModal .company-editor{
-    flex:1 1 auto!important;
-    min-height:0!important;
-    overflow-y:auto!important;
-    -webkit-overflow-scrolling:touch!important;
-    padding:12px 12px calc(112px + env(safe-area-inset-bottom))!important;
-    background:#fff!important;
-  }
-  #companyModal .company-editor__logo{
-    grid-template-columns:78px minmax(0,1fr)!important;
-    gap:10px!important;
-    padding:10px!important;
-    margin-bottom:13px!important;
-    background:#f8faf9!important;
-    border:1px solid #dfe6e1!important;
-    border-radius:11px!important;
-  }
-  #companyModal .logo-preview{
-    width:78px!important;
-    height:60px!important;
-    border-radius:8px!important;
-  }
-  #companyModal .company-editor__footer{
-    position:sticky!important;
-    bottom:calc(-112px - env(safe-area-inset-bottom))!important;
-    z-index:5!important;
-    display:grid!important;
-    grid-template-columns:1fr 1fr!important;
-    gap:7px!important;
-    margin:18px -12px calc(-112px - env(safe-area-inset-bottom))!important;
-    padding:10px 12px calc(12px + env(safe-area-inset-bottom))!important;
-    background:rgba(255,255,255,.985)!important;
-    border-top:1px solid #dde4df!important;
-    box-shadow:0 -6px 18px rgba(22,35,27,.08)!important;
-  }
-  #companyModal .company-editor__footer .primary-button{
-    grid-column:1/-1!important;
-    grid-row:1!important;
-    min-height:42px!important;
-    color:#fff!important;
-    background:#2d6845!important;
-    border-color:#2d6845!important;
-    border-radius:10px!important;
-    font-size:13px!important;
-  }
-  #companyModal .company-editor__footer .danger-button,
-  #companyModal .company-editor__footer .secondary-button{
-    grid-row:2!important;
-    min-height:39px!important;
-    border-radius:9px!important;
-    font-size:11px!important;
-  }
-}
-
-/* PDF: el clon tiene proporción A4 fija y 10 líneas reales para aprovechar la hoja. */
-.output-clone{
-  width:794px!important;
-  max-width:794px!important;
-  min-height:1123px!important;
-  padding:16px!important;
-}
-.output-clone .paper-header{margin-bottom:6px!important;}
-.output-clone .company-brand,
-.output-clone .company-brand--no-logo{min-height:58px!important;}
-.output-clone .paper-section{margin-bottom:6px!important;}
-.output-clone .service-description textarea{min-height:54px!important;}
-.output-clone .items-table th{height:22px!important;padding:3px 4px!important;}
-.output-clone .items-table td{height:37px!important;min-height:37px!important;}
-.output-clone .items-table textarea,
-.output-clone .items-table input{height:35px!important;min-height:35px!important;padding:3px 5px!important;line-height:20px!important;}
-.output-clone .payment-row input,
-.output-clone .time-row input{height:30px!important;min-height:30px!important;}
-.output-clone .observations textarea{min-height:92px!important;}
-.output-clone .total-row{min-height:30px!important;}
-.output-clone .total-row input,
-.output-clone .total-row output{height:30px!important;min-height:30px!important;}
-.output-clone .signature-box{min-height:94px!important;}
-.output-clone .paper-footer{margin-top:4px!important;padding-top:2px!important;}
-
-/* v16 PRO — salida A4 idéntica en PC/móvil + cabecera con algo más de vida */
-.output-stage.output-stage--capture{
-  width:794px!important;
-  min-width:794px!important;
-  max-width:794px!important;
-  height:1136px!important;
-  min-height:1136px!important;
-  max-height:1136px!important;
-  overflow:hidden!important;
-}
-.output-clone{
-  width:794px!important;
-  min-width:794px!important;
-  max-width:794px!important;
-  height:1136px!important;
-  min-height:1136px!important;
-  max-height:1136px!important;
-  box-sizing:border-box!important;
-  padding:16px!important;
-  display:flex!important;
-  flex-direction:column!important;
-  overflow:hidden!important;
-  background:#fff!important;
-}
-.output-clone .paper-header,
-.output-clone .top-details,
-.output-clone .service-description,
-.output-clone .bottom-grid,
-.output-clone .consent-signatures,
-.output-clone .paper-footer{flex:0 0 auto!important;}
-.output-clone .items-section{
-  flex:1 1 auto!important;
-  min-height:0!important;
-  display:flex!important;
-  flex-direction:column!important;
-  margin-bottom:6px!important;
-}
-.output-clone .items-table-wrap{
-  flex:1 1 auto!important;
-  min-height:0!important;
-  display:flex!important;
-  overflow:hidden!important;
-}
-.output-clone .items-table{
-  width:100%!important;
-  height:100%!important;
-  table-layout:fixed!important;
-  border-collapse:collapse!important;
-}
-.output-clone .items-table tbody{height:100%!important;}
-.output-clone .items-table tbody tr{height:10%!important;}
-.output-clone .items-table td{
-  height:auto!important;
-  min-height:0!important;
-  padding:0!important;
-}
-.output-clone .items-table textarea,
-.output-clone .items-table input{
-  height:100%!important;
-  min-height:0!important;
-  padding:3px 5px!important;
-  box-sizing:border-box!important;
-}
-.output-clone .paper-header{margin-bottom:5px!important;}
-.output-clone .paper-section{margin-bottom:5px!important;}
-.output-clone .company-brand,
-.output-clone .company-brand--no-logo{min-height:56px!important;}
-.output-clone .service-description textarea{min-height:46px!important;height:46px!important;}
-.output-clone .payment-row input,
-.output-clone .time-row input{height:27px!important;min-height:27px!important;}
-.output-clone .observations textarea{height:72px!important;min-height:72px!important;}
-.output-clone .total-row{min-height:27px!important;}
-.output-clone .total-row input,
-.output-clone .total-row output{height:27px!important;min-height:27px!important;}
-.output-clone .signature-box{min-height:78px!important;height:78px!important;}
-.output-clone .paper-footer{margin-top:3px!important;padding-top:2px!important;}
-
-/* Cabecera: verde oscuro más elegante, sin quedar casi negra. */
-.appbar{
-  background:linear-gradient(180deg,#183027 0%,#14261f 100%)!important;
-  border-bottom-color:rgba(255,255,255,.10)!important;
-  box-shadow:0 6px 20px rgba(8,24,16,.18)!important;
-}
-.appbar select,
-.appbar button{
-  background:rgba(255,255,255,.045)!important;
-  border-color:rgba(255,255,255,.14)!important;
-}
-.appbar select:hover,
-.appbar select:focus,
-.appbar .icon-button:hover,
-.action-button--quiet:hover{
-  background:rgba(255,255,255,.075)!important;
-}
-#pdfBtn.action-button--primary{
-  background:linear-gradient(180deg,#36a864 0%,#2d8e54 100%)!important;
-  border-color:#48b874!important;
-  color:#fff!important;
-  box-shadow:0 5px 14px rgba(31,132,74,.24)!important;
-  font-weight:800!important;
-}
-#pdfBtn.action-button--primary:hover{
-  background:linear-gradient(180deg,#3bb36b 0%,#31995b 100%)!important;
-}
-
-@media (max-width:760px){
-  .appbar{
-    background:linear-gradient(180deg,#183027 0%,#13241d 100%)!important;
-    padding:calc(8px + env(safe-area-inset-top)) 10px 9px!important;
-    gap:8px!important;
-  }
-  .appbar__brand{display:none!important;}
-  .appbar__company label{display:none!important;}
-  .appbar__company{
-    display:grid!important;
-    grid-template-columns:minmax(0,1fr) 40px!important;
-    gap:8px!important;
-    width:100%!important;
-  }
-  .appbar__company select{
-    display:block!important;
-    width:100%!important;
-    min-width:0!important;
-    height:42px!important;
-    padding:0 36px 0 13px!important;
-    border-radius:11px!important;
-    font-size:15px!important;
-    font-weight:700!important;
-    color:#f7fbf8!important;
-    background:rgba(255,255,255,.055)!important;
-  }
-  .appbar__company .icon-button{
-    width:40px!important;
-    height:40px!important;
-    border-radius:11px!important;
-    background:rgba(255,255,255,.045)!important;
-  }
-  .appbar__actions{
-    display:grid!important;
-    grid-template-columns:1fr 1fr!important;
-    gap:8px!important;
-  }
-  .appbar__actions .action-button{
-    height:42px!important;
-    border-radius:11px!important;
-    font-size:13px!important;
-  }
-  .appbar__actions .action-button--quiet{
-    background:rgba(255,255,255,.035)!important;
-  }
-  .appbar__actions #pdfBtn{
-    background:linear-gradient(180deg,#39aa66 0%,#2f8f56 100%)!important;
-    border-color:#50b878!important;
-    box-shadow:0 5px 13px rgba(26,124,68,.26)!important;
-  }
-  .appbar__actions #pdfBtn svg{stroke:#fff!important;}
-}
-
-
-/* v17 PRO — datos de cobro compactos */
-.bank-row{margin-top:2.5mm;overflow:hidden}
-.bank-row label{display:grid;grid-template-columns:31mm minmax(0,1fr);align-items:center;min-height:8mm}
-.bank-row span{display:flex;align-items:center;height:100%;padding:1mm 2mm;background:#f4f7f5;border-right:1px solid var(--line);font-size:8px;font-weight:800;letter-spacing:.055em;color:#415249}
-.bank-row input{width:100%;min-width:0;min-height:8mm;padding:1mm 2mm;border:0;background:#fff;font:600 9px/1.2 inherit;letter-spacing:.035em;color:var(--ink)}
-.bank-row input:focus{outline:2px solid rgba(31,122,74,.18);outline-offset:-2px;background:#fbfefc}
-.bank-row input::placeholder{font-weight:500;letter-spacing:.02em;color:#a4aea8}
-
-@media (max-width:760px){
-  .bank-row{margin-top:7px;border-radius:8px}
-  .bank-row label{grid-template-columns:108px minmax(0,1fr);min-height:42px}
-  .bank-row span{padding:0 9px;font-size:10px}
-  .bank-row input{min-height:42px;padding:0 10px;font-size:14px;letter-spacing:.02em}
-}
-
-/* En el A4 queda como una línea bancaria discreta, no como otro bloque grande. */
-.output-clone .bank-row{margin-top:3px!important}
-.output-clone .bank-row label{display:grid!important;grid-template-columns:104px minmax(0,1fr)!important;min-height:25px!important}
-.output-clone .bank-row span{padding:3px 6px!important;font-size:7px!important}
-.output-clone .bank-row input{min-height:25px!important;height:25px!important;padding:3px 6px!important;font-size:9px!important;letter-spacing:.025em!important}
 
 
 /* =========================================================
-   v22 — móvil compacto + PDF robusto
+   PARTE DIGITAL — MAQUETACIÓN FINAL
+   Una sola capa móvil y una salida PDF independiente.
+   ========================================================= */
+
+/* La tabla de pantalla usa scroll horizontal únicamente cuando hace falta. */
+.items-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.items-table{width:100%;table-layout:fixed;}
+.items-table .col-actions{width:62px;}
+
+/* Salida A4: jamás ocultar la columna IMPORTE por posición. */
+.output-clone .items-table .col-actions{display:none!important;}
+.output-clone .items-table td:last-child{display:table-cell!important;}
+.output-clone .items-table td:nth-child(4){display:table-cell!important;visibility:visible!important;}
+.output-clone .items-table td:nth-child(4) .output-static-value{display:flex!important;visibility:visible!important;opacity:1!important;}
+.output-clone .items-table td:nth-child(2),
+.output-clone .items-table td:nth-child(2) .output-static-value{text-align:left!important;justify-content:flex-start!important;}
+
+.output-static-value{
+  display:flex;
+  align-items:center;
+  width:100%;
+  height:100%;
+  min-height:27px;
+  box-sizing:border-box;
+  padding:3px 5px;
+  color:#16231c;
+  font-size:10px;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  overflow:visible;
+}
+.output-static-value--left{justify-content:flex-start;text-align:left;white-space:pre-wrap;line-height:1.25;}
+.output-static-value--center{justify-content:center;text-align:center;}
+.output-static-value--right{justify-content:flex-end;text-align:right;}
+.output-clone .items-table td .output-static-value--right{justify-content:flex-end!important;text-align:right!important;}
+.output-clone .money-with-reset{display:flex!important;align-self:stretch!important;min-height:100%!important;height:100%!important;}
+.output-clone .money-with-reset .output-static-value{border:0!important;}
+.output-clone .total-row--vat{grid-template-columns:minmax(0,1fr) 62px 86px!important;}
+.output-clone .vat-editor{display:grid!important;grid-template-columns:minmax(0,1fr) 16px!important;align-items:stretch!important;}
+.output-clone .vat-editor span{display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important;}
+.output-clone .total-row--grand{border-bottom:1px solid #89958e!important;}
+
+/* =========================================================
+   MÓVIL — 320/375/390/430 px, sin desbordamientos
    ========================================================= */
 @media (max-width:760px){
-  .draftbar{display:none!important}
+  html,body{min-width:320px;overflow-x:hidden;}
+
+  /* Cabecera: dos filas reales. Nunca display:contents. */
   .appbar{
-    position:sticky!important;top:0!important;z-index:50!important;
-    display:grid!important;grid-template-columns:minmax(0,1fr) 42px 42px 112px!important;
-    align-items:center!important;gap:7px!important;
-    padding:calc(7px + env(safe-area-inset-top)) 8px 8px!important;
-    background:linear-gradient(180deg,#183027 0%,#13251e 100%)!important;
+    position:sticky;
+    top:0;
+    z-index:60;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:7px;
+    width:100%;
+    padding:calc(8px + env(safe-area-inset-top)) 9px 9px;
+    overflow:visible;
   }
-  .appbar__brand,.appbar__company label{display:none!important}
-  .appbar__company,.appbar__actions{display:contents!important}
-  .appbar__company select{grid-column:1!important;width:100%!important;height:42px!important;min-width:0!important;padding:0 34px 0 12px!important;border-radius:11px!important;font-size:15px!important;font-weight:800!important}
-  .appbar__company .icon-button{grid-column:2!important;width:42px!important;height:42px!important;border-radius:11px!important}
-  .appbar__actions #newDocumentBtn{grid-column:3!important;width:42px!important;height:42px!important;padding:0!important;border-radius:11px!important}
-  .appbar__actions #newDocumentBtn span{display:none!important}
-  .appbar__actions #pdfBtn{grid-column:4!important;width:112px!important;height:42px!important;padding:0 12px!important;border-radius:11px!important;background:linear-gradient(180deg,#36aa64 0%,#2c8f54 100%)!important;border-color:#4db877!important;box-shadow:0 4px 12px rgba(37,143,81,.26)!important}
-  .appbar__actions #pdfBtn span{font-size:13px!important;font-weight:900!important}
-  .appbar__actions .temporarily-hidden{display:none!important}
+  .appbar__brand{display:none!important;}
+  .appbar__company{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 40px;
+    gap:7px;
+    width:100%;
+    min-width:0;
+  }
+  .appbar__company label{display:none!important;}
+  .appbar__company select{
+    display:block;
+    width:100%;
+    min-width:0;
+    height:40px;
+    padding:0 34px 0 12px;
+    border-radius:10px;
+    font-size:14px;
+    font-weight:800;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .appbar__company .icon-button{
+    width:40px;height:40px;min-width:40px;padding:0;border-radius:10px;
+  }
+  .appbar__actions{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:7px;
+    width:100%;
+    max-width:none;
+    min-width:0;
+  }
+  .appbar__actions .temporarily-hidden{display:none!important;}
+  .appbar__actions #newDocumentBtn,
+  .appbar__actions #pdfBtn{
+    display:flex!important;
+    width:100%;
+    min-width:0;
+    height:40px;
+    padding:0 10px;
+    justify-content:center;
+    align-items:center;
+    border-radius:10px;
+    white-space:nowrap;
+  }
+  .appbar__actions #newDocumentBtn span,
+  .appbar__actions #pdfBtn span{display:inline!important;font-size:12px!important;white-space:nowrap!important;}
 
-  .workspace{padding:8px 7px 26px!important}
-  .paper:not(.output-clone){width:100%!important;max-width:100%!important;padding:10px!important;border-radius:12px!important;box-shadow:0 2px 10px rgba(20,38,29,.08)!important}
-  .paper:not(.output-clone) .paper-header{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
-  .paper:not(.output-clone) .company-brand{min-height:0!important}
-  .paper:not(.output-clone) .company-brand__text h1{font-size:20px!important;line-height:1.05!important;margin-bottom:3px!important}
-  .paper:not(.output-clone) .company-contact{font-size:11px!important;line-height:1.3!important}
-  .paper:not(.output-clone) .document-meta{width:100%!important;display:grid!important;grid-template-columns:1fr!important;border-radius:8px!important;overflow:hidden!important}
-  .paper:not(.output-clone) .document-meta label{display:grid!important;grid-template-columns:105px 1fr!important;min-height:38px!important;border-bottom:1px solid #dfe5e1!important}
-  .paper:not(.output-clone) .document-meta label:last-child{border-bottom:0!important}
-  .paper:not(.output-clone) .document-meta label>span{display:flex!important;align-items:center!important;padding:0 9px!important;font-size:9px!important;font-weight:850!important}
-  .paper:not(.output-clone) .document-meta input,.paper:not(.output-clone) .document-meta select{min-height:38px!important;height:38px!important;border-left:1px solid #dfe5e1!important;padding:0 9px!important;font-size:13px!important}
+  .workspace{width:100%;padding:8px 8px 28px;overflow-x:hidden;}
+  .paper:not(.output-clone){width:100%;max-width:none;padding:10px;border-radius:10px;}
+  .paper:not(.output-clone) .paper-header{display:grid;grid-template-columns:1fr;gap:8px;padding:0;}
+  .paper:not(.output-clone) .company-brand{min-width:0;min-height:0;}
+  .paper:not(.output-clone) .company-brand--has-logo{grid-template-columns:82px minmax(0,1fr);gap:10px;}
+  .paper:not(.output-clone) .company-logo-wrap{width:82px;min-width:82px;max-width:82px;height:62px;padding:6px;}
+  .paper:not(.output-clone) .company-brand h1{font-size:19px;line-height:1.05;overflow-wrap:anywhere;}
+  .paper:not(.output-clone) .company-contact{font-size:10px;line-height:1.3;overflow-wrap:anywhere;}
 
-  .paper:not(.output-clone) .top-details{display:block!important}
-  .paper:not(.output-clone) .client-box{margin-bottom:8px!important}
-  .paper:not(.output-clone) .field-grid--client{grid-template-columns:1fr 1fr!important;gap:0!important}
-  .paper:not(.output-clone) .field{grid-template-columns:92px minmax(0,1fr)!important;min-height:37px!important}
-  .paper:not(.output-clone) .field--wide{grid-column:1/-1!important}
-  .paper:not(.output-clone) .field span{font-size:8px!important;padding:0 7px!important}
-  .paper:not(.output-clone) .field input{min-height:37px!important;height:37px!important;font-size:13px!important;padding:0 7px!important}
-  .paper:not(.output-clone) .service-boxes{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
-  .paper:not(.output-clone) .check-list label{min-height:34px!important;padding:0 7px!important;font-size:10px!important}
-  .paper:not(.output-clone) .check-list input{width:20px!important;height:20px!important}
-  .paper:not(.output-clone) .service-description textarea{min-height:64px!important}
+  /* Datos del documento: una columna legible. */
+  .paper:not(.output-clone) .document-meta{display:block;width:100%;overflow:hidden;border-radius:9px;}
+  .paper:not(.output-clone) .document-meta label{
+    display:grid!important;
+    grid-template-columns:92px minmax(0,1fr)!important;
+    min-width:0;
+    min-height:40px!important;
+    border-right:0!important;
+    border-bottom:1px solid #e0e6e2!important;
+  }
+  .paper:not(.output-clone) .document-meta label:last-child{border-bottom:0!important;}
+  .paper:not(.output-clone) .document-meta label>span{padding:0 9px!important;font-size:9px!important;white-space:nowrap;}
+  .paper:not(.output-clone) .document-meta input,
+  .paper:not(.output-clone) .document-meta select{width:100%;min-width:0;height:40px;min-height:40px;padding:0 9px;font-size:14px;overflow:hidden;text-overflow:ellipsis;}
 
-  .paper:not(.output-clone) .section-heading{align-items:center!important;gap:8px!important;margin:6px 0!important}
-  .paper:not(.output-clone) .section-heading strong{font-size:14px!important}
-  .paper:not(.output-clone) .section-heading small{font-size:9px!important}
-  .paper:not(.output-clone) .small-button{min-height:36px!important;padding:0 10px!important;font-size:11px!important}
-  .paper:not(.output-clone) .items-table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;border-radius:8px!important}
-  .paper:not(.output-clone) .items-table{min-width:690px!important;table-layout:fixed!important}
-  .paper:not(.output-clone) .items-table th{height:28px!important;font-size:8px!important}
-  .paper:not(.output-clone) .items-table td{height:42px!important}
-  .paper:not(.output-clone) .items-table input,.paper:not(.output-clone) .items-table textarea{min-height:40px!important;height:40px!important;font-size:13px!important}
-  .paper:not(.output-clone) .line-action{width:30px!important;height:30px!important}
+  /* Cliente: nunca comprimir dos campos dentro de 320 px. */
+  .paper:not(.output-clone) .top-details{display:block;}
+  .paper:not(.output-clone) .client-box{margin-bottom:8px;padding:7px 8px 8px;}
+  .paper:not(.output-clone) .field-grid--client{display:grid;grid-template-columns:1fr;gap:0;}
+  .paper:not(.output-clone) .field,
+  .paper:not(.output-clone) .field--wide{
+    display:grid!important;
+    grid-template-columns:96px minmax(0,1fr)!important;
+    min-width:0;
+    min-height:39px!important;
+    grid-column:1!important;
+    border-bottom:1px solid #e1e7e3!important;
+  }
+  .paper:not(.output-clone) .field:last-child{border-bottom:0!important;}
+  .paper:not(.output-clone) .field span{padding:0 6px!important;font-size:8px!important;white-space:nowrap;}
+  .paper:not(.output-clone) .field input{width:100%;min-width:0;height:38px;min-height:38px;padding:0 7px;font-size:14px;}
 
-  .paper:not(.output-clone) .bottom-grid{display:block!important}
-  .paper:not(.output-clone) .totals-panel{margin-top:8px!important}
-  .paper:not(.output-clone) .payment-row{grid-template-columns:1fr!important}
-  .paper:not(.output-clone) .payment-row label{border-right:0!important;border-bottom:1px solid #dfe5e1!important}
-  .paper:not(.output-clone) .payment-row label:last-child{border-bottom:0!important}
-  .paper:not(.output-clone) .time-row{grid-template-columns:1fr 1fr 1fr!important}
-  .paper:not(.output-clone) .consent-signatures{grid-template-columns:1fr!important;gap:8px!important}
-  .paper:not(.output-clone) .signature-box{min-height:92px!important}
+  /* Servicios: dos paneles completos, uno debajo del otro si no caben. */
+  .paper:not(.output-clone) .service-boxes{display:grid;grid-template-columns:1fr;gap:8px;}
+  .paper:not(.output-clone) .check-list{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+  .paper:not(.output-clone) .check-list label{min-height:36px;padding:0 6px;font-size:10px;}
+  .paper:not(.output-clone) .check-list input{width:18px;height:18px;}
+  .paper:not(.output-clone) .service-description textarea{width:100%;min-height:76px;font-size:14px;}
 
-  #companyModal .modal__dialog{inset:env(safe-area-inset-top) 0 0 0!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;border-radius:16px 16px 0 0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
-  #companyModal .modal__header{flex:0 0 auto!important;padding:14px 14px 12px!important}
-  #companyModal .company-manager{display:block!important;min-height:0!important;overflow:hidden!important;flex:1 1 auto!important}
-  #companyModal .company-list-panel{display:flex!important;gap:7px!important;overflow-x:auto!important;overflow-y:hidden!important;max-height:none!important;padding:8px 12px!important;border-right:0!important;border-bottom:1px solid #e1e7e3!important;background:#f7f9f8!important}
-  #companyModal .company-list{display:flex!important;gap:6px!important;flex:0 0 auto!important}
-  #companyModal #newCompanyBtn{flex:0 0 auto!important;min-height:36px!important;width:auto!important;padding:0 11px!important;background:#eef4f0!important;color:#2f493b!important;border:1px solid #cbd8d0!important;border-radius:9px!important}
-  #companyModal .company-editor{height:100%!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;padding:12px 12px calc(18px + env(safe-area-inset-bottom))!important}
-  #companyModal .company-editor__footer{position:static!important;margin:18px 0 0!important;padding:12px 0 calc(6px + env(safe-area-inset-bottom))!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;background:#fff!important;box-shadow:none!important}
-  #companyModal .company-editor__footer .primary-button{grid-column:1/-1!important;grid-row:1!important;min-height:43px!important}
-  #companyModal .company-editor__footer .danger-button,#companyModal .company-editor__footer .secondary-button{grid-row:2!important;min-height:40px!important}
+  /* Conceptos: tabla compacta tipo ficha. IMPORTE siempre visible. */
+  .paper:not(.output-clone) .section-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:5px 1px 7px;}
+  .paper:not(.output-clone) .section-heading strong{font-size:14px;}
+  .paper:not(.output-clone) .section-heading small{display:none;}
+  .paper:not(.output-clone) .small-button{min-height:36px;padding:0 10px;font-size:11px;white-space:nowrap;}
+  .paper:not(.output-clone) .items-table-wrap{overflow:visible;border:0;background:transparent;}
+  .paper:not(.output-clone) .items-table{display:block;width:100%;min-width:0;table-layout:auto;}
+  .paper:not(.output-clone) .items-table thead{display:none;}
+  .paper:not(.output-clone) .items-table tbody{display:block;width:100%;}
+  .paper:not(.output-clone) .items-table tr{
+    display:grid;
+    grid-template-columns:64px minmax(0,1fr) 72px;
+    grid-template-rows:auto auto auto;
+    width:100%;
+    min-width:0;
+    margin:0 0 7px;
+    overflow:hidden;
+    border:1px solid #cbd5cf;
+    border-radius:9px;
+    background:#fff;
+  }
+  .paper:not(.output-clone) .items-table td{
+    display:block;
+    min-width:0;
+    min-height:0;
+    height:auto;
+    padding:0;
+    border:0;
+    border-right:1px solid #dce3df;
+    border-top:1px solid #dce3df;
+  }
+  .paper:not(.output-clone) .items-table td::before{
+    display:block;
+    min-height:17px;
+    padding:3px 6px;
+    box-sizing:border-box;
+    content:attr(data-label);
+    color:#526159;
+    background:#f5f7f6;
+    border-bottom:1px solid #e1e6e3;
+    font-size:7px;
+    font-weight:800;
+    line-height:11px;
+    text-align:left;
+  }
+  .paper:not(.output-clone) .items-table td:nth-child(2){grid-column:1/-1;grid-row:1;border-top:0;border-right:0;}
+  .paper:not(.output-clone) .items-table td:nth-child(1){grid-column:1;grid-row:2;}
+  .paper:not(.output-clone) .items-table td:nth-child(3){grid-column:2;grid-row:2;}
+  .paper:not(.output-clone) .items-table td:nth-child(4){grid-column:3;grid-row:2;}
+  .paper:not(.output-clone) .items-table td:nth-child(5){grid-column:1/-1;grid-row:3;border-right:0;}
+  .paper:not(.output-clone) .items-table input,
+  .paper:not(.output-clone) .items-table textarea{width:100%;min-width:0;min-height:34px;height:34px;padding:6px 7px;font-size:13px;box-sizing:border-box;}
+  .paper:not(.output-clone) .items-table textarea[data-field="concept"]{height:40px;min-height:40px;resize:none;overflow:hidden;text-align:left;}
+  .paper:not(.output-clone) .items-table input[data-field="qty"]{text-align:center;}
+  .paper:not(.output-clone) .items-table input[data-field="price"],
+  .paper:not(.output-clone) .items-table input[data-field="amount"]{text-align:right;}
+  .paper:not(.output-clone) .items-table .line-actions{display:flex;align-items:center;justify-content:center;gap:5px;min-height:42px;height:42px;padding:4px;}
+  .paper:not(.output-clone) .items-table .line-action{width:30px;height:30px;}
+
+  /* Cobro / totales: una columna y controles grandes. */
+  .paper:not(.output-clone) .bottom-grid{display:block;}
+  .paper:not(.output-clone) .payment-row{grid-template-columns:1fr;}
+  .paper:not(.output-clone) .payment-row label{border-right:0;border-bottom:1px solid var(--line);}
+  .paper:not(.output-clone) .payment-row label:last-child{border-bottom:0;}
+  .paper:not(.output-clone) .payment-row input{min-height:40px;font-size:14px;}
+  .paper:not(.output-clone) .bank-row label{grid-template-columns:96px minmax(0,1fr);min-height:40px;}
+  .paper:not(.output-clone) .bank-row input{min-height:40px;font-size:14px;}
+  .paper:not(.output-clone) .time-row{grid-template-columns:1fr 1fr 1fr;}
+  .paper:not(.output-clone) .time-row input{min-height:40px;font-size:14px;}
+  .paper:not(.output-clone) .observations textarea{min-height:110px;font-size:14px;line-height:23px;}
+  .paper:not(.output-clone) .totals-panel{margin-top:8px;padding:8px;}
+  .paper:not(.output-clone) .total-row{min-height:42px;grid-template-columns:minmax(0,1fr) 112px;}
+  .paper:not(.output-clone) .total-row input,
+  .paper:not(.output-clone) .total-row output{min-height:42px;padding:7px;font-size:14px;}
+  .paper:not(.output-clone) .total-row--vat{grid-template-columns:minmax(0,1fr) 76px 100px;}
+  .paper:not(.output-clone) .vat-editor{display:grid;grid-template-columns:minmax(0,1fr) 20px;align-items:stretch;}
+  .paper:not(.output-clone) .vat-editor input{text-align:right;padding:0 4px;}
+  .paper:not(.output-clone) .vat-editor span{display:flex;align-items:center;justify-content:center;padding:0;font-size:11px;font-weight:800;}
+  .paper:not(.output-clone) .total-row--grand{min-height:48px;}
+  .paper:not(.output-clone) .total-row--grand input{min-height:48px;font-size:18px;font-weight:900;}
+  .paper:not(.output-clone) .total-source{grid-template-columns:1fr 1fr;gap:6px;}
+  .paper:not(.output-clone) .consent-signatures{grid-template-columns:1fr;gap:8px;}
+  .paper:not(.output-clone) .signature-box{min-height:120px;}
+
+  /* Modal Empresas: viewport completo + scroll vertical REAL en editor. */
+  #companyModal .modal__backdrop{background:rgba(7,15,10,.66);backdrop-filter:blur(5px);}
+  #companyModal .modal__dialog{
+    position:fixed;
+    inset:calc(6px + env(safe-area-inset-top)) 6px calc(6px + env(safe-area-inset-bottom)) 6px;
+    width:auto;
+    max-width:none;
+    height:auto;
+    max-height:none;
+    margin:0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border-radius:16px;
+  }
+  #companyModal .modal__header{flex:0 0 auto;min-height:60px;padding:12px 13px;}
+  #companyModal .modal__header h2{font-size:18px;}
+  #companyModal .modal__header p{display:none;}
+  #companyModal .company-manager{
+    display:flex;
+    flex:1 1 auto;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+  }
+  #companyModal .company-list-panel{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    padding:8px 10px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    border-right:0;
+    border-bottom:1px solid #e1e7e3;
+  }
+  #companyModal .company-list{
+    display:flex;
+    flex:0 0 auto;
+    gap:6px;
+    margin:0;
+    min-width:max-content;
+  }
+  #companyModal .company-list-item{
+    flex:0 0 180px;
+    width:180px;
+    min-width:180px;
+    min-height:52px;
+  }
+  #companyModal #newCompanyBtn{flex:0 0 auto;width:auto;min-width:150px;min-height:40px;}
+  #companyModal .company-editor{
+    flex:1 1 auto;
+    min-height:0;
+    width:100%;
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding:12px 12px calc(24px + env(safe-area-inset-bottom));
+  }
+  #companyModal .company-editor__logo{
+    display:grid;
+    grid-template-columns:110px minmax(0,1fr);
+    gap:10px;
+    align-items:center;
+  }
+  #companyModal .logo-preview{width:110px;height:76px;}
+  #companyModal .company-editor__logo .file-button,
+  #companyModal .company-editor__logo .text-button{max-width:100%;}
+  #companyModal .editor-grid{grid-template-columns:1fr;gap:10px;}
+  #companyModal .editor-field--wide{grid-column:1;}
+  #companyModal .editor-field input,
+  #companyModal .editor-field textarea{min-height:42px;font-size:15px;}
+  #companyModal .company-editor__footer{
+    position:static;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin:16px 0 0;
+    padding:12px 0 calc(12px + env(safe-area-inset-bottom));
+    background:#fff;
+    border-top:1px solid #e0e5e2;
+    box-shadow:none;
+  }
+  #companyModal .company-editor__footer .primary-button{grid-column:1/-1;min-height:44px;}
+  #companyModal .company-editor__footer .danger-button,
+  #companyModal .company-editor__footer .secondary-button{min-height:40px;margin:0;}
 }
 
-/* PDF: importes como texto estable y separadores completos. */
-.output-clone .output-static-value{display:flex!important;align-items:center!important;justify-content:flex-end!important;width:100%!important;height:100%!important;min-height:inherit!important;padding:3px 5px!important;box-sizing:border-box!important;font-size:10px!important;font-variant-numeric:tabular-nums!important;white-space:nowrap!important}
-.output-clone .items-table td .output-static-value{justify-content:flex-end!important}
-.output-clone .money-with-reset{display:flex!important;align-self:stretch!important;height:100%!important;min-height:100%!important;border-left:1px solid #89958e!important}
-.output-clone .money-with-reset .output-static-value{height:100%!important;min-height:100%!important;border:0!important}
-.output-clone .total-row--grand{border-bottom:1px solid #89958e!important}
-.output-clone .totals-panel{padding-bottom:0!important}
-.output-clone .output-static-value--left{justify-content:flex-start!important;text-align:left!important;white-space:pre-wrap!important;line-height:1.25!important}
-.output-clone .output-static-value--center{justify-content:center!important;text-align:center!important}
-.output-clone .output-static-value--right{justify-content:flex-end!important;text-align:right!important}
+@media (max-width:430px){
+  .appbar{padding-left:7px;padding-right:7px;}
+  .appbar__company{grid-template-columns:minmax(0,1fr) 38px;}
+  .appbar__company .icon-button{width:38px;height:38px;min-width:38px;}
+  .appbar__company select{height:38px;font-size:13px;}
+  .appbar__actions{gap:6px;}
+  .appbar__actions #newDocumentBtn,.appbar__actions #pdfBtn{height:38px;padding:0 8px;}
+  .appbar__actions #newDocumentBtn span,.appbar__actions #pdfBtn span{font-size:11px!important;}
+  .paper:not(.output-clone){padding:8px;}
+  .paper:not(.output-clone) .field-grid--client{grid-template-columns:1fr;}
+  .paper:not(.output-clone) .check-list{grid-template-columns:1fr;}
+  .paper:not(.output-clone) .time-row{grid-template-columns:1fr;}
+  .paper:not(.output-clone) .time-row label{border-right:0;border-bottom:1px solid var(--line);}
+  .paper:not(.output-clone) .time-row label:last-child{border-bottom:0;}
+  .paper:not(.output-clone) .total-row--vat{grid-template-columns:minmax(0,1fr) 66px 92px;}
+  #companyModal .company-list-item{flex-basis:170px;width:170px;min-width:170px;}
+  #companyModal .company-editor__logo{grid-template-columns:96px minmax(0,1fr);}
+  #companyModal .logo-preview{width:96px;height:70px;}
+}
