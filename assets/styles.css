@@ -2180,3 +2180,93 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   .paper:not(.output-clone) .field-grid--client{gap:5px!important}
   .paper:not(.output-clone) .check-list{gap:5px!important}
 }
+
+/* =========================================================
+   v19 — MÓVIL ESTABLE: compacto, sin tarjetas gigantes
+   ========================================================= */
+@media (max-width:760px){
+  .workspace{padding:8px 8px 28px!important}
+  .paper:not(.output-clone) .paper-header{padding:10px!important;gap:8px!important}
+  .paper:not(.output-clone) .company-brand h1{font-size:19px!important}
+
+  /* Documento: filas claras, no 3 columnas apretadas */
+  .paper:not(.output-clone) .document-meta{display:block!important;border-radius:9px!important}
+  .paper:not(.output-clone) .document-meta label{
+    display:grid!important;grid-template-columns:105px minmax(0,1fr)!important;align-items:center!important;
+    min-height:42px!important;padding:0!important;border-right:0!important;border-bottom:1px solid #e0e6e2!important;
+  }
+  .paper:not(.output-clone) .document-meta label:last-child{border-bottom:0!important}
+  .paper:not(.output-clone) .document-meta label>span{margin:0!important;padding:0 10px!important;font-size:9px!important}
+  .paper:not(.output-clone) .document-meta input,.paper:not(.output-clone) .document-meta select{
+    width:100%!important;min-width:0!important;height:41px!important;min-height:41px!important;padding:0 10px!important;
+    border-left:1px solid #e0e6e2!important;font-size:14px!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  }
+
+  /* Cliente: formulario rápido y denso */
+  .paper:not(.output-clone) .client-box{padding:6px 8px 8px!important}
+  .paper:not(.output-clone) .field-grid--client{display:grid!important;grid-template-columns:1fr 1fr!important;gap:0 10px!important}
+  .paper:not(.output-clone) .field,.paper:not(.output-clone) .field--wide{
+    display:grid!important;grid-template-columns:96px minmax(0,1fr)!important;align-items:center!important;
+    min-height:40px!important;border:0!important;border-radius:0!important;border-bottom:1px solid #e1e7e3!important;background:#fff!important;
+  }
+  .paper:not(.output-clone) .field--wide{grid-column:1/-1!important}
+  .paper:not(.output-clone) .field span{padding:0 6px!important;font-size:8px!important;white-space:nowrap!important}
+  .paper:not(.output-clone) .field input{height:39px!important;min-height:39px!important;padding:0 6px!important;font-size:14px!important}
+
+  /* Conceptos: tabla horizontal compacta y usable, no tarjetas enormes */
+  .paper:not(.output-clone) .section-heading{align-items:center!important;margin:2px 1px 6px!important}
+  .paper:not(.output-clone) .section-heading small{display:none!important}
+  .paper:not(.output-clone) .items-table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;border:1px solid #d9e1dc!important;border-radius:10px!important;background:#fff!important}
+  .paper:not(.output-clone) .items-table{display:table!important;width:100%!important;min-width:620px!important;border-collapse:collapse!important}
+  .paper:not(.output-clone) .items-table thead{display:table-header-group!important}
+  .paper:not(.output-clone) .items-table tbody{display:table-row-group!important}
+  .paper:not(.output-clone) .items-table tr{display:table-row!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+  .paper:not(.output-clone) .items-table th{height:30px!important;padding:4px 5px!important;font-size:8px!important;background:#f5f8f6!important;white-space:nowrap!important}
+  .paper:not(.output-clone) .items-table td{display:table-cell!important;position:static!important;height:42px!important;min-height:42px!important;padding:0!important;border-top:1px solid #e1e7e3!important;border-right:1px solid #e1e7e3!important;vertical-align:middle!important}
+  .paper:not(.output-clone) .items-table td::before{display:none!important}
+  .paper:not(.output-clone) .items-table td:nth-child(n){grid-column:auto!important;grid-row:auto!important}
+  .paper:not(.output-clone) .items-table td:nth-child(1){width:72px!important}
+  .paper:not(.output-clone) .items-table td:nth-child(2){width:auto!important;min-width:260px!important}
+  .paper:not(.output-clone) .items-table td:nth-child(3),.paper:not(.output-clone) .items-table td:nth-child(4){width:95px!important}
+  .paper:not(.output-clone) .items-table td:nth-child(5){display:table-cell!important;width:70px!important;padding:4px!important}
+  .paper:not(.output-clone) .items-table textarea,.paper:not(.output-clone) .items-table input{height:40px!important;min-height:40px!important;padding:5px 7px!important;font-size:13px!important}
+  .paper:not(.output-clone) .items-table td:nth-child(2) textarea{height:40px!important;min-height:40px!important;padding:5px 7px!important;resize:none!important}
+  .paper:not(.output-clone) .items-table .line-actions{display:flex!important;gap:4px!important;justify-content:center!important}
+  .paper:not(.output-clone) .items-table .delete-line,.paper:not(.output-clone) .items-table .reset-line{width:28px!important;height:28px!important;border-radius:7px!important}
+
+  /* Servicio: dos columnas compactas si caben */
+  .paper:not(.output-clone) .service-boxes{grid-template-columns:1fr 1fr!important;gap:7px!important}
+  .paper:not(.output-clone) .check-box{padding:6px!important}
+  .paper:not(.output-clone) .check-list{grid-template-columns:1fr!important;gap:0!important}
+  .paper:not(.output-clone) .check-list label{min-height:34px!important;border:0!important;border-bottom:1px solid #e3e8e5!important;border-radius:0!important;padding:0 5px!important;background:#fff!important}
+  .paper:not(.output-clone) .check-list label:last-child{border-bottom:0!important}
+  .paper:not(.output-clone) .check-list span{font-size:9px!important}
+  .paper:not(.output-clone) .check-list input{width:18px!important;height:18px!important}
+}
+
+@media (max-width:430px){
+  .paper:not(.output-clone) .field-grid--client{grid-template-columns:1fr!important;gap:0!important}
+  .paper:not(.output-clone) .field--wide{grid-column:auto!important}
+  .paper:not(.output-clone) .field{grid-template-columns:105px minmax(0,1fr)!important}
+  .paper:not(.output-clone) .service-boxes{grid-template-columns:1fr 1fr!important}
+}
+
+/* v20 — importes/totales legibles y consistentes en PDF */
+.output-clone .items-table [data-field="price"],
+.output-clone .items-table [data-field="amount"]{
+  color:#111!important;
+  opacity:1!important;
+  -webkit-text-fill-color:#111!important;
+  text-align:right!important;
+  font-variant-numeric:tabular-nums!important;
+}
+.output-clone #subtotalAmount,
+.output-clone #grandTotalAmount,
+.output-clone #vatAmount{
+  color:#111!important;
+  opacity:1!important;
+  -webkit-text-fill-color:#111!important;
+  font-weight:700!important;
+  font-variant-numeric:tabular-nums!important;
+}
+.output-clone .total-row--grand{font-weight:800!important;background:#f3f7f4!important;}
