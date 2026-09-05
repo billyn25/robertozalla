@@ -411,9 +411,18 @@
     els.documentSearch.addEventListener('input', renderDocumentsList);
     els.documentsList.addEventListener('click', handleDocumentListAction);
 
-    els.printBtn.addEventListener('click', () => {
+    els.printBtn.addEventListener('click', async () => {
       formatAllMoneyFields();
-      window.print();
+      calculateTotals();
+      saveDraftNow();
+      prepareOutputLayout();
+      try {
+        await nextFrame();
+        await nextFrame();
+        window.print();
+      } finally {
+        restoreOutputLayout();
+      }
     });
     els.pdfBtn.addEventListener('click', exportPdf);
 
@@ -1159,9 +1168,6 @@
     try {
       await nextFrame();
       await nextFrame();
-      if (typeof window.html2pdf !== 'function') {
-        throw new Error('El generador PDF no se ha cargado');
-      }
 
       const fields = serializeDocument().fields;
       const company = getActiveCompany();
@@ -1172,24 +1178,32 @@
         fields.documentDate || new Date().toISOString().slice(0, 10)
       ].filter(Boolean).map(slugify).join('_') + '.pdf';
 
-      const options = {
-        margin: 0,
-        filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: '#ffffff',
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: 794
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.bottom-grid', '.consent-signatures'] }
-      };
+      // Capturamos la hoja A4 desde x=0. Evita el recorte lateral que
+      // producia html2pdf al reducir el viewport de una hoja centrada.
+      if (typeof window.html2canvas !== 'function' || !window.jspdf?.jsPDF) {
+        throw new Error('El generador PDF no se ha cargado');
+      }
 
-      await window.html2pdf().set(options).from(els.sheet).save();
+      const rect = els.sheet.getBoundingClientRect();
+      const canvas = await window.html2canvas(els.sheet, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        width: Math.ceil(rect.width),
+        height: Math.ceil(rect.height),
+        windowWidth: Math.ceil(rect.width),
+        windowHeight: Math.ceil(rect.height)
+      });
+
+      const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
+      const imgData = canvas.toDataURL('image/jpeg', 0.98);
+      pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      pdf.save(filename);
       showToast('PDF generado.');
     } catch (error) {
       console.error(error);
