@@ -9,6 +9,7 @@
   };
 
   const MIN_INITIAL_LINES = 8;
+  const MAX_A4_LINES = 10; // calculado para una sola A4 con márgenes de 4 mm y pie completo
   const memoryStorage = new Map();
   const moneyFormatter = new Intl.NumberFormat('es-ES', {
     minimumFractionDigits: 2,
@@ -274,9 +275,8 @@
         formatMoneyField(event.target);
         calculateTotals();
       }
-      if (event.target.name === 'documentDate' || event.target.name === 'serviceDate') {
-        normalizeDateField(event.target);
-      }
+      // Los input type=date deben conservar YYYY-MM-DD. iOS muestra el formato local
+      // y vacía el control si intentamos escribir DD/MM/AAAA dentro del input nativo.
       if (event.target.name === 'arrivalTime' || event.target.name === 'departureTime') {
         normalizeTimeField(event.target);
       }
@@ -333,12 +333,22 @@
 
     els.addLineBtn.addEventListener('click', () => {
       let row = null;
+      const rows = [...els.itemsBody.querySelectorAll('tr')];
+
+      // En móvil primero reutilizamos líneas vacías que ya existen.
       if (window.matchMedia('(max-width: 760px)').matches) {
-        row = [...els.itemsBody.querySelectorAll('tr')].find((candidate, index) => {
+        row = rows.find((candidate, index) => {
           return index >= 4 && !candidate.classList.contains('has-data') && !candidate.classList.contains('force-visible');
         }) || null;
         if (row) row.classList.add('force-visible');
       }
+
+      // La plantilla A4 está calculada para un máximo de 10 líneas sin invadir el pie.
+      if (!row && rows.length >= MAX_A4_LINES) {
+        showToast(`Máximo ${MAX_A4_LINES} líneas para mantener el PDF en una sola hoja A4.`, 'error');
+        return;
+      }
+
       if (!row) {
         row = createLineRow(blankLine());
         row.classList.add('force-visible');
@@ -1189,13 +1199,14 @@
 
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-      const pageW = 210, pageH = 297, margin = 7;
+      const pageW = 210, pageH = 297, margin = 4;
       const maxW = pageW - margin * 2, maxH = pageH - margin * 2;
       const ratio = canvas.width / canvas.height;
       let outW = maxW, outH = outW / ratio;
       if (outH > maxH) { outH = maxH; outW = outH * ratio; }
       const x = (pageW - outW) / 2;
-      const y = (pageH - outH) / 2;
+      // Alinear arriba: evita el gran margen superior que producía el centrado vertical.
+      const y = margin;
       const imgData = canvas.toDataURL('image/jpeg', 0.94);
       pdf.addImage(imgData, 'JPEG', x, y, outW, outH, undefined, 'FAST');
       pdf.save(filename);
@@ -1238,6 +1249,20 @@
         if (img.src && !img.src.startsWith('data:')) img.crossOrigin = 'anonymous';
       });
       await Promise.all([...clone.querySelectorAll('img')].filter(i => i.src).map(waitForImage));
+
+      // PDF A4 PRO: nunca dejamos más de MAX_A4_LINES en la copia de salida.
+      // Las líneas vacías sobrantes se recortan; si faltan, se completan hasta el mínimo visual.
+      const outputRows = [...clone.querySelectorAll('#itemsBody tr')];
+      while (outputRows.length > MAX_A4_LINES) {
+        const candidate = outputRows.pop();
+        const hasValue = [...candidate.querySelectorAll('input, textarea')].some(el => String(el.value || '').trim());
+        if (hasValue) {
+          outputRows.push(candidate);
+          break;
+        }
+        candidate.remove();
+      }
+
       await nextFrame();
 
       const rect = clone.getBoundingClientRect();
@@ -1285,8 +1310,15 @@
       if (!cloneControl) return;
 
       if (sourceControl instanceof HTMLInputElement) {
-        cloneControl.value = sourceControl.value;
-        cloneControl.setAttribute('value', sourceControl.value);
+        if (sourceControl.type === 'date') {
+          const shownDate = formatDateForDisplay(sourceControl.value);
+          try { cloneControl.type = 'text'; } catch (_) {}
+          cloneControl.value = shownDate;
+          cloneControl.setAttribute('value', shownDate);
+        } else {
+          cloneControl.value = sourceControl.value;
+          cloneControl.setAttribute('value', sourceControl.value);
+        }
         if (sourceControl.type === 'checkbox' || sourceControl.type === 'radio') {
           cloneControl.checked = sourceControl.checked;
           if (sourceControl.checked) cloneControl.setAttribute('checked', 'checked');

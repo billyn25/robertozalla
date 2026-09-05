@@ -1080,3 +1080,403 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   border-top-color:#2e8b57;border-radius:50%;animation:pdfspin .8s linear infinite;
 }
 @keyframes pdfspin{to{transform:rotate(360deg)}}
+
+/* ===== v10 · acabado profesional ===== */
+.paper{
+  color:#1b241f!important;
+  font-family:Inter,Arial,Helvetica,sans-serif!important;
+  font-size:9.4px!important;
+  line-height:1.28!important;
+}
+.company-brand h1{
+  font-size:22px!important;
+  line-height:1!important;
+  letter-spacing:-.035em!important;
+  font-weight:800!important;
+}
+.company-brand__text p{
+  margin:.9mm 0 .55mm!important;
+  color:#36443c!important;
+  font-size:8px!important;
+  line-height:1.2!important;
+  font-weight:700!important;
+}
+.company-contact{font-size:8.3px!important;line-height:1.2!important;gap:.8mm 2.5mm!important;}
+.company-brand__text strong{font-size:9.2px!important;line-height:1.2!important;font-weight:800!important;}
+.paper legend,
+.items-table th,
+.mini-table th,
+.document-meta strong{
+  letter-spacing:.015em!important;
+  font-weight:800!important;
+}
+.paper legend{font-size:8.5px!important;padding:0 1.8mm!important;}
+.document-meta label{min-height:8.3mm!important;}
+.document-meta strong{font-size:8.4px!important;}
+.paper input,.paper select,.paper textarea{font-size:9.2px!important;}
+.items-table th,.mini-table th{font-size:7.2px!important;}
+.items-table td{height:8.1mm!important;}
+.paper-section{margin-bottom:2.1mm!important;}
+.section-title{font-weight:800!important;letter-spacing:-.01em!important;}
+.totals-box strong{font-weight:800!important;}
+.paper-footer{font-size:6.4px!important;color:#56625b!important;}
+
+/* PDF: cabecera más arriba y densidad de documento real */
+.output-clone{
+  padding:20px 27px 22px!important;
+  font-family:Inter,Arial,Helvetica,sans-serif!important;
+}
+.output-clone .paper-header{align-items:start!important;margin-top:0!important;margin-bottom:7px!important;}
+.output-clone .company-brand{min-height:72px!important;align-items:center!important;}
+.output-clone .company-brand--no-logo{min-height:72px!important;}
+.output-clone .company-brand h1{font-size:21px!important;line-height:1!important;}
+.output-clone .company-brand__text p{font-size:8px!important;margin:5px 0 3px!important;}
+.output-clone .company-contact{font-size:8px!important;}
+.output-clone .company-brand__text strong{font-size:9px!important;}
+.output-clone .paper-section{margin-bottom:7px!important;}
+.output-clone .paper-footer{margin-top:5px!important;}
+\n\n/* v11 PRO — móvil compacto + PDF A4 idéntico desde cualquier dispositivo */\n@media (max-width:760px){\n  .appbar{gap:7px;padding:calc(7px + env(safe-area-inset-top)) 10px 7px}\n  .appbar__company{grid-template-columns:auto minmax(0,1fr) 40px}\n  .appbar__actions{grid-template-columns:1fr 1fr;max-width:390px}\n  .action-button{height:42px}\n  .workspace{padding:7px 6px 32px}\n  .paper{padding:10px;border-radius:8px}\n  .paper-header{gap:7px}\n  .company-brand{min-height:54px}\n  .company-brand--no-logo{min-height:44px}\n  .company-brand h1{font-size:21px}\n  .company-brand__text p,.company-contact{font-size:8.5px;line-height:1.25}\n  .document-meta label{min-height:38px}\n  .document-meta input,.document-meta select{font-size:14px}\n  .field,.field--wide{min-height:34px;grid-template-columns:104px minmax(0,1fr)}\n  .field input{min-height:34px;font-size:14px}\n  .check-list label{min-height:28px}\n  .check-list input{width:17px;height:17px}\n}\n\n/* El clon de exportación NO hereda nunca la maquetación móvil. */\n.output-clone .paper-section{margin-bottom:8px!important}\n.output-clone .top-details{display:grid!important;grid-template-columns:minmax(0,1.55fr) minmax(245px,1fr)!important;gap:9px!important}\n.output-clone .field-grid--client{display:grid!important;grid-template-columns:1fr 1fr!important}\n.output-clone .field{display:grid!important;grid-template-columns:92px minmax(0,1fr)!important;min-height:25px!important}\n.output-clone .field--wide{grid-column:1/-1!important}\n.output-clone .field input{min-height:25px!important;font-size:10px!important}\n.output-clone .service-boxes{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}\n.output-clone .check-list label{min-height:22px!important}\n.output-clone .check-list input{width:14px!important;height:14px!important}\n.output-clone .service-description textarea{min-height:52px!important;font-size:10px!important}\n.output-clone .items-table-wrap{overflow:visible!important;border:1px solid var(--line)!important}\n.output-clone .items-table tr{margin:0!important;border:0!important;border-radius:0!important;background:#fff!important}\n.output-clone .items-table td{height:31px!important;min-height:31px!important;border-right:1px solid var(--line)!important;border-top:1px solid var(--line)!important}\n.output-clone .items-table textarea,.output-clone .items-table input{min-height:29px!important;padding:3px 5px!important;font-size:10px!important}\n.output-clone .bottom-grid{display:grid!important;grid-template-columns:minmax(0,1fr) 205px!important;gap:9px!important}\n.output-clone .payment-row{display:grid!important;grid-template-columns:1.15fr 1fr 1fr!important}\n.output-clone .time-row{display:grid!important;grid-template-columns:1fr 1fr 1fr!important}\n.output-clone .payment-row input,.output-clone .time-row input{min-height:31px!important;font-size:10px!important}\n.output-clone .observations textarea{min-height:72px!important;font-size:10px!important;line-height:18px!important}\n.output-clone .total-row{min-height:31px!important;grid-template-columns:minmax(0,1fr) 90px!important}\n.output-clone .total-row--vat{grid-template-columns:minmax(0,1fr) 58px 86px!important}\n.output-clone .total-row input,.output-clone .total-row output{min-height:31px!important;font-size:10px!important;padding:4px!important}\n.output-clone .consent-signatures{display:grid!important;grid-template-columns:1.2fr 1fr 1fr!important}\n.output-clone .signature-box{min-height:86px!important}\n.output-clone input[type=date]{font-size:10px!important}\n
+/* v12 PRO — cabecera móvil y gestor de empresas rehechos */
+@media (max-width:760px){
+  /* Cabecera: más compacta, limpia y estable en iPhone */
+  .appbar{
+    position:sticky;
+    top:0;
+    z-index:40;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:7px;
+    padding:calc(7px + env(safe-area-inset-top)) 10px 8px;
+    background:linear-gradient(180deg,#17261f 0%,#15221c 100%);
+    border-bottom:1px solid rgba(255,255,255,.08);
+    box-shadow:0 6px 18px rgba(8,18,12,.18);
+    backdrop-filter:blur(16px);
+  }
+  .appbar__brand{display:none!important}
+  .appbar__company{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 42px;
+    gap:8px;
+    align-items:center;
+  }
+  .appbar__company label{display:none!important}
+  .appbar select{
+    height:42px;
+    padding:0 38px 0 13px;
+    border-radius:11px;
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:.01em;
+    background:#22352b;
+    border-color:rgba(255,255,255,.16);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+  }
+  .appbar .icon-button{
+    width:42px;
+    height:42px;
+    border-radius:11px;
+    background:#22352b;
+  }
+  .appbar__actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    max-width:none;
+  }
+  .appbar__actions .action-button{
+    height:40px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:750;
+  }
+  .appbar__actions .action-button span{font-size:13px!important;overflow:visible}
+  #pdfBtn span{font-size:13px!important}
+  #pdfBtn span::after{content:none!important}
+  .draftbar{display:none!important}
+
+  /* Modal de empresas: hoja móvil real, sin pie flotante encima del formulario */
+  #companyModal .modal__backdrop{background:rgba(7,15,10,.66);backdrop-filter:blur(6px)}
+  #companyModal .modal__dialog{
+    width:calc(100vw - 12px)!important;
+    height:calc(100dvh - max(12px, env(safe-area-inset-top)));
+    max-height:none!important;
+    margin:max(6px, env(safe-area-inset-top)) 6px 0!important;
+    border-radius:18px 18px 0 0!important;
+    overflow:hidden;
+    background:#f7f9f7;
+    box-shadow:0 -8px 40px rgba(5,15,9,.30);
+  }
+  #companyModal .modal__header{
+    position:relative;
+    z-index:5;
+    flex:0 0 auto;
+    align-items:center;
+    min-height:70px;
+    padding:14px 14px 12px;
+    background:rgba(249,251,249,.98);
+    border-bottom:1px solid #dbe2dd;
+  }
+  #companyModal .modal__header h2{font-size:21px;line-height:1.05;letter-spacing:-.02em}
+  #companyModal .modal__header p{display:none}
+  #companyModal .modal__close{
+    width:40px;
+    height:40px;
+    flex-basis:40px;
+    border-radius:11px;
+    font-size:28px;
+    background:#fff;
+  }
+  #companyModal .company-manager{
+    display:flex!important;
+    flex:1 1 auto;
+    min-height:0;
+    overflow:hidden!important;
+    flex-direction:column;
+  }
+  #companyModal .company-list-panel{
+    flex:0 0 auto;
+    max-height:none!important;
+    padding:10px 12px 9px;
+    overflow:hidden!important;
+    background:#eef3ef;
+    border-right:0;
+    border-bottom:1px solid #d9e1db;
+  }
+  #companyModal .primary-wide{
+    min-height:38px;
+    border-radius:10px;
+    font-size:12px;
+    box-shadow:none;
+  }
+  #companyModal .company-list{
+    display:flex!important;
+    gap:7px;
+    margin-top:8px;
+    padding-bottom:2px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  #companyModal .company-list::-webkit-scrollbar{display:none}
+  #companyModal .company-list-item{
+    flex:0 0 auto;
+    min-width:145px;
+    max-width:210px;
+    min-height:52px;
+    padding:9px 10px;
+    border-radius:10px;
+    scroll-snap-align:start;
+  }
+  #companyModal .company-list-item strong{font-size:12px}
+  #companyModal .company-list-item small{font-size:9px;margin-top:3px}
+
+  #companyModal .company-editor{
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    padding:14px 14px calc(28px + env(safe-area-inset-bottom));
+    background:#fff;
+  }
+  #companyModal .company-editor__logo{
+    grid-template-columns:88px minmax(0,1fr)!important;
+    gap:12px;
+    margin-bottom:15px;
+    padding:12px;
+    background:#f7faf8;
+    border:1px solid #dce4df;
+    border-radius:12px;
+  }
+  #companyModal .logo-preview{
+    width:88px!important;
+    height:68px!important;
+    border-radius:9px;
+    background:#fff;
+  }
+  #companyModal .company-editor__logo > div:last-child{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:7px;
+  }
+  #companyModal .file-button,
+  #companyModal .text-button{
+    min-height:34px;
+    margin:0;
+    padding:0 10px;
+    font-size:11px;
+  }
+  #companyModal .company-editor__logo small{
+    flex-basis:100%;
+    margin:0;
+    font-size:9px;
+    line-height:1.35;
+  }
+  #companyModal .editor-grid{gap:11px!important}
+  #companyModal .editor-field{gap:5px}
+  #companyModal .editor-field span{
+    font-size:11px;
+    color:#4b5e53;
+    letter-spacing:.01em;
+  }
+  #companyModal .editor-field input,
+  #companyModal .editor-field textarea{
+    min-height:44px;
+    padding:10px 12px;
+    border-radius:10px;
+    font-size:15px;
+    border-color:#c9d4cd;
+    background:#fff;
+  }
+  #companyModal .editor-field textarea{min-height:96px;line-height:1.35}
+  #companyModal .company-editor__footer{
+    position:static!important;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin:18px 0 0!important;
+    padding:16px 0 0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    border-top:1px solid #e0e6e2;
+  }
+  #companyModal .company-editor__footer .primary-button{
+    grid-column:1/-1;
+    grid-row:1;
+    min-height:46px;
+    font-size:14px;
+    border-radius:11px;
+  }
+  #companyModal .company-editor__footer .danger-button,
+  #companyModal .company-editor__footer .secondary-button{
+    grid-row:2;
+    min-height:42px;
+    margin:0;
+    border-radius:10px;
+    font-size:12px;
+  }
+  #companyModal .company-editor__footer .danger-button{grid-column:1}
+  #companyModal .company-editor__footer .secondary-button{grid-column:2}
+}
+
+/* v13 PRO — A4 aprovechado al máximo + 10 líneas seguras */
+.output-clone{
+  /* El margen exterior real lo controla jsPDF (4 mm). Aquí solo dejamos aire técnico. */
+  padding:8px 10px 10px!important;
+}
+.output-clone .paper-header{margin-bottom:5px!important;gap:8px!important}
+.output-clone .company-brand,
+.output-clone .company-brand--no-logo{min-height:64px!important}
+.output-clone .paper-section{margin-bottom:5px!important}
+.output-clone .service-description textarea{min-height:46px!important}
+.output-clone .items-table th{height:20px!important;padding:2px 4px!important}
+.output-clone .items-table td{height:27px!important;min-height:27px!important}
+.output-clone .items-table textarea,
+.output-clone .items-table input{min-height:25px!important;height:25px!important;padding:2px 4px!important;line-height:18px!important}
+.output-clone .payment-row input,
+.output-clone .time-row input{min-height:27px!important;height:27px!important}
+.output-clone .observations textarea{min-height:64px!important}
+.output-clone .total-row{min-height:27px!important}
+.output-clone .total-row input,
+.output-clone .total-row output{min-height:27px!important;height:27px!important}
+.output-clone .signature-box{min-height:78px!important}
+.output-clone .paper-footer{margin-top:3px!important;padding-top:2px!important}
+
+/* En pantalla dejamos claro el límite A4 sin cargar la interfaz. */
+.section-heading small{white-space:normal}
+
+
+/* v14 — cabecera visual refinada: menos verde, controles discretos */
+.appbar{
+  background:rgba(17,24,20,.98)!important;
+  border-bottom-color:rgba(255,255,255,.075)!important;
+  box-shadow:0 5px 18px rgba(5,10,7,.16)!important;
+}
+.appbar select,
+.appbar button{
+  background:#1c2520!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+.appbar select:hover,
+.appbar select:focus{
+  background:#202b25!important;
+  border-color:rgba(255,255,255,.22)!important;
+}
+.appbar .icon-button{
+  color:#dce5df!important;
+  background:transparent!important;
+  border-color:rgba(255,255,255,.13)!important;
+  box-shadow:none!important;
+}
+.appbar .icon-button:hover{
+  background:rgba(255,255,255,.055)!important;
+  border-color:rgba(255,255,255,.24)!important;
+}
+.appbar .icon-button svg{
+  width:18px!important;
+  height:18px!important;
+  stroke-width:1.65!important;
+}
+.action-button--quiet{
+  background:transparent!important;
+}
+.action-button--quiet:hover{
+  background:rgba(255,255,255,.055)!important;
+}
+.action-button--primary{
+  background:#2d7b4a!important;
+  border-color:#37875a!important;
+  box-shadow:none!important;
+}
+.action-button--primary:hover{
+  background:#286f43!important;
+}
+
+@media (max-width:760px){
+  .appbar{
+    gap:6px!important;
+    padding:calc(6px + env(safe-area-inset-top)) 10px 7px!important;
+    background:#111914!important;
+    box-shadow:0 3px 12px rgba(0,0,0,.16)!important;
+  }
+  .appbar__company{
+    grid-template-columns:minmax(0,1fr) 38px!important;
+    gap:7px!important;
+  }
+  .appbar select{
+    height:39px!important;
+    border-radius:9px!important;
+    padding:0 34px 0 12px!important;
+    font-size:14px!important;
+    font-weight:650!important;
+    background:#1a241e!important;
+  }
+  .appbar .icon-button{
+    width:38px!important;
+    height:38px!important;
+    border-radius:9px!important;
+    background:rgba(255,255,255,.035)!important;
+  }
+  .appbar .icon-button svg{
+    width:17px!important;
+    height:17px!important;
+  }
+  .appbar__actions{
+    gap:7px!important;
+  }
+  .appbar__actions .action-button{
+    height:38px!important;
+    border-radius:9px!important;
+    font-size:12.5px!important;
+  }
+  .appbar__actions .action-button svg{
+    width:17px!important;
+    height:17px!important;
+  }
+  .action-button--primary{
+    background:#2f8050!important;
+    border-color:#398d5d!important;
+  }
+}
