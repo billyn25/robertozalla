@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17211c">
+  <meta name="description" content="Presupuestos, facturas y partes de trabajo multiempresa, listos para PDF.">
+  <title>Parte Digital · Presupuestador multiempresa</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <header class="appbar screen-only">
+    <div class="appbar__brand" aria-label="Parte Digital">
+      <span class="appbar__mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" role="img"><path d="M8 25h16M16 25V12m0 0 7-7m-7 7L9 5m3.5 5.5-4 4m11-4 4 4M6 18h20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span>
+        <strong>Parte Digital</strong>
+        <small>Presupuestador multiempresa</small>
+      </span>
+    </div>
+
+    <div class="appbar__company">
+      <label for="companySelect">Empresa</label>
+      <select id="companySelect" aria-label="Seleccionar empresa"></select>
+      <button class="icon-button" id="manageCompaniesBtn" type="button" title="Gestionar empresas" aria-label="Gestionar empresas">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V20.3h-3v-.08a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7.02 15a1.7 1.7 0 0 0-1.56-1.03H5.4v-3h.06A1.7 1.7 0 0 0 7.02 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-2.12.06.06a1.7 1.7 0 0 0 1.88.34 1.7 1.7 0 0 0 1.03-1.56V3.7h3v.08a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.56 1.03h.08v3h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+      </button>
+    </div>
+
+    <nav class="appbar__actions" aria-label="Acciones del documento">
+      <button class="action-button action-button--quiet" id="newDocumentBtn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <span>Nueva</span>
+      </button>
+      <button class="action-button action-button--quiet" id="documentsBtn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h5l2 2H18.5A1.5 1.5 0 0 1 20 7.5v10a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5v-12Z"/></svg>
+        <span>Guardadas</span>
+      </button>
+      <button class="action-button action-button--quiet" id="saveDocumentBtn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5V4Z"/><path d="M8 4v6h8V4M8 20v-6h8v6"/></svg>
+        <span>Guardar</span>
+      </button>
+      <button class="action-button" id="printBtn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v6H7v-6Z"/></svg>
+        <span>Imprimir</span>
+      </button>
+      <button class="action-button action-button--primary" id="pdfBtn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v5h5M9 16h6M9 12h6"/></svg>
+        <span>Exportar PDF</span>
+      </button>
+    </nav>
+  </header>
+
+  <div class="draftbar screen-only" role="status">
+    <span id="draftStatus">Borrador nuevo</span>
+    <span class="draftbar__hint">Los cambios del borrador se guardan automáticamente en este dispositivo.</span>
+  </div>
+
+  <main class="workspace">
+    <form id="documentForm" autocomplete="off">
+      <article class="paper" id="documentSheet">
+        <section class="paper-header paper-section">
+          <div class="company-brand" id="companyBrand">
+            <div class="company-logo-wrap" id="companyLogoWrap">
+              <img id="companyLogo" alt="" hidden>
+              <div class="company-logo-placeholder" id="companyLogoPlaceholder" aria-hidden="true">
+                <svg viewBox="0 0 64 64"><path d="M16 51h32M32 51V25m0 0 14-14M32 25 18 11m7 9-9 9m23-9 9 9M12 37h40" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+            <div class="company-brand__text">
+              <h1 id="companyName">EMPRESA</h1>
+              <p id="companySlogan"></p>
+              <div class="company-contact" id="companyContact"></div>
+              <strong id="companyOwner"></strong>
+            </div>
+          </div>
+
+          <div class="company-legal" id="companyLegal"></div>
+
+          <div class="document-meta boxed">
+            <label>
+              <span>DOCUMENTO</span>
+              <select name="documentType" id="documentType">
+                <option value="Presupuesto">Presupuesto</option>
+                <option value="Parte de trabajo">Parte de trabajo</option>
+                <option value="Albarán">Albarán</option>
+                <option value="Factura">Factura</option>
+              </select>
+            </label>
+            <label>
+              <span>N.º</span>
+              <input name="documentNumber" id="documentNumber" type="text" inputmode="numeric" aria-label="Número de documento">
+            </label>
+            <label>
+              <span>FECHA</span>
+              <input name="documentDate" id="documentDate" type="text" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" aria-label="Fecha del documento">
+            </label>
+          </div>
+        </section>
+
+        <section class="top-details paper-section">
+          <fieldset class="client-box boxed">
+            <legend>DATOS DEL CLIENTE</legend>
+            <div class="field-grid field-grid--client">
+              <label class="field field--wide"><span>Cliente / empresa</span><input name="clientCompany" type="text"></label>
+              <label class="field"><span>Nombre</span><input name="clientName" type="text"></label>
+              <label class="field"><span>Teléfono</span><input name="clientPhone" type="tel"></label>
+              <label class="field field--wide"><span>Dirección</span><input name="clientAddress" type="text"></label>
+              <label class="field"><span>Población</span><input name="clientCity" type="text"></label>
+              <label class="field"><span>Provincia</span><input name="clientProvince" type="text"></label>
+              <label class="field"><span>NIF / DNI</span><input name="clientTaxId" type="text"></label>
+              <label class="field"><span>Correo</span><input name="clientEmail" type="email"></label>
+            </div>
+          </fieldset>
+
+          <div class="service-boxes">
+            <fieldset class="check-box boxed">
+              <legend>SOLICITUD DE</legend>
+              <div class="check-list">
+                <label><input type="checkbox" name="requestInstallation"><span>Instalación</span></label>
+                <label><input type="checkbox" name="requestRepair"><span>Reparación</span></label>
+                <label><input type="checkbox" name="requestMaintenance"><span>Mantenimiento</span></label>
+                <label><input type="checkbox" name="requestInformation"><span>Información</span></label>
+                <label><input type="checkbox" name="requestEstimate"><span>Presupuesto</span></label>
+                <label><input type="checkbox" name="requestSupply"><span>Suministro</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="check-box boxed">
+              <legend>TIPO DE TRABAJO</legend>
+              <div class="check-list">
+                <label><input type="checkbox" name="workAntennaIndividual"><span>Antena individual</span></label>
+                <label><input type="checkbox" name="workAntennaCollective"><span>Antena colectiva</span></label>
+                <label><input type="checkbox" name="workSatelliteIndividual"><span>Satélite individual</span></label>
+                <label><input type="checkbox" name="workSatelliteCollective"><span>Satélite colectiva</span></label>
+                <label><input type="checkbox" name="workIntercom"><span>Portero automático</span></label>
+                <label><input type="checkbox" name="workVideoIntercom"><span>Videoportero</span></label>
+              </div>
+            </fieldset>
+          </div>
+        </section>
+
+        <section class="service-description paper-section boxed">
+          <label for="serviceDescription">DESCRIPCIÓN DEL SERVICIO SOLICITADO</label>
+          <textarea id="serviceDescription" name="serviceDescription" rows="2"></textarea>
+        </section>
+
+        <section class="items-section paper-section">
+          <div class="section-heading screen-only">
+            <div>
+              <strong>Conceptos y precios</strong>
+              <small>El importe se calcula solo, pero puedes escribirlo manualmente.</small>
+            </div>
+            <button class="small-button" id="addLineBtn" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              Añadir línea
+            </button>
+          </div>
+
+          <div class="items-table-wrap boxed">
+            <table class="items-table" aria-label="Conceptos del documento">
+              <thead>
+                <tr>
+                  <th class="col-qty">CANTIDAD</th>
+                  <th>CONCEPTO</th>
+                  <th class="col-price">PRECIO</th>
+                  <th class="col-amount">IMPORTE</th>
+                  <th class="col-actions screen-only"><span class="visually-hidden">Acciones</span></th>
+                </tr>
+              </thead>
+              <tbody id="itemsBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="bottom-grid paper-section">
+          <div class="bottom-left">
+            <div class="payment-row boxed">
+              <label><span>ANOTACIONES PARA COBRO</span><input name="collectionNotes" type="text"></label>
+              <label><span>FORMA DE PAGO</span><input name="paymentMethod" type="text" list="paymentOptions"><datalist id="paymentOptions"><option value="Efectivo"><option value="Tarjeta"><option value="Transferencia"><option value="Domiciliación"><option value="Pendiente"></datalist></label>
+              <label><span>RECIBÍ</span><input name="receivedBy" type="text"></label>
+            </div>
+
+            <div class="time-row boxed">
+              <label><span>FECHA</span><input name="serviceDate" type="text" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa"></label>
+              <label><span>LLEGADA</span><input name="arrivalTime" type="text" inputmode="numeric" maxlength="5" placeholder="hh:mm"></label>
+              <label><span>SALIDA</span><input name="departureTime" type="text" inputmode="numeric" maxlength="5" placeholder="hh:mm"></label>
+            </div>
+
+            <div class="observations boxed">
+              <label for="generalObservations">OBSERVACIONES GENERALES</label>
+              <textarea id="generalObservations" name="generalObservations" rows="4"></textarea>
+            </div>
+          </div>
+
+          <aside class="totals-panel boxed" aria-label="Totales">
+            <div class="total-row total-row--detail"><label for="materialsAmount">Materiales</label><input id="materialsAmount" name="materialsAmount" class="money-input" type="text" inputmode="decimal"></div>
+            <div class="total-row total-row--detail"><label for="laborAmount">Mano de obra</label><input id="laborAmount" name="laborAmount" class="money-input" type="text" inputmode="decimal"></div>
+            <div class="total-row total-row--detail"><label for="travelAmount">Desplazamiento</label><input id="travelAmount" name="travelAmount" class="money-input" type="text" inputmode="decimal"></div>
+            <div class="total-row total-row--detail"><label for="extraAmount">Plus extra</label><input id="extraAmount" name="extraAmount" class="money-input" type="text" inputmode="decimal"></div>
+
+            <div class="total-source screen-only">
+              <button type="button" id="totalFromLinesBtn">Total desde líneas</button>
+              <button type="button" id="totalFromBreakdownBtn">Total desde desglose</button>
+            </div>
+
+            <div class="total-row total-row--strong">
+              <label for="subtotalAmount">TOTAL IMPORTE</label>
+              <div class="money-with-reset">
+                <input id="subtotalAmount" name="subtotalAmount" class="money-input" type="text" inputmode="decimal" aria-describedby="subtotalMode">
+                <button class="reset-calc screen-only" id="resetSubtotalBtn" type="button" title="Volver a calcular desde las líneas" aria-label="Volver a calcular el total desde las líneas">↺</button>
+              </div>
+            </div>
+            <small class="calculation-mode screen-only" id="subtotalMode">Automático desde las líneas</small>
+
+            <div class="total-row total-row--vat">
+              <label for="vatPercent">I.V.A.</label>
+              <div class="vat-editor"><input id="vatPercent" name="vatPercent" type="text" inputmode="decimal" value="21"><span>%</span></div>
+              <output id="vatAmount">0,00 €</output>
+            </div>
+
+            <div class="total-row total-row--grand">
+              <label for="grandTotalAmount">TOTAL</label>
+              <div class="money-with-reset">
+                <input id="grandTotalAmount" name="grandTotalAmount" class="money-input" type="text" inputmode="decimal">
+                <button class="reset-calc screen-only" id="resetGrandTotalBtn" type="button" title="Volver a calcular total más IVA" aria-label="Volver a calcular total más IVA">↺</button>
+              </div>
+            </div>
+            <small class="calculation-mode screen-only" id="grandTotalMode">Automático con IVA</small>
+          </aside>
+        </section>
+
+        <section class="consent-signatures paper-section">
+          <div class="consent-box boxed">
+            <label class="check-consent"><input type="checkbox" name="waivesEstimate"><span>Renuncia a presupuesto previo y autoriza la reparación</span></label>
+            <label class="check-consent"><input type="checkbox" name="repairAccepted"><span>Conforme con la reparación / presupuesto</span></label>
+            <label class="consent-number"><span>Presupuesto n.º</span><input name="acceptedEstimateNumber" type="text"></label>
+          </div>
+
+          <div class="signature-box boxed">
+            <div class="signature-title">Firma del cliente</div>
+            <canvas id="clientSignature" class="signature-canvas" width="520" height="160" aria-label="Firma del cliente"></canvas>
+            <button class="clear-signature screen-only" type="button" data-signature="clientSignature">Borrar firma</button>
+          </div>
+
+          <div class="signature-box boxed">
+            <div class="signature-title">Recibí / firma del técnico</div>
+            <canvas id="technicianSignature" class="signature-canvas" width="520" height="160" aria-label="Firma del técnico"></canvas>
+            <button class="clear-signature screen-only" type="button" data-signature="technicianSignature">Borrar firma</button>
+          </div>
+        </section>
+
+        <footer class="paper-footer">
+          <p id="companyTerms"></p>
+          <p class="receipt-note">EL EJEMPLAR TIENE EFECTOS DE RECIBO</p>
+        </footer>
+      </article>
+    </form>
+  </main>
+
+  <div class="modal" id="companyModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close-modal="companyModal"></div>
+    <section class="modal__dialog modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="companyModalTitle">
+      <header class="modal__header">
+        <div>
+          <h2 id="companyModalTitle">Empresas</h2>
+          <p>Guarda los datos y el logo de cada empresa. Al cambiar el selector, la hoja se actualiza completa.</p>
+        </div>
+        <button class="modal__close" type="button" data-close-modal="companyModal" aria-label="Cerrar">×</button>
+      </header>
+
+      <div class="company-manager">
+        <aside class="company-list-panel">
+          <button class="primary-wide" id="newCompanyBtn" type="button">+ Nueva empresa</button>
+          <div class="company-list" id="companyList"></div>
+        </aside>
+
+        <form class="company-editor" id="companyForm" autocomplete="off">
+          <input type="hidden" name="companyId">
+          <div class="company-editor__logo">
+            <div class="logo-preview" id="logoPreview"><span>Sin logo</span></div>
+            <div>
+              <label class="file-button" for="companyLogoInput">Elegir logo</label>
+              <input id="companyLogoInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+              <button class="text-button" id="removeLogoBtn" type="button">Quitar logo</button>
+              <small>PNG, JPG, WEBP o SVG. Se guarda en este navegador.</small>
+            </div>
+          </div>
+
+          <div class="editor-grid">
+            <label class="editor-field editor-field--wide"><span>Nombre comercial *</span><input name="name" type="text" required></label>
+            <label class="editor-field"><span>Teléfono</span><input name="phone" type="text"></label>
+            <label class="editor-field"><span>Correo</span><input name="email" type="email"></label>
+            <label class="editor-field editor-field--wide"><span>Eslogan / servicios</span><input name="slogan" type="text" placeholder="Instalación, reparación y mantenimiento"></label>
+            <label class="editor-field"><span>Responsable</span><input name="owner" type="text"></label>
+            <label class="editor-field"><span>NIF / CIF</span><input name="taxId" type="text"></label>
+            <label class="editor-field editor-field--wide"><span>Dirección fiscal</span><input name="address" type="text"></label>
+            <label class="editor-field editor-field--wide"><span>Línea legal de cabecera</span><input name="legalLine" type="text" placeholder="Razón social · CIF · dirección"></label>
+            <label class="editor-field editor-field--wide"><span>Condiciones / garantía al pie</span><textarea name="terms" rows="3"></textarea></label>
+          </div>
+
+          <footer class="company-editor__footer">
+            <button class="danger-button" id="deleteCompanyBtn" type="button">Eliminar empresa</button>
+            <button class="secondary-button" id="duplicateCompanyBtn" type="button">Duplicar</button>
+            <button class="primary-button" type="submit">Guardar empresa</button>
+          </footer>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal" id="documentsModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close-modal="documentsModal"></div>
+    <section class="modal__dialog modal__dialog--documents" role="dialog" aria-modal="true" aria-labelledby="documentsModalTitle">
+      <header class="modal__header">
+        <div>
+          <h2 id="documentsModalTitle">Documentos guardados</h2>
+          <p>Se almacenan en este dispositivo. Puedes recuperar, duplicar o eliminar.</p>
+        </div>
+        <button class="modal__close" type="button" data-close-modal="documentsModal" aria-label="Cerrar">×</button>
+      </header>
+      <div class="documents-tools">
+        <label class="search-field">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input id="documentSearch" type="search" placeholder="Buscar cliente, número, fecha o empresa">
+        </label>
+        <span id="documentsCount"></span>
+      </div>
+      <div class="documents-list" id="documentsList"></div>
+    </section>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
