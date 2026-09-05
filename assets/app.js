@@ -491,6 +491,7 @@
         collectionNotes: '',
         paymentMethod: '',
         receivedBy: '',
+        bankAccount: '',
         serviceDate: '',
         arrivalTime: '',
         departureTime: '',
@@ -1281,9 +1282,21 @@
 
       await nextFrame();
 
-      const rect = clone.getBoundingClientRect();
-      const width = Math.ceil(rect.width);
-      const height = Math.ceil(Math.max(clone.scrollHeight, rect.height));
+      // Render A4 virtual FIJO. Nunca usamos el alto/ancho calculado por el viewport del móvil.
+      // 794 x 1136 mantiene exactamente la proporción del área útil A4 de 202 x 289 mm
+      // (márgenes de 4 mm por cada lado), por lo que PC/iPhone/Android generan el mismo PDF.
+      const width = 794;
+      const height = 1136;
+      stage.style.width = `${width}px`;
+      stage.style.height = `${height}px`;
+      clone.style.width = `${width}px`;
+      clone.style.minWidth = `${width}px`;
+      clone.style.maxWidth = `${width}px`;
+      clone.style.height = `${height}px`;
+      clone.style.minHeight = `${height}px`;
+      clone.style.maxHeight = `${height}px`;
+
+      await nextFrame();
 
       const canvas = await window.html2canvas(clone, {
         scale: 2,

@@ -1677,3 +1677,506 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 .output-clone .total-row output{height:30px!important;min-height:30px!important;}
 .output-clone .signature-box{min-height:94px!important;}
 .output-clone .paper-footer{margin-top:4px!important;padding-top:2px!important;}
+
+/* v16 PRO — salida A4 idéntica en PC/móvil + cabecera con algo más de vida */
+.output-stage.output-stage--capture{
+  width:794px!important;
+  min-width:794px!important;
+  max-width:794px!important;
+  height:1136px!important;
+  min-height:1136px!important;
+  max-height:1136px!important;
+  overflow:hidden!important;
+}
+.output-clone{
+  width:794px!important;
+  min-width:794px!important;
+  max-width:794px!important;
+  height:1136px!important;
+  min-height:1136px!important;
+  max-height:1136px!important;
+  box-sizing:border-box!important;
+  padding:16px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  background:#fff!important;
+}
+.output-clone .paper-header,
+.output-clone .top-details,
+.output-clone .service-description,
+.output-clone .bottom-grid,
+.output-clone .consent-signatures,
+.output-clone .paper-footer{flex:0 0 auto!important;}
+.output-clone .items-section{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  margin-bottom:6px!important;
+}
+.output-clone .items-table-wrap{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  display:flex!important;
+  overflow:hidden!important;
+}
+.output-clone .items-table{
+  width:100%!important;
+  height:100%!important;
+  table-layout:fixed!important;
+  border-collapse:collapse!important;
+}
+.output-clone .items-table tbody{height:100%!important;}
+.output-clone .items-table tbody tr{height:10%!important;}
+.output-clone .items-table td{
+  height:auto!important;
+  min-height:0!important;
+  padding:0!important;
+}
+.output-clone .items-table textarea,
+.output-clone .items-table input{
+  height:100%!important;
+  min-height:0!important;
+  padding:3px 5px!important;
+  box-sizing:border-box!important;
+}
+.output-clone .paper-header{margin-bottom:5px!important;}
+.output-clone .paper-section{margin-bottom:5px!important;}
+.output-clone .company-brand,
+.output-clone .company-brand--no-logo{min-height:56px!important;}
+.output-clone .service-description textarea{min-height:46px!important;height:46px!important;}
+.output-clone .payment-row input,
+.output-clone .time-row input{height:27px!important;min-height:27px!important;}
+.output-clone .observations textarea{height:72px!important;min-height:72px!important;}
+.output-clone .total-row{min-height:27px!important;}
+.output-clone .total-row input,
+.output-clone .total-row output{height:27px!important;min-height:27px!important;}
+.output-clone .signature-box{min-height:78px!important;height:78px!important;}
+.output-clone .paper-footer{margin-top:3px!important;padding-top:2px!important;}
+
+/* Cabecera: verde oscuro más elegante, sin quedar casi negra. */
+.appbar{
+  background:linear-gradient(180deg,#183027 0%,#14261f 100%)!important;
+  border-bottom-color:rgba(255,255,255,.10)!important;
+  box-shadow:0 6px 20px rgba(8,24,16,.18)!important;
+}
+.appbar select,
+.appbar button{
+  background:rgba(255,255,255,.045)!important;
+  border-color:rgba(255,255,255,.14)!important;
+}
+.appbar select:hover,
+.appbar select:focus,
+.appbar .icon-button:hover,
+.action-button--quiet:hover{
+  background:rgba(255,255,255,.075)!important;
+}
+#pdfBtn.action-button--primary{
+  background:linear-gradient(180deg,#36a864 0%,#2d8e54 100%)!important;
+  border-color:#48b874!important;
+  color:#fff!important;
+  box-shadow:0 5px 14px rgba(31,132,74,.24)!important;
+  font-weight:800!important;
+}
+#pdfBtn.action-button--primary:hover{
+  background:linear-gradient(180deg,#3bb36b 0%,#31995b 100%)!important;
+}
+
+@media (max-width:760px){
+  .appbar{
+    background:linear-gradient(180deg,#183027 0%,#13241d 100%)!important;
+    padding:calc(8px + env(safe-area-inset-top)) 10px 9px!important;
+    gap:8px!important;
+  }
+  .appbar__brand{display:none!important;}
+  .appbar__company label{display:none!important;}
+  .appbar__company{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 40px!important;
+    gap:8px!important;
+    width:100%!important;
+  }
+  .appbar__company select{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    height:42px!important;
+    padding:0 36px 0 13px!important;
+    border-radius:11px!important;
+    font-size:15px!important;
+    font-weight:700!important;
+    color:#f7fbf8!important;
+    background:rgba(255,255,255,.055)!important;
+  }
+  .appbar__company .icon-button{
+    width:40px!important;
+    height:40px!important;
+    border-radius:11px!important;
+    background:rgba(255,255,255,.045)!important;
+  }
+  .appbar__actions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+  }
+  .appbar__actions .action-button{
+    height:42px!important;
+    border-radius:11px!important;
+    font-size:13px!important;
+  }
+  .appbar__actions .action-button--quiet{
+    background:rgba(255,255,255,.035)!important;
+  }
+  .appbar__actions #pdfBtn{
+    background:linear-gradient(180deg,#39aa66 0%,#2f8f56 100%)!important;
+    border-color:#50b878!important;
+    box-shadow:0 5px 13px rgba(26,124,68,.26)!important;
+  }
+  .appbar__actions #pdfBtn svg{stroke:#fff!important;}
+}
+
+
+/* v17 PRO — datos de cobro compactos */
+.bank-row{margin-top:2.5mm;overflow:hidden}
+.bank-row label{display:grid;grid-template-columns:31mm minmax(0,1fr);align-items:center;min-height:8mm}
+.bank-row span{display:flex;align-items:center;height:100%;padding:1mm 2mm;background:#f4f7f5;border-right:1px solid var(--line);font-size:8px;font-weight:800;letter-spacing:.055em;color:#415249}
+.bank-row input{width:100%;min-width:0;min-height:8mm;padding:1mm 2mm;border:0;background:#fff;font:600 9px/1.2 inherit;letter-spacing:.035em;color:var(--ink)}
+.bank-row input:focus{outline:2px solid rgba(31,122,74,.18);outline-offset:-2px;background:#fbfefc}
+.bank-row input::placeholder{font-weight:500;letter-spacing:.02em;color:#a4aea8}
+
+@media (max-width:760px){
+  .bank-row{margin-top:7px;border-radius:8px}
+  .bank-row label{grid-template-columns:108px minmax(0,1fr);min-height:42px}
+  .bank-row span{padding:0 9px;font-size:10px}
+  .bank-row input{min-height:42px;padding:0 10px;font-size:14px;letter-spacing:.02em}
+}
+
+/* En el A4 queda como una línea bancaria discreta, no como otro bloque grande. */
+.output-clone .bank-row{margin-top:3px!important}
+.output-clone .bank-row label{display:grid!important;grid-template-columns:104px minmax(0,1fr)!important;min-height:25px!important}
+.output-clone .bank-row span{padding:3px 6px!important;font-size:7px!important}
+.output-clone .bank-row input{min-height:25px!important;height:25px!important;padding:3px 6px!important;font-size:9px!important;letter-spacing:.025em!important}
+
+/* =========================================================
+   v18 PRO — EXPERIENCIA MÓVIL DE TRABAJO (no afecta al A4)
+   ========================================================= */
+@media (max-width:760px){
+  html,body{background:#f2f5f3!important;overflow-x:hidden}
+  body{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+
+  /* Cabecera de trabajo: una sola fila, compacta y útil con una mano */
+  .appbar{
+    min-height:0!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 38px 42px minmax(96px,118px)!important;
+    align-items:center!important;
+    gap:7px!important;
+    padding:calc(7px + env(safe-area-inset-top)) 9px 7px!important;
+    background:rgba(24,43,34,.98)!important;
+    border-bottom:1px solid rgba(255,255,255,.08)!important;
+    box-shadow:0 5px 18px rgba(13,30,21,.16)!important;
+    backdrop-filter:saturate(150%) blur(16px)!important;
+  }
+  .appbar__brand{display:none!important}
+  .appbar__company{display:contents!important}
+  .appbar__company label{display:none!important}
+  .appbar__company select{
+    grid-column:1!important;
+    height:38px!important;
+    min-width:0!important;
+    padding:0 30px 0 11px!important;
+    border-radius:10px!important;
+    font-size:13px!important;
+    font-weight:750!important;
+    letter-spacing:.005em!important;
+    background:#21382e!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    box-shadow:none!important;
+  }
+  .appbar__company .icon-button{
+    grid-column:2!important;
+    width:38px!important;height:38px!important;
+    border-radius:10px!important;
+    background:rgba(255,255,255,.055)!important;
+    border-color:rgba(255,255,255,.12)!important;
+  }
+  .appbar__company .icon-button svg{width:17px!important;height:17px!important;opacity:.92}
+  .appbar__actions{display:contents!important}
+  .appbar__actions .temporarily-hidden{display:none!important}
+  .appbar__actions #newDocumentBtn{
+    grid-column:3!important;
+    width:42px!important;height:38px!important;padding:0!important;
+    border-radius:10px!important;
+    background:rgba(255,255,255,.055)!important;
+    border-color:rgba(255,255,255,.12)!important;
+  }
+  .appbar__actions #newDocumentBtn span{display:none!important}
+  .appbar__actions #newDocumentBtn svg{width:18px!important;height:18px!important}
+  .appbar__actions #pdfBtn{
+    grid-column:4!important;
+    height:38px!important;
+    padding:0 10px!important;
+    border-radius:10px!important;
+    gap:6px!important;
+    font-size:12px!important;
+    letter-spacing:.01em!important;
+    background:linear-gradient(180deg,#37a963,#2b8b51)!important;
+    border:1px solid #46b470!important;
+    box-shadow:0 4px 11px rgba(24,123,66,.24)!important;
+  }
+  .appbar__actions #pdfBtn span{font-weight:850!important}
+  .appbar__actions #pdfBtn svg{width:16px!important;height:16px!important}
+
+  /* El autoguardado sigue activo, pero no roba pantalla */
+  .draftbar{display:none!important}
+  .workspace{padding:8px 7px 26px!important}
+  #documentForm{width:100%!important}
+
+  /* En móvil deja de fingir ser una hoja A4: se comporta como app */
+  .paper:not(.output-clone){
+    width:100%!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+    font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+    font-size:12px!important;
+  }
+  .paper:not(.output-clone) .paper-section{margin:0 0 8px!important}
+  .paper:not(.output-clone) .boxed{
+    border:1px solid #d9e1dc!important;
+    border-radius:12px!important;
+    background:#fff!important;
+    box-shadow:0 1px 2px rgba(23,43,33,.035)!important;
+  }
+
+  /* Identidad + datos del documento en una tarjeta limpia */
+  .paper:not(.output-clone) .paper-header{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:7px!important;
+    padding:11px!important;
+    border:1px solid #dce3df!important;
+    border-radius:14px!important;
+    background:#fff!important;
+    box-shadow:0 2px 8px rgba(20,40,30,.045)!important;
+  }
+  .paper:not(.output-clone) .company-brand,
+  .paper:not(.output-clone) .company-brand--no-logo,
+  .paper:not(.output-clone) .company-brand--has-logo{
+    grid-column:1!important;
+    min-height:0!important;
+    gap:9px!important;
+    align-items:center!important;
+  }
+  .paper:not(.output-clone) .company-brand--has-logo{grid-template-columns:58px minmax(0,1fr)!important}
+  .paper:not(.output-clone) .company-logo-wrap{
+    width:58px!important;min-width:58px!important;max-width:58px!important;height:48px!important;
+    padding:4px!important;border-radius:9px!important;background:#f7f9f8!important;border:1px solid #e3e9e5!important;
+  }
+  .paper:not(.output-clone) .company-brand h1{
+    font-size:20px!important;line-height:1.02!important;letter-spacing:-.025em!important;
+    color:#17221c!important;
+  }
+  .paper:not(.output-clone) .company-brand__text p{margin:3px 0 2px!important;font-size:8.5px!important;color:#526159!important}
+  .paper:not(.output-clone) .company-contact{font-size:8.5px!important;line-height:1.25!important;gap:2px 8px!important;color:#3d4c44!important}
+  .paper:not(.output-clone) .company-brand__text strong{font-size:9px!important;color:#2e3c34!important}
+  .paper:not(.output-clone) .company-legal{display:none!important}
+
+  .paper:not(.output-clone) .document-meta{
+    grid-column:1!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1.35fr) .72fr 1.18fr!important;
+    gap:0!important;
+    overflow:hidden!important;
+    border-radius:10px!important;
+    border:1px solid #dce3df!important;
+    background:#f9fbfa!important;
+  }
+  .paper:not(.output-clone) .document-meta label{
+    min-height:50px!important;
+    padding:6px 7px!important;
+    border:0!important;
+    border-right:1px solid #e0e6e2!important;
+    background:transparent!important;
+  }
+  .paper:not(.output-clone) .document-meta label:last-child{border-right:0!important}
+  .paper:not(.output-clone) .document-meta label>span{
+    margin-bottom:3px!important;font-size:8px!important;letter-spacing:.06em!important;color:#708078!important;font-weight:800!important;
+  }
+  .paper:not(.output-clone) .document-meta input,
+  .paper:not(.output-clone) .document-meta select{
+    min-height:26px!important;height:26px!important;padding:0!important;
+    font-size:13px!important;font-weight:700!important;color:#1f2b24!important;background:transparent!important;
+  }
+
+  /* Cliente: 2 columnas donde realmente ahorra tiempo y scroll */
+  .paper:not(.output-clone) .top-details{display:block!important}
+  .paper:not(.output-clone) fieldset{min-width:0!important}
+  .paper:not(.output-clone) fieldset legend{
+    margin-left:8px!important;padding:0 4px!important;font-size:9px!important;letter-spacing:.065em!important;color:#466052!important;font-weight:850!important;
+  }
+  .paper:not(.output-clone) .client-box{padding:7px!important}
+  .paper:not(.output-clone) .field-grid--client{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:6px!important;
+  }
+  .paper:not(.output-clone) .field,
+  .paper:not(.output-clone) .field--wide{
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    grid-template-columns:none!important;
+    min-height:0!important;
+    border:1px solid #e0e6e2!important;
+    border-radius:9px!important;
+    overflow:hidden!important;
+    background:#fbfcfb!important;
+  }
+  .paper:not(.output-clone) .field--wide{grid-column:1/-1!important}
+  .paper:not(.output-clone) .field span{
+    min-height:0!important;padding:5px 8px 0!important;border:0!important;background:transparent!important;
+    color:#718078!important;font-size:8px!important;font-weight:800!important;letter-spacing:.045em!important;text-transform:uppercase!important;
+  }
+  .paper:not(.output-clone) .field input{
+    min-height:34px!important;height:34px!important;padding:2px 8px 6px!important;
+    font-size:14px!important;font-weight:600!important;background:transparent!important;
+  }
+
+  /* Solicitud / tipo: chips compactos, fáciles de tocar */
+  .paper:not(.output-clone) .service-boxes{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin-top:8px!important}
+  .paper:not(.output-clone) .check-box{padding:8px!important}
+  .paper:not(.output-clone) .check-list{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important}
+  .paper:not(.output-clone) .check-list label{
+    min-height:36px!important;padding:6px 8px!important;border:1px solid #e0e6e2!important;border-radius:9px!important;
+    background:#fafcfb!important;gap:7px!important;font-size:11px!important;font-weight:650!important;
+  }
+  .paper:not(.output-clone) .check-list label:has(input:checked){background:#edf7f1!important;border-color:#9bcaae!important;color:#1e5d39!important}
+  .paper:not(.output-clone) .check-list input{width:17px!important;height:17px!important;accent-color:#2f8d56!important}
+
+  /* Descripción */
+  .paper:not(.output-clone) .service-description{padding:8px!important}
+  .paper:not(.output-clone) .service-description>label,
+  .paper:not(.output-clone) .observations>label{
+    display:block!important;margin-bottom:5px!important;font-size:9px!important;letter-spacing:.055em!important;color:#466052!important;font-weight:850!important;
+  }
+  .paper:not(.output-clone) .service-description textarea{
+    min-height:74px!important;padding:8px!important;border-radius:8px!important;background:#fbfcfb!important;border:1px solid #e2e7e4!important;font-size:14px!important;line-height:1.35!important;
+  }
+
+  /* Conceptos: tarjetas mucho más densas */
+  .paper:not(.output-clone) .items-section{
+    padding:9px!important;border:1px solid #dce3df!important;border-radius:14px!important;background:#fff!important;
+  }
+  .paper:not(.output-clone) .section-heading{align-items:center!important;gap:8px!important;margin:0 0 8px!important}
+  .paper:not(.output-clone) .section-heading strong{font-size:13px!important;color:#1f2d25!important}
+  .paper:not(.output-clone) .section-heading small{font-size:9px!important;line-height:1.25!important;color:#75827b!important;max-width:220px!important}
+  .paper:not(.output-clone) .small-button{height:34px!important;padding:0 10px!important;border-radius:9px!important;font-size:11px!important;white-space:nowrap!important}
+  .paper:not(.output-clone) .items-table-wrap{border:0!important;background:transparent!important;overflow:visible!important}
+  .paper:not(.output-clone) .items-table{display:block!important}
+  .paper:not(.output-clone) .items-table thead{display:none!important}
+  .paper:not(.output-clone) .items-table tbody{display:grid!important;gap:7px!important}
+  .paper:not(.output-clone) .items-table tr{
+    display:grid!important;
+    grid-template-columns:56px 1fr 1fr 34px!important;
+    gap:0!important;margin:0!important;
+    border:1px solid #dfe5e1!important;border-radius:10px!important;overflow:hidden!important;background:#fff!important;
+    box-shadow:0 1px 2px rgba(20,40,30,.025)!important;
+  }
+  .paper:not(.output-clone) .items-table td{display:block!important;height:auto!important;min-height:0!important;border:0!important;border-right:1px solid #e4e9e6!important;border-top:1px solid #e4e9e6!important;position:relative!important;padding-top:14px!important;background:#fff!important}
+  .paper:not(.output-clone) .items-table td::before{
+    display:block!important;position:absolute!important;top:3px!important;left:6px!important;font-size:7px!important;line-height:1!important;color:#7d8a83!important;font-weight:850!important;letter-spacing:.055em!important;
+  }
+  .paper:not(.output-clone) .items-table td:nth-child(2){grid-column:1/-1!important;grid-row:1!important;min-height:58px!important;border-top:0!important;border-right:0!important;padding-top:16px!important}
+  .paper:not(.output-clone) .items-table td:nth-child(1){grid-column:1!important;grid-row:2!important}
+  .paper:not(.output-clone) .items-table td:nth-child(3){grid-column:2!important;grid-row:2!important}
+  .paper:not(.output-clone) .items-table td:nth-child(4){grid-column:3!important;grid-row:2!important}
+  .paper:not(.output-clone) .items-table td:nth-child(5){grid-column:4!important;grid-row:2!important;border-right:0!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important}
+  .paper:not(.output-clone) .items-table textarea,
+  .paper:not(.output-clone) .items-table input{min-height:34px!important;padding:2px 6px 5px!important;font-size:13px!important;background:transparent!important}
+  .paper:not(.output-clone) .items-table td:nth-child(2) textarea{min-height:56px!important;line-height:1.3!important;padding:4px 8px 7px!important}
+  .paper:not(.output-clone) .items-table .delete-line{width:30px!important;height:30px!important;border-radius:8px!important}
+
+  /* Cobro y visita: tarjetas compactas, no tres bloques gigantes */
+  .paper:not(.output-clone) .bottom-grid{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
+  .paper:not(.output-clone) .bottom-left{display:grid!important;gap:7px!important}
+  .paper:not(.output-clone) .payment-row{display:grid!important;grid-template-columns:1fr 1fr!important;gap:0!important;overflow:hidden!important}
+  .paper:not(.output-clone) .payment-row label{display:flex!important;flex-direction:column!important;border-right:1px solid #e2e7e4!important;border-bottom:1px solid #e2e7e4!important}
+  .paper:not(.output-clone) .payment-row label:first-child{grid-column:1/-1!important;border-right:0!important}
+  .paper:not(.output-clone) .payment-row label:last-child{border-right:0!important}
+  .paper:not(.output-clone) .payment-row span,
+  .paper:not(.output-clone) .time-row span{min-height:0!important;padding:5px 8px 0!important;background:transparent!important;font-size:8px!important;color:#718078!important;letter-spacing:.05em!important}
+  .paper:not(.output-clone) .payment-row input,
+  .paper:not(.output-clone) .time-row input{min-height:34px!important;height:34px!important;padding:2px 8px 6px!important;font-size:14px!important}
+  .paper:not(.output-clone) .bank-row{margin-top:0!important}
+  .paper:not(.output-clone) .bank-row label{display:flex!important;flex-direction:column!important;min-height:0!important}
+  .paper:not(.output-clone) .bank-row span{height:auto!important;padding:6px 8px 0!important;border:0!important;background:transparent!important;font-size:8px!important;color:#718078!important}
+  .paper:not(.output-clone) .bank-row input{min-height:38px!important;height:38px!important;padding:2px 8px 7px!important;font-size:13px!important}
+  .paper:not(.output-clone) .time-row{display:grid!important;grid-template-columns:1.25fr .85fr .85fr!important;overflow:hidden!important}
+  .paper:not(.output-clone) .time-row label{display:flex!important;flex-direction:column!important;border-right:1px solid #e2e7e4!important}
+  .paper:not(.output-clone) .time-row label:last-child{border-right:0!important}
+  .paper:not(.output-clone) .observations{padding:8px!important}
+  .paper:not(.output-clone) .observations textarea{min-height:74px!important;padding:8px!important;border:1px solid #e2e7e4!important;border-radius:8px!important;background:#fbfcfb!important;font-size:14px!important;line-height:1.35!important}
+
+  /* Totales: visualmente prioritarios, pensados para presupuestar rápido */
+  .paper:not(.output-clone) .totals-panel{overflow:hidden!important}
+  .paper:not(.output-clone) .total-row{min-height:42px!important;grid-template-columns:minmax(0,1fr) 120px!important;border-bottom-color:#e1e7e3!important}
+  .paper:not(.output-clone) .total-row label{padding-left:10px!important;font-size:10px!important;color:#405148!important}
+  .paper:not(.output-clone) .total-row input,
+  .paper:not(.output-clone) .total-row output{min-height:42px!important;padding:0 9px!important;font-size:14px!important;font-weight:750!important}
+  .paper:not(.output-clone) .total-row--vat{grid-template-columns:minmax(0,1fr) 78px 106px!important}
+  .paper:not(.output-clone) .total-row--grand{background:#eef8f2!important}
+  .paper:not(.output-clone) .total-row--grand label{color:#1f6b41!important;font-size:12px!important;font-weight:900!important}
+  .paper:not(.output-clone) .total-row--grand input{color:#175d38!important;font-size:16px!important;font-weight:900!important}
+  .paper:not(.output-clone) .total-source{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;padding:7px!important;background:#f8faf9!important;border-bottom:1px solid #e1e7e3!important}
+  .paper:not(.output-clone) .total-source button{min-height:32px!important;border-radius:8px!important;font-size:10px!important}
+  .paper:not(.output-clone) .calculation-mode{padding:4px 9px!important;font-size:8px!important;background:#fafcfb!important}
+
+  /* Firmas: grandes para dedo, pero sin espacios muertos */
+  .paper:not(.output-clone) .consent-signatures{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
+  .paper:not(.output-clone) .consent-box{padding:8px!important}
+  .paper:not(.output-clone) .check-consent{min-height:38px!important;padding:6px!important;border-radius:8px!important}
+  .paper:not(.output-clone) .signature-box{min-height:0!important;padding:8px!important;border-radius:12px!important}
+  .paper:not(.output-clone) .signature-title{font-size:10px!important;margin-bottom:5px!important;color:#45574d!important}
+  .paper:not(.output-clone) .signature-canvas{height:118px!important;border-radius:8px!important;background:#fbfcfb!important;border:1px dashed #cfd9d3!important}
+  .paper:not(.output-clone) .clear-signature{height:32px!important;margin-top:6px!important;border-radius:8px!important;font-size:10px!important}
+  .paper:not(.output-clone) .paper-footer{padding:4px 3px 0!important;font-size:7px!important;color:#7c8881!important}
+
+  /* Modal de empresas: ocupa el viewport real y nunca esconde acciones */
+  #companyModal .modal__dialog{
+    width:calc(100vw - 12px)!important;
+    max-width:none!important;
+    height:calc(100dvh - 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom))!important;
+    max-height:none!important;
+    margin:calc(6px + env(safe-area-inset-top)) 6px calc(6px + env(safe-area-inset-bottom))!important;
+    border-radius:16px!important;
+    overflow:hidden!important;
+  }
+  #companyModal .modal__header{min-height:58px!important;padding:11px 12px!important;background:#fff!important;border-bottom:1px solid #e4e9e6!important}
+  #companyModal .modal__header h2{font-size:18px!important;color:#1d2b23!important}
+  #companyModal .company-manager{height:calc(100% - 58px)!important;min-height:0!important;display:grid!important;grid-template-rows:auto minmax(0,1fr)!important;overflow:hidden!important}
+  #companyModal .company-list-panel{padding:8px!important;background:#f6f8f7!important;border-bottom:1px solid #e2e7e4!important}
+  #companyModal .company-editor{overflow:auto!important;-webkit-overflow-scrolling:touch!important;padding:10px 10px calc(86px + env(safe-area-inset-bottom))!important}
+  #companyModal .company-editor__footer{
+    position:sticky!important;bottom:calc(-86px - env(safe-area-inset-bottom))!important;
+    transform:translateY(calc(86px + env(safe-area-inset-bottom)))!important;
+    z-index:3!important;
+    margin:14px -10px 0!important;
+    padding:9px 10px calc(9px + env(safe-area-inset-bottom))!important;
+    background:rgba(255,255,255,.97)!important;
+    border-top:1px solid #dfe6e1!important;
+    box-shadow:0 -8px 22px rgba(22,42,32,.08)!important;
+  }
+}
+
+@media (max-width:390px){
+  .appbar{grid-template-columns:minmax(0,1fr) 36px 38px 100px!important;gap:5px!important;padding-left:7px!important;padding-right:7px!important}
+  .appbar__company .icon-button{width:36px!important;height:36px!important}
+  .appbar__actions #newDocumentBtn{width:38px!important;height:36px!important}
+  .appbar__actions #pdfBtn{height:36px!important;padding:0 8px!important;font-size:11px!important}
+  .paper:not(.output-clone) .field-grid--client{gap:5px!important}
+  .paper:not(.output-clone) .check-list{gap:5px!important}
+}
