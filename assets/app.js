@@ -1347,7 +1347,6 @@
       const concept = read('concept');
       const priceRaw = read('price');
       let amountRaw = read('amount');
-      const manualAmount = Boolean(sourceRow?.querySelector('[data-field="amount"]')?.classList.contains('manual')) || Boolean(sourceRow?.querySelector('[data-field="amount"]')?.dataset.manual === 'true');
 
       // Última red de seguridad: si hay precio pero el campo de importe todavía
       // estuviera vacío, lo calculamos aquí mismo (cantidad vacía = 1).
