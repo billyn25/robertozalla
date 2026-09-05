@@ -1480,3 +1480,200 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     border-color:#398d5d!important;
   }
 }
+
+/* v15 PRO — cabecera móvil limpia, modal Empresas usable y A4 realmente aprovechado */
+@media (max-width:760px){
+  /* Cabecera: dos filas compactas, sin que el select quede reducido a la flecha */
+  .appbar{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    padding:calc(7px + env(safe-area-inset-top)) 10px 8px!important;
+    background:#121a16!important;
+  }
+  .appbar__company{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 38px!important;
+    gap:7px!important;
+    align-items:center!important;
+  }
+  .appbar__company label{display:none!important;}
+  .appbar__company select{
+    grid-column:1!important;
+    width:100%!important;
+    min-width:0!important;
+    height:40px!important;
+    padding:0 36px 0 12px!important;
+    font-size:14px!important;
+    font-weight:700!important;
+    border-radius:10px!important;
+    background:#1b2520!important;
+  }
+  .appbar__company .icon-button{
+    grid-column:2!important;
+    width:38px!important;
+    height:38px!important;
+    border-radius:10px!important;
+    background:transparent!important;
+  }
+  .appbar__actions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:7px!important;
+  }
+  .appbar__actions .action-button{
+    height:40px!important;
+    border-radius:10px!important;
+    font-size:12px!important;
+    background:transparent!important;
+  }
+  .appbar__actions .action-button--primary{
+    background:#25342c!important;
+    border-color:rgba(255,255,255,.15)!important;
+    color:#fff!important;
+  }
+  .appbar__actions .action-button--primary:hover{background:#2b3c32!important;}
+
+  /* Modal Empresas: ocupa el alto útil real de Safari y todo queda alcanzable */
+  #companyModal .modal__dialog{
+    display:flex!important;
+    flex-direction:column!important;
+    width:calc(100vw - 12px)!important;
+    height:calc(100dvh - max(12px, env(safe-area-inset-top)) - 12px)!important;
+    max-height:none!important;
+    margin:max(6px, env(safe-area-inset-top)) 6px 6px!important;
+    overflow:hidden!important;
+    border-radius:14px!important;
+  }
+  #companyModal .modal__header{
+    flex:0 0 auto!important;
+    padding:14px 14px 12px!important;
+    background:#fff!important;
+  }
+  #companyModal .modal__header p{margin-top:4px!important;line-height:1.35!important;}
+  #companyModal .company-manager{
+    display:flex!important;
+    flex:1 1 auto!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    flex-direction:column!important;
+    background:#fff!important;
+  }
+  #companyModal .company-list-panel{
+    flex:0 0 auto!important;
+    max-height:none!important;
+    padding:10px 12px 9px!important;
+    overflow:hidden!important;
+    background:#f6f8f7!important;
+    border-bottom:1px solid #dde4df!important;
+  }
+  #companyModal .primary-wide{
+    width:auto!important;
+    min-height:34px!important;
+    padding:0 11px!important;
+    color:#33473c!important;
+    background:#fff!important;
+    border:1px solid #cbd6cf!important;
+    border-radius:9px!important;
+    box-shadow:none!important;
+    font-size:11px!important;
+    font-weight:750!important;
+  }
+  #companyModal .primary-wide:hover{background:#eef3f0!important;}
+  #companyModal .company-list{
+    display:flex!important;
+    gap:7px!important;
+    margin-top:8px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+  }
+  #companyModal .company-list-item{
+    min-width:136px!important;
+    min-height:46px!important;
+    padding:8px 9px!important;
+    border-radius:9px!important;
+  }
+  #companyModal .company-list-item.is-active{
+    color:#20352a!important;
+    background:#edf3ef!important;
+    border-color:#b7c8bd!important;
+    box-shadow:inset 3px 0 0 #6f8d7a!important;
+  }
+  #companyModal .company-editor{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    padding:12px 12px calc(112px + env(safe-area-inset-bottom))!important;
+    background:#fff!important;
+  }
+  #companyModal .company-editor__logo{
+    grid-template-columns:78px minmax(0,1fr)!important;
+    gap:10px!important;
+    padding:10px!important;
+    margin-bottom:13px!important;
+    background:#f8faf9!important;
+    border:1px solid #dfe6e1!important;
+    border-radius:11px!important;
+  }
+  #companyModal .logo-preview{
+    width:78px!important;
+    height:60px!important;
+    border-radius:8px!important;
+  }
+  #companyModal .company-editor__footer{
+    position:sticky!important;
+    bottom:calc(-112px - env(safe-area-inset-bottom))!important;
+    z-index:5!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:7px!important;
+    margin:18px -12px calc(-112px - env(safe-area-inset-bottom))!important;
+    padding:10px 12px calc(12px + env(safe-area-inset-bottom))!important;
+    background:rgba(255,255,255,.985)!important;
+    border-top:1px solid #dde4df!important;
+    box-shadow:0 -6px 18px rgba(22,35,27,.08)!important;
+  }
+  #companyModal .company-editor__footer .primary-button{
+    grid-column:1/-1!important;
+    grid-row:1!important;
+    min-height:42px!important;
+    color:#fff!important;
+    background:#2d6845!important;
+    border-color:#2d6845!important;
+    border-radius:10px!important;
+    font-size:13px!important;
+  }
+  #companyModal .company-editor__footer .danger-button,
+  #companyModal .company-editor__footer .secondary-button{
+    grid-row:2!important;
+    min-height:39px!important;
+    border-radius:9px!important;
+    font-size:11px!important;
+  }
+}
+
+/* PDF: el clon tiene proporción A4 fija y 10 líneas reales para aprovechar la hoja. */
+.output-clone{
+  width:794px!important;
+  max-width:794px!important;
+  min-height:1123px!important;
+  padding:16px!important;
+}
+.output-clone .paper-header{margin-bottom:6px!important;}
+.output-clone .company-brand,
+.output-clone .company-brand--no-logo{min-height:58px!important;}
+.output-clone .paper-section{margin-bottom:6px!important;}
+.output-clone .service-description textarea{min-height:54px!important;}
+.output-clone .items-table th{height:22px!important;padding:3px 4px!important;}
+.output-clone .items-table td{height:37px!important;min-height:37px!important;}
+.output-clone .items-table textarea,
+.output-clone .items-table input{height:35px!important;min-height:35px!important;padding:3px 5px!important;line-height:20px!important;}
+.output-clone .payment-row input,
+.output-clone .time-row input{height:30px!important;min-height:30px!important;}
+.output-clone .observations textarea{min-height:92px!important;}
+.output-clone .total-row{min-height:30px!important;}
+.output-clone .total-row input,
+.output-clone .total-row output{height:30px!important;min-height:30px!important;}
+.output-clone .signature-box{min-height:94px!important;}
+.output-clone .paper-footer{margin-top:4px!important;padding-top:2px!important;}

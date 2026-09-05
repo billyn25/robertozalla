@@ -1263,6 +1263,22 @@
         candidate.remove();
       }
 
+      // La salida A4 siempre reserva exactamente 10 líneas: así PC y móvil generan
+      // la misma geometría y aprovechamos la página sin dejar media hoja vacía.
+      const body = clone.querySelector('#itemsBody');
+      let currentRows = [...body.querySelectorAll('tr')];
+      const rowTemplate = currentRows[currentRows.length - 1]?.cloneNode(true);
+      while (rowTemplate && currentRows.length < MAX_A4_LINES) {
+        const emptyRow = rowTemplate.cloneNode(true);
+        emptyRow.classList.remove('has-data', 'force-visible');
+        emptyRow.querySelectorAll('input, textarea').forEach(el => {
+          if (el.type === 'checkbox') el.checked = false;
+          else el.value = '';
+        });
+        body.appendChild(emptyRow);
+        currentRows.push(emptyRow);
+      }
+
       await nextFrame();
 
       const rect = clone.getBoundingClientRect();
