@@ -33,7 +33,7 @@
       address: '',
       legalLine: '',
       terms: '',
-      logo: 'assets/logo-antena-city.png'
+      logo: ''
     },
     {
       id: 'company-antenas-abaso',
@@ -46,7 +46,7 @@
       address: '',
       legalLine: '',
       terms: '',
-      logo: 'assets/logo-abaso.png'
+      logo: ''
     }
   ];
 
@@ -221,6 +221,8 @@
     );
 
     bindEvents();
+    // Limpia referencias a logos antiguos de fábrica y conserva únicamente logos personalizados.
+    persistCompanies();
     renderCompanySelect();
 
     // Fase de pruebas: cada carga empieza con una hoja realmente vacía.
@@ -407,19 +409,7 @@
     els.documentSearch.addEventListener('input', renderDocumentsList);
     els.documentsList.addEventListener('click', handleDocumentListAction);
 
-    els.printBtn.addEventListener('click', async () => {
-      formatAllMoneyFields();
-      calculateTotals();
-      saveDraftNow();
-      prepareOutputLayout();
-      try {
-        await nextFrame();
-        await nextFrame();
-        window.print();
-      } finally {
-        restoreOutputLayout();
-      }
-    });
+    els.printBtn.addEventListener('click', printDocument);
     els.pdfBtn.addEventListener('click', exportPdf);
 
     document.addEventListener('click', event => {
@@ -433,12 +423,18 @@
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
-        saveCurrentDocument();
+        showToast('El guardado de documentos está desactivado durante esta fase.');
       }
     });
   }
 
   function normalizeCompany(company) {
+    const legacyDefaultLogos = new Set([
+      'assets/logo-antena-city.png',
+      'assets/logo-abaso.png'
+    ]);
+    const rawLogo = String(company?.logo || '');
+    const customLogo = legacyDefaultLogos.has(rawLogo) ? '' : rawLogo;
     return {
       id: company.id || makeId('company'),
       name: company.name || 'EMPRESA',
@@ -450,7 +446,8 @@
       address: company.address || '',
       legalLine: company.legalLine || '',
       terms: company.terms || '',
-      logo: company.logo || ''
+      // Solo se conserva el logo elegido por el usuario. Nunca hay logos de fábrica.
+      logo: customLogo
     };
   }
 
@@ -733,16 +730,24 @@
     els.companyTerms.textContent = company.terms || '';
     els.companyTerms.hidden = !company.terms;
 
+    const logoWrap = document.getElementById('companyLogoWrap');
+    const brand = document.getElementById('companyBrand');
     if (company.logo) {
       els.companyLogo.src = company.logo;
       els.companyLogo.alt = `Logo de ${company.name}`;
       els.companyLogo.hidden = false;
       els.companyLogoPlaceholder.hidden = true;
+      logoWrap.hidden = false;
+      brand.classList.add('company-brand--has-logo');
+      brand.classList.remove('company-brand--no-logo');
     } else {
       els.companyLogo.removeAttribute('src');
       els.companyLogo.alt = '';
       els.companyLogo.hidden = true;
-      els.companyLogoPlaceholder.hidden = false;
+      els.companyLogoPlaceholder.hidden = true;
+      logoWrap.hidden = true;
+      brand.classList.add('company-brand--no-logo');
+      brand.classList.remove('company-brand--has-logo');
     }
   }
 
@@ -1147,17 +1152,13 @@
   async function exportPdf() {
     formatAllMoneyFields();
     calculateTotals();
-    saveDraftNow();
 
     const originalText = els.pdfBtn.querySelector('span').textContent;
     els.pdfBtn.disabled = true;
     els.pdfBtn.querySelector('span').textContent = 'Generando…';
-    prepareOutputLayout();
 
     try {
-      await nextFrame();
-      await nextFrame();
-
+      const canvas = await renderDocumentCanvas();
       const fields = serializeDocument().fields;
       const company = getActiveCompany();
       const filename = [
@@ -1167,75 +1168,155 @@
         fields.documentDate || new Date().toISOString().slice(0, 10)
       ].filter(Boolean).map(slugify).join('_') + '.pdf';
 
-      // Capturamos la hoja A4 desde x=0. Evita el recorte lateral que
-      // producia html2pdf al reducir el viewport de una hoja centrada.
-      if (typeof window.html2canvas !== 'function' || !window.jspdf?.jsPDF) {
-        throw new Error('El generador PDF no se ha cargado');
-      }
-
-      // Capturamos TODO el alto real de la hoja. Después lo ajustamos proporcionalmente
-      // dentro de A4, evitando cualquier corte de la zona inferior.
-      const canvas = await window.html2canvas(els.sheet, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: '#ffffff',
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: Math.max(els.sheet.scrollWidth, 794),
-        windowHeight: els.sheet.scrollHeight
-      });
-
+      if (!window.jspdf?.jsPDF) throw new Error('El generador PDF no se ha cargado');
       const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true });
-      const imgData = canvas.toDataURL('image/jpeg', 0.98);
-      const margin = 4;
+      const margin = 5;
       const maxW = 210 - margin * 2;
       const maxH = 297 - margin * 2;
       const ratio = canvas.width / canvas.height;
       let outW = maxW;
       let outH = outW / ratio;
-      if (outH > maxH) { outH = maxH; outW = outH * ratio; }
+      if (outH > maxH) {
+        outH = maxH;
+        outW = outH * ratio;
+      }
       const outX = (210 - outW) / 2;
       const outY = (297 - outH) / 2;
+      const imgData = canvas.toDataURL('image/jpeg', 0.96);
       pdf.addImage(imgData, 'JPEG', outX, outY, outW, outH, undefined, 'FAST');
       pdf.save(filename);
-      showToast('PDF generado.');
+      showToast('PDF generado en una página A4.');
     } catch (error) {
       console.error(error);
-      showToast('No se pudo descargar el PDF directamente. Se abrirá la impresión para guardarlo como PDF.', 'error');
-      window.print();
+      showToast('No se pudo generar el PDF.', 'error');
     } finally {
-      restoreOutputLayout();
       els.pdfBtn.disabled = false;
       els.pdfBtn.querySelector('span').textContent = originalText;
     }
   }
 
-  function prepareOutputLayout() {
-    if (state.outputTextareaHeights) return;
-    document.body.classList.add('pdf-export');
-    const textareas = [...els.sheet.querySelectorAll('textarea')];
-    state.outputTextareaHeights = textareas.map(textarea => textarea.style.height);
+  async function printDocument() {
+    formatAllMoneyFields();
+    calculateTotals();
 
-    textareas.forEach(textarea => { textarea.style.height = 'auto'; });
-    void els.sheet.offsetWidth;
-    textareas.forEach(textarea => {
-      let minimum = 28;
-      if (textarea.id === 'serviceDescription') minimum = 42;
-      if (textarea.id === 'generalObservations') minimum = 92;
-      textarea.style.height = `${Math.max(textarea.scrollHeight, minimum)}px`;
-    });
+    // Abrimos la ventana inmediatamente para evitar el bloqueador de pop-ups.
+    const printWindow = window.open('', '_blank');
+    if (printWindow) printWindow.opener = null;
+    if (!printWindow) {
+      showToast('Permite ventanas emergentes para imprimir.', 'error');
+      return;
+    }
+
+    try {
+      printWindow.document.write('<!doctype html><html><head><title>Imprimir</title></head><body><p style="font-family:Arial,sans-serif;padding:20px">Preparando documento…</p></body></html>');
+      printWindow.document.close();
+      const canvas = await renderDocumentCanvas();
+      const dataUrl = canvas.toDataURL('image/png');
+      printWindow.document.open();
+      printWindow.document.write(`<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Imprimir documento</title>
+<style>
+  @page{size:A4 portrait;margin:0}
+  html,body{margin:0;padding:0;width:210mm;height:297mm;background:#fff;overflow:hidden}
+  body{display:grid;place-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  img{display:block;max-width:200mm;max-height:287mm;width:auto;height:auto;object-fit:contain}
+</style></head><body><img id="page" alt="Documento listo para imprimir" src="${dataUrl}"></body></html>`);
+      printWindow.document.close();
+      const image = printWindow.document.getElementById('page');
+      const doPrint = () => {
+        printWindow.focus();
+        printWindow.print();
+      };
+      if (image.complete) setTimeout(doPrint, 120);
+      else image.onload = () => setTimeout(doPrint, 120);
+    } catch (error) {
+      console.error(error);
+      printWindow.close();
+      showToast('No se pudo preparar la impresión.', 'error');
+    }
   }
 
-  function restoreOutputLayout() {
-    if (state.outputTextareaHeights) {
-      const textareas = [...els.sheet.querySelectorAll('textarea')];
-      textareas.forEach((textarea, index) => {
-        textarea.style.height = state.outputTextareaHeights[index] || '';
+  async function renderDocumentCanvas() {
+    if (typeof window.html2canvas !== 'function') throw new Error('html2canvas no se ha cargado');
+
+    const stage = document.createElement('div');
+    stage.className = 'output-stage';
+    const clone = els.sheet.cloneNode(true);
+    clone.id = 'outputSheetClone';
+    clone.classList.add('output-clone');
+
+    syncOutputControls(els.sheet, clone);
+    clone.querySelectorAll('.screen-only').forEach(node => node.remove());
+    clone.querySelectorAll('.company-logo-placeholder').forEach(node => node.remove());
+
+    stage.appendChild(clone);
+    document.body.appendChild(stage);
+
+    try {
+      await document.fonts?.ready;
+      await nextFrame();
+      await nextFrame();
+
+      // Damos a los textos editables el alto necesario antes de capturar.
+      clone.querySelectorAll('textarea').forEach(textarea => {
+        textarea.style.height = 'auto';
+        textarea.style.height = `${Math.max(textarea.scrollHeight, textarea.id === 'generalObservations' ? 66 : 30)}px`;
+        textarea.style.resize = 'none';
       });
+
+      const width = Math.ceil(Math.max(clone.scrollWidth, clone.getBoundingClientRect().width));
+      const height = Math.ceil(Math.max(clone.scrollHeight, clone.getBoundingClientRect().height));
+      const canvas = await window.html2canvas(clone, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width,
+        height,
+        windowWidth: width,
+        windowHeight: height,
+        scrollX: 0,
+        scrollY: 0
+      });
+      return canvas;
+    } finally {
+      stage.remove();
     }
-    state.outputTextareaHeights = null;
-    document.body.classList.remove('pdf-export');
+  }
+
+  function syncOutputControls(source, clone) {
+    const sourceControls = [...source.querySelectorAll('input, textarea, select, canvas')];
+    const cloneControls = [...clone.querySelectorAll('input, textarea, select, canvas')];
+
+    sourceControls.forEach((sourceControl, index) => {
+      const cloneControl = cloneControls[index];
+      if (!cloneControl) return;
+
+      if (sourceControl instanceof HTMLInputElement) {
+        cloneControl.value = sourceControl.value;
+        cloneControl.setAttribute('value', sourceControl.value);
+        if (sourceControl.type === 'checkbox' || sourceControl.type === 'radio') {
+          cloneControl.checked = sourceControl.checked;
+          if (sourceControl.checked) cloneControl.setAttribute('checked', 'checked');
+          else cloneControl.removeAttribute('checked');
+        }
+      } else if (sourceControl instanceof HTMLTextAreaElement) {
+        cloneControl.value = sourceControl.value;
+        cloneControl.textContent = sourceControl.value;
+      } else if (sourceControl instanceof HTMLSelectElement) {
+        cloneControl.value = sourceControl.value;
+        [...cloneControl.options].forEach(option => {
+          if (option.value === sourceControl.value) option.setAttribute('selected', 'selected');
+          else option.removeAttribute('selected');
+        });
+      } else if (sourceControl instanceof HTMLCanvasElement && cloneControl instanceof HTMLCanvasElement) {
+        cloneControl.width = sourceControl.width;
+        cloneControl.height = sourceControl.height;
+        const context = cloneControl.getContext('2d');
+        context?.drawImage(sourceControl, 0, 0);
+      }
+    });
   }
 
   function formatAllMoneyFields() {
