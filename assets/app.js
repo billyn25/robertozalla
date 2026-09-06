@@ -274,6 +274,21 @@
     }
   }
 
+
+  function forceTopOnEntry() {
+    try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (_) {}
+    const goTop = () => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    };
+    goTop();
+    requestAnimationFrame(() => { goTop(); requestAnimationFrame(goTop); });
+    setTimeout(goTop, 40);
+    setTimeout(goTop, 180);
+    setTimeout(goTop, 500);
+  }
+
   function init() {
     state.signatures.clientSignature = new SignaturePad(
       document.getElementById('clientSignature'),
@@ -296,8 +311,14 @@
 
     renderCompanyHeader();
     calculateTotals();
-    requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
+    forceTopOnEntry();
   }
+
+  window.addEventListener('pageshow', event => {
+    if (event.persisted || window.scrollY > 0) forceTopOnEntry();
+  });
+
+  window.addEventListener('load', forceTopOnEntry, { once: true });
 
   function bindEvents() {
     els.companySelect.addEventListener('change', () => {
