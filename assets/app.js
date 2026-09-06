@@ -290,17 +290,13 @@
     persistCompanies();
     renderCompanySelect();
 
-    // Producción: recupera el último borrador local si existe; si no, crea uno nuevo.
-    const savedDraft = loadJSON(STORAGE.draft, null);
-    if (savedDraft && savedDraft.companyId && state.companies.some(c => c.id === savedDraft.companyId)) {
-      hydrateDocument(savedDraft, null);
-      updateDraftStatus('Borrador recuperado automáticamente');
-    } else {
-      hydrateDocument(makeBlankDocument(state.activeCompanyId), null);
-    }
+    // Producción: al abrir, siempre empieza una hoja nueva y limpia.
+    // Los documentos anteriores solo se recuperan desde "Guardadas".
+    hydrateDocument(makeBlankDocument(state.activeCompanyId), null);
 
     renderCompanyHeader();
     calculateTotals();
+    requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }));
   }
 
   function bindEvents() {
@@ -1242,6 +1238,7 @@
       hydrateDocument(documentData, documentData.id);
       closeModal(els.documentsModal);
       saveDraftNow();
+      requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' }));
       showToast('Documento recuperado.');
     }
 
@@ -1256,6 +1253,7 @@
       hydrateDocument(copy, null);
       closeModal(els.documentsModal);
       markDirty();
+      requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' }));
       showToast('Copia preparada. Cambia el número y pulsa Guardar.');
     }
 

@@ -1329,3 +1329,115 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 .signature-toggle,.clear-signature{position:static;min-height:30px;padding:5px 9px;border:1px solid #c8d3cc;border-radius:7px;background:#fff;color:#314139;font-size:10px;font-weight:800}
 .signature-toggle{border-color:#7eb492;background:#edf7f0;color:#1f653b}
 .signature-toggle.is-active{background:#287f4c;color:#fff;border-color:#287f4c}
+
+/* =========================================================
+   V42 — REFINO FINAL DE MODALES Y CABECERA
+   ========================================================= */
+
+/* PC: modal de empresas más ancho y compacto para reducir scroll */
+@media (min-width: 761px){
+  #companyModal .modal__dialog--wide{
+    width:min(1180px,calc(100vw - 40px));
+    max-height:min(94vh,900px);
+    margin:3vh auto;
+  }
+  #companyModal .modal__header{padding:14px 18px 12px}
+  #companyModal .modal__header h2{font-size:19px}
+  #companyModal .modal__header p{font-size:11px}
+  #companyModal .company-manager{grid-template-columns:220px minmax(0,1fr)}
+  #companyModal .company-list-panel{padding:13px}
+  #companyModal .company-list-item{padding:9px 10px}
+  #companyModal .company-editor{padding:14px 16px 16px}
+  #companyModal .company-editor__logo{
+    grid-template-columns:120px minmax(0,1fr);
+    gap:12px;
+    margin-bottom:12px;
+    padding-bottom:12px;
+  }
+  #companyModal .logo-preview{width:120px;height:68px}
+  #companyModal .editor-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px 11px}
+  #companyModal .editor-field--wide{grid-column:1/-1}
+  #companyModal .editor-field span{font-size:10px}
+  #companyModal .editor-field input,
+  #companyModal .editor-field textarea{min-height:36px;padding:7px 9px;font-size:13px}
+  #companyModal .editor-field textarea{min-height:66px}
+  #companyModal .company-editor__footer{margin-top:12px;padding-top:12px}
+  #companyModal .primary-button,
+  #companyModal .secondary-button,
+  #companyModal .danger-button{min-height:36px}
+}
+
+@media (max-width:760px){
+  /* Cabecera: Guardar secundario compacto, PDF acción principal */
+  .appbar{grid-template-rows:44px 44px}
+  .appbar__actions #saveDocumentBtn{
+    grid-column:1;
+    grid-row:2;
+    width:44px;
+    min-width:44px;
+    height:44px;
+    padding:0;
+    justify-content:center;
+    border-radius:10px;
+  }
+  .appbar__actions #saveDocumentBtn span{display:none!important}
+  .appbar__actions #saveDocumentBtn svg{width:18px;height:18px}
+  .appbar__actions #pdfBtn{
+    grid-column:2/5;
+    grid-row:2;
+    width:100%;
+    height:44px;
+    min-width:0;
+    padding:0 16px;
+    justify-content:center;
+    gap:8px;
+    border-radius:10px;
+    background:#2da35d;
+    border-color:#2da35d;
+    box-shadow:0 5px 16px rgba(34,125,72,.20);
+  }
+  .appbar__actions #pdfBtn .pdf-label{font-size:13px;font-weight:900}
+
+  /* Documentos guardados: modal legible, compacto y táctil */
+  #documentsModal .modal__dialog--documents{
+    position:fixed;
+    left:12px;
+    right:12px;
+    top:calc(12px + env(safe-area-inset-top));
+    width:auto;
+    max-width:none;
+    max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    margin:0;
+    border-radius:18px;
+  }
+  #documentsModal .modal__header{padding:16px 16px 13px;align-items:flex-start}
+  #documentsModal .modal__header h2{font-size:20px;line-height:1.1}
+  #documentsModal .modal__header p{margin-top:5px;font-size:11px;line-height:1.35}
+  #documentsModal .modal__close{width:42px;height:42px;flex-basis:42px}
+  #documentsModal .documents-tools{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:10px;
+    padding:12px 14px;
+  }
+  #documentsModal .search-field{min-height:44px;padding:0 10px;border-radius:11px}
+  #documentsModal .search-field input{font-size:16px!important;background:transparent}
+  #documentsModal #documentsCount{align-self:center;font-size:10px}
+  #documentsModal .documents-list{gap:10px;padding:12px 14px 16px;min-height:120px}
+  #documentsModal .document-card{
+    display:block;
+    padding:13px;
+    border-radius:13px;
+    background:#fff;
+    box-shadow:0 3px 10px rgba(28,50,38,.05);
+  }
+  #documentsModal .document-card__title{display:block}
+  #documentsModal .document-card__title strong{display:block;font-size:15px;line-height:1.25;color:#1d2c24}
+  #documentsModal .document-card__title span{display:block;margin-top:4px;font-size:12px;color:#66756d}
+  #documentsModal .document-card__meta{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;margin-top:10px}
+  #documentsModal .document-card__meta span{font-size:10px;line-height:1.3}
+  #documentsModal .document-card__actions{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:7px;margin-top:12px}
+  #documentsModal .document-card__actions button{min-height:42px;padding:0 8px;border-radius:9px;font-size:11px}
+  #documentsModal .document-card__actions [data-doc-action="open"]{color:#fff;background:#287f4c;border-color:#287f4c}
+  #documentsModal .document-card__actions .delete-doc{color:#8e3434;background:#fff7f7;border-color:#dfbcbc}
+}
