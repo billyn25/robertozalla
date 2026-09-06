@@ -200,20 +200,14 @@
             <div class="total-row total-row--detail"><label for="laborAmount">Mano de obra</label><input id="laborAmount" name="laborAmount" class="money-input" type="text" inputmode="decimal"></div>
             <div class="total-row total-row--detail"><label for="travelAmount">Desplazamiento</label><input id="travelAmount" name="travelAmount" class="money-input" type="text" inputmode="decimal"></div>
             <div class="total-row total-row--detail"><label for="extraAmount">Plus extra</label><input id="extraAmount" name="extraAmount" class="money-input" type="text" inputmode="decimal"></div>
-
-            <div class="total-source screen-only">
-              <button type="button" id="totalFromLinesBtn">Total desde líneas</button>
-              <button type="button" id="totalFromBreakdownBtn">Total desde desglose</button>
-            </div>
-
-            <div class="total-row total-row--strong">
+<div class="total-row total-row--strong">
               <label for="subtotalAmount">TOTAL IMPORTE</label>
               <div class="money-with-reset">
                 <input id="subtotalAmount" name="subtotalAmount" class="money-input" type="text" inputmode="decimal" aria-describedby="subtotalMode">
-                <button class="reset-calc screen-only" id="resetSubtotalBtn" type="button" title="Volver a calcular desde las líneas" aria-label="Volver a calcular el total desde las líneas">↺</button>
+                <button class="reset-calc screen-only" id="resetSubtotalBtn" type="button" title="Volver al cálculo automático" aria-label="Volver al cálculo automático">↺</button>
               </div>
             </div>
-            <small class="calculation-mode screen-only" id="subtotalMode">Automático desde las líneas</small>
+            <small class="calculation-mode screen-only" id="subtotalMode">Automático: líneas + materiales + mano de obra + desplazamiento + plus</small>
 
             <div class="total-row total-row--vat">
               <div class="vat-left">
