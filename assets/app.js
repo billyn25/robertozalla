@@ -5,11 +5,11 @@
     companies: 'parte-digital.companies.v2',
     activeCompany: 'parte-digital.active-company.v1',
     documents: 'parte-digital.documents.v1',
-    draft: 'parte-digital.draft.v1'
+    draft: 'parte-digital.draft.v1',
+    counters: 'parte-digital.counters.v1'
   };
 
   const MIN_INITIAL_LINES = 8;
-  const MAX_A4_LINES = 10; // calculado para una sola A4 con márgenes de 4 mm y pie completo
   const memoryStorage = new Map();
   const moneyFormatter = new Intl.NumberFormat('es-ES', {
     minimumFractionDigits: 2,
@@ -31,6 +31,7 @@
       slogan: 'Antenas TV · Satélite · Porteros automáticos · Videoporteros',
       owner: 'Roberto Fuentes González',
       taxId: '',
+      iban: '',
       address: '',
       legalLine: '',
       terms: '',
@@ -44,6 +45,7 @@
       slogan: 'Instalación, reparación y mantenimiento',
       owner: 'Roberto Fuentes González',
       taxId: '',
+      iban: '',
       address: '',
       legalLine: '',
       terms: '',
@@ -101,6 +103,7 @@
     companies: loadJSON(STORAGE.companies, defaultCompanies).map(normalizeCompany),
     activeCompanyId: '',
     documents: loadJSON(STORAGE.documents, []),
+    counters: loadJSON(STORAGE.counters, {}),
     currentDocumentId: null,
     subtotalMode: 'lines',
     grandTotalMode: 'auto',
@@ -127,6 +130,7 @@
       this.empty = true;
       this.lastPoint = null;
       this.activePointerId = null;
+      this.enabled = false;
       this.configure();
       this.bind();
     }
@@ -192,6 +196,7 @@
     }
 
     pointerStart(event) {
+      if (!this.enabled) return;
       if (event.pointerType === 'mouse' && event.button !== 0) return;
       event.preventDefault();
       this.activePointerId = event.pointerId;
@@ -213,6 +218,7 @@
     }
 
     touchStart(event) {
+      if (!this.enabled) return;
       if (!event.touches.length) return;
       event.preventDefault();
       const t = event.touches[0];
@@ -232,12 +238,20 @@
     }
 
     mouseStart(event) {
+      if (!this.enabled) return;
       if (event.button !== 0) return;
       event.preventDefault();
       this.beginAt(this.pointFromClient(event.clientX, event.clientY));
     }
     mouseMove(event) { if (this.drawing) this.drawTo(this.pointFromClient(event.clientX, event.clientY)); }
     mouseEnd(event) { if (this.drawing) { event.preventDefault(); this.finish(); } }
+
+    setEnabled(enabled) {
+      this.enabled = Boolean(enabled);
+      this.canvas.classList.toggle('is-signing', this.enabled);
+      this.canvas.setAttribute('aria-disabled', this.enabled ? 'false' : 'true');
+      if (!this.enabled) this.finish();
+    }
 
     clear(notify = true) {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -269,15 +283,21 @@
       document.getElementById('technicianSignature'),
       () => markDirty()
     );
+    Object.values(state.signatures).forEach(pad => pad.setEnabled(false));
 
     bindEvents();
     // Limpia referencias a logos antiguos de fábrica y conserva únicamente logos personalizados.
     persistCompanies();
     renderCompanySelect();
 
-    // Fase de pruebas: cada carga empieza con una hoja realmente vacía.
-    // No recuperamos borradores ni documentos guardados.
-    hydrateDocument(makeBlankDocument(state.activeCompanyId), null);
+    // Producción: recupera el último borrador local si existe; si no, crea uno nuevo.
+    const savedDraft = loadJSON(STORAGE.draft, null);
+    if (savedDraft && savedDraft.companyId && state.companies.some(c => c.id === savedDraft.companyId)) {
+      hydrateDocument(savedDraft, null);
+      updateDraftStatus('Borrador recuperado automáticamente');
+    } else {
+      hydrateDocument(makeBlankDocument(state.activeCompanyId), null);
+    }
 
     renderCompanyHeader();
     calculateTotals();
@@ -294,9 +314,20 @@
         showToast('La hoja queda como copia nueva al cambiar de empresa.');
       }
 
+      const bankField = els.documentForm.elements.namedItem('bankAccount');
+      const previousCompany = state.companies.find(company => company.id === previousCompanyId);
+      const nextCompany = state.companies.find(company => company.id === nextCompanyId);
+      const currentBank = String(bankField?.value || '').trim();
+      const previousDefaultBank = String(previousCompany?.iban || '').trim();
+
       state.activeCompanyId = nextCompanyId;
       setStorageItem(STORAGE.activeCompany, nextCompanyId);
       renderCompanyHeader();
+      if (bankField && (!currentBank || currentBank === previousDefaultBank)) bankField.value = nextCompany?.iban || '';
+      const numberField = els.documentForm.elements.namedItem('documentNumber');
+      if (numberField && /^\d{4}-\d{4,}$/.test(String(numberField.value || '').trim())) {
+        numberField.value = nextDocumentNumber(nextCompanyId);
+      }
       markDirty();
     });
 
@@ -398,12 +429,6 @@
         if (row) row.classList.add('force-visible');
       }
 
-      // La plantilla A4 está calculada para un máximo de 10 líneas sin invadir el pie.
-      if (!row && rows.length >= MAX_A4_LINES) {
-        showToast(`Máximo ${MAX_A4_LINES} líneas para mantener el PDF en una sola hoja A4.`, 'error');
-        return;
-      }
-
       if (!row) {
         row = createLineRow(blankLine());
         row.classList.add('force-visible');
@@ -441,10 +466,24 @@
       markDirty();
     });
 
-    document.querySelectorAll('.clear-signature').forEach(button => {
+    document.querySelectorAll('.signature-toggle').forEach(button => {
       button.addEventListener('click', () => {
-        state.signatures[button.dataset.signature]?.clear();
+        const key = button.dataset.signature;
+        const pad = state.signatures[key];
+        if (!pad) return;
+        const next = !pad.enabled;
+        Object.entries(state.signatures).forEach(([name, otherPad]) => {
+          otherPad.setEnabled(name === key ? next : false);
+          const otherButton = document.querySelector(`.signature-toggle[data-signature="${name}"]`);
+          if (otherButton) {
+            otherButton.textContent = name === key && next ? 'Hecho' : 'Firmar';
+            otherButton.classList.toggle('is-active', name === key && next);
+          }
+        });
       });
+    });
+    document.querySelectorAll('.clear-signature').forEach(button => {
+      button.addEventListener('click', () => state.signatures[button.dataset.signature]?.clear());
     });
 
     els.manageCompaniesBtn.addEventListener('click', () => openCompanyManager(state.activeCompanyId));
@@ -486,7 +525,7 @@
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
-        showToast('El guardado de documentos está desactivado durante esta fase.');
+        saveCurrentDocument();
       }
     });
   }
@@ -506,6 +545,7 @@
       slogan: company.slogan || '',
       owner: company.owner || '',
       taxId: company.taxId || '',
+      iban: company.iban || '',
       address: company.address || '',
       legalLine: company.legalLine || '',
       terms: company.terms || '',
@@ -514,14 +554,48 @@
     };
   }
 
+  function todayISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function companyNumberKey(companyId, year = new Date().getFullYear()) {
+    return `${companyId}:${year}`;
+  }
+
+  function nextDocumentNumber(companyId) {
+    const year = new Date().getFullYear();
+    const key = companyNumberKey(companyId, year);
+    const stored = Number(state.counters[key] || 0);
+    let highest = stored;
+    for (const documentData of state.documents) {
+      if (documentData.companyId !== companyId) continue;
+      const n = String(documentData.fields?.documentNumber || '').match(new RegExp(`^${year}-(\\d{4,})$`));
+      if (n) highest = Math.max(highest, Number(n[1]) || 0);
+    }
+    return `${year}-${String(highest + 1).padStart(4, '0')}`;
+  }
+
+  function commitDocumentNumber(companyId, documentNumber) {
+    const match = String(documentNumber || '').trim().match(/^(\d{4})-(\d{4,})$/);
+    if (!match) return; // los números manuales se respetan sin alterar el contador
+    const key = companyNumberKey(companyId, Number(match[1]));
+    state.counters[key] = Math.max(Number(state.counters[key] || 0), Number(match[2]) || 0);
+    saveJSON(STORAGE.counters, state.counters);
+  }
+
   function makeBlankDocument(companyId) {
+    const company = state.companies.find(item => item.id === companyId) || null;
     return {
       version: 1,
       companyId,
       fields: {
         documentType: 'Presupuesto',
-        documentNumber: '',
-        documentDate: '',
+        documentNumber: nextDocumentNumber(companyId),
+        documentDate: todayISO(),
         clientCompany: '',
         clientName: '',
         clientPhone: '',
@@ -546,7 +620,7 @@
         collectionNotes: '',
         paymentMethod: '',
         receivedBy: '',
-        bankAccount: '',
+        bankAccount: company?.iban || '',
         serviceDate: '',
         arrivalTime: '',
         departureTime: '',
@@ -750,6 +824,11 @@
     renderItems(data.items);
     state.signatures.clientSignature.load(data.signatures.clientSignature);
     state.signatures.technicianSignature.load(data.signatures.technicianSignature);
+    Object.entries(state.signatures).forEach(([name, pad]) => {
+      pad.setEnabled(false);
+      const button = document.querySelector(`.signature-toggle[data-signature="${name}"]`);
+      if (button) { button.textContent = 'Firmar'; button.classList.remove('is-active'); }
+    });
     calculateTotals();
     state.dirty = false;
     updateDraftStatus();
@@ -1055,6 +1134,7 @@
       });
     }
 
+    commitDocumentNumber(data.companyId, data.fields.documentNumber);
     state.documents.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
     saveJSON(STORAGE.documents, state.documents);
     state.dirty = false;
@@ -1193,12 +1273,16 @@
   function markDirty() {
     state.dirty = true;
     updateDraftStatus();
-    // Guardado/autoguardado desactivado temporalmente durante las pruebas.
+    clearTimeout(state.draftTimer);
+    state.draftTimer = setTimeout(saveDraftNow, 450);
   }
 
   function saveDraftNow() {
-    // Desactivado temporalmente: no persistir datos del parte durante las pruebas.
-    updateDraftStatus('Modo prueba · sin guardar');
+    clearTimeout(state.draftTimer);
+    state.draftTimer = null;
+    const data = serializeDocument();
+    saveJSON(STORAGE.draft, data);
+    updateDraftStatus(state.currentDocumentId ? undefined : 'Borrador guardado automáticamente');
   }
 
   function updateDraftStatus(message) {
@@ -1214,9 +1298,6 @@
   }
 
   async function exportPdf() {
-    // Asegura que cualquier línea con precio tenga su importe calculado antes de
-    // preparar la salida. Esto evita que una edición incompleta en móvil deje la
-    // celda IMPORTE vacía aunque el total general sí se haya recalculado.
     [...els.itemsBody.querySelectorAll('tr')].forEach(row => {
       const price = row.querySelector('[data-field="price"]')?.value?.trim() || '';
       const amount = row.querySelector('[data-field="amount"]')?.value?.trim() || '';
@@ -1226,282 +1307,131 @@
     calculateTotals();
 
     const label = els.pdfBtn.querySelector('span');
-    const originalText = label.textContent;
+    const originalText = label?.textContent || 'PDF';
     els.pdfBtn.disabled = true;
-    label.textContent = 'Generando…';
-
-    let overlay;
+    if (label) label.textContent = 'Generando…';
     try {
-      if (typeof window.html2canvas !== 'function') throw new Error('No se cargó el motor de captura');
-      if (!window.jspdf?.jsPDF) throw new Error('No se cargó el motor PDF');
-
-      overlay = document.createElement('div');
-      overlay.className = 'pdf-progress-overlay';
-      overlay.innerHTML = '<div class="pdf-progress-card"><span class="pdf-spinner"></span><strong>Generando PDF</strong><small>Preparando una hoja A4…</small></div>';
-      document.body.appendChild(overlay);
-
-      const canvas = await renderDocumentCanvas();
-      if (!canvas || canvas.width < 100 || canvas.height < 100) throw new Error('La captura de la hoja no es válida');
-
-      // Detectar una captura realmente vacía antes de crear el PDF.
-      const check = canvas.getContext('2d', { willReadFrequently: true });
-      const sample = check.getImageData(0, 0, Math.min(canvas.width, 500), Math.min(canvas.height, 500)).data;
-      let nonWhite = 0;
-      for (let i = 0; i < sample.length; i += 40) {
-        if (sample[i] < 245 || sample[i + 1] < 245 || sample[i + 2] < 245) { nonWhite++; if (nonWhite > 20) break; }
-      }
-      if (nonWhite <= 20) throw new Error('La hoja se capturó en blanco');
-
-      const fields = serializeDocument().fields;
-      const company = getActiveCompany();
-      const filename = [
-        fields.documentType || 'documento',
-        company?.name || 'empresa',
-        fields.documentNumber ? `n-${fields.documentNumber}` : '',
-        fields.documentDate || new Date().toISOString().slice(0, 10)
-      ].filter(Boolean).map(slugify).join('_') + '.pdf';
-
+      if (!window.jspdf?.jsPDF) throw new Error('No se cargó jsPDF');
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-      const pageW = 210, pageH = 297, margin = 4;
-      const maxW = pageW - margin * 2, maxH = pageH - margin * 2;
-      const ratio = canvas.width / canvas.height;
-      let outW = maxW, outH = outW / ratio;
-      if (outH > maxH) { outH = maxH; outW = outH * ratio; }
-      const x = (pageW - outW) / 2;
-      // Alinear arriba: evita el gran margen superior que producía el centrado vertical.
-      const y = margin;
-      const imgData = canvas.toDataURL('image/jpeg', 0.94);
-      pdf.addImage(imgData, 'JPEG', x, y, outW, outH, undefined, 'FAST');
-      pdf.save(filename);
-      showToast('PDF generado correctamente en una sola hoja A4.');
+      const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4', compress:true });
+      if (typeof doc.autoTable !== 'function') throw new Error('No se cargó AutoTable');
+      const data = serializeDocument();
+      const company = getActiveCompany();
+      await buildVectorPdf(doc, data, company);
+      const filename = [data.fields.documentType || 'documento', company?.name || 'empresa', data.fields.documentNumber ? `n-${data.fields.documentNumber}` : '', data.fields.documentDate || new Date().toISOString().slice(0,10)].filter(Boolean).map(slugify).join('_') + '.pdf';
+      doc.save(filename);
+      showToast('PDF generado correctamente.');
     } catch (error) {
-      console.error('PDF:', error);
+      console.error(error);
       showToast(`No se pudo generar el PDF${error?.message ? ': ' + error.message : ''}`, 'error');
     } finally {
-      overlay?.remove();
       els.pdfBtn.disabled = false;
-      label.textContent = originalText;
+      if (label) label.textContent = originalText;
     }
   }
 
-  async function renderDocumentCanvas() {
-    const stage = document.createElement('div');
-    stage.className = 'output-stage output-stage--capture';
-    const clone = els.sheet.cloneNode(true);
-    clone.id = 'outputSheetClone';
-    clone.classList.add('output-clone');
-    syncOutputControls(els.sheet, clone);
-    clone.querySelectorAll('.screen-only').forEach(node => node.remove());
-    clone.querySelectorAll('.company-logo-placeholder').forEach(node => node.remove());
-    stage.appendChild(clone);
-    document.body.appendChild(stage);
+  const VPDF = {
+    w:210, h:297, m:7,
+    ink:[28,36,31], muted:[92,105,97], line:[187,199,191],
+    green:[39,132,78], greenSoft:[237,247,241], head:[246,248,246]
+  };
+  const vContentW = () => VPDF.w - 2 * VPDF.m;
 
-    try {
-      if (document.fonts?.ready) await document.fonts.ready;
-      await nextFrame();
-      await nextFrame();
+  function vBox(doc,x,y,w,h,fill=null){
+    doc.setDrawColor(...VPDF.line); doc.setLineWidth(.22);
+    if(fill){doc.setFillColor(...fill);doc.rect(x,y,w,h,'FD');} else doc.rect(x,y,w,h);
+  }
+  function vLabel(doc,text,x,y){doc.setFont('helvetica','bold');doc.setFontSize(6.2);doc.setTextColor(...VPDF.muted);doc.text(String(text).toUpperCase(),x,y);}
+  function vText(doc,text,x,y,size=8.4,style='normal',opts={}){doc.setFont('helvetica',style);doc.setFontSize(size);doc.setTextColor(...VPDF.ink);doc.text(String(text ?? ''),x,y,opts);}
+  function vMoney(value){return `${formatMoney(parseNumber(value))} €`;}
+  function vImageSize(dataUrl){return new Promise(resolve=>{const img=new Image();img.onload=()=>resolve({w:img.naturalWidth||1,h:img.naturalHeight||1});img.onerror=()=>resolve(null);img.src=dataUrl;});}
+  function vImageFormat(dataUrl){if(/^data:image\/png/i.test(dataUrl))return'PNG';if(/^data:image\/webp/i.test(dataUrl))return'WEBP';return'JPEG';}
 
-      // Limpiar controles de edición para que el PDF parezca un documento, no una web.
-      clone.querySelectorAll('textarea').forEach(textarea => {
-        textarea.style.height = 'auto';
-        textarea.style.height = `${Math.max(textarea.scrollHeight, textarea.id === 'generalObservations' ? 52 : 26)}px`;
-        textarea.style.resize = 'none';
-        textarea.style.overflow = 'hidden';
-      });
-      clone.querySelectorAll('img').forEach(img => {
-        if (img.src && !img.src.startsWith('data:')) img.crossOrigin = 'anonymous';
-      });
-      await Promise.all([...clone.querySelectorAll('img')].filter(i => i.src).map(waitForImage));
+  async function buildVectorPdf(doc,data,company){
+    const f=data.fields||{};
+    let y=VPDF.m;
+    y=await vHeader(doc,y,f,company); y+=2.4;
+    y=vClient(doc,y,f); y+=2.4;
+    y=vServiceGroups(doc,y,f); y+=2.4;
+    y=vDescription(doc,y,f); y+=2.6;
 
-      // PDF A4 PRO: nunca dejamos más de MAX_A4_LINES en la copia de salida.
-      // Las líneas vacías sobrantes se recortan; si faltan, se completan hasta el mínimo visual.
-      const outputRows = [...clone.querySelectorAll('#itemsBody tr')];
-      while (outputRows.length > MAX_A4_LINES) {
-        const candidate = outputRows.pop();
-        const hasValue = [...candidate.querySelectorAll('input, textarea')].some(el => String(el.value || '').trim());
-        if (hasValue) {
-          outputRows.push(candidate);
-          break;
-        }
-        candidate.remove();
-      }
+    const rows=(data.items||[]).filter(i=>[i.qty,i.concept,i.price,i.amount].some(v=>String(v||'').trim()));
+    y=vItems(doc,y,rows);
 
-      // La salida A4 siempre reserva exactamente 10 líneas: así PC y móvil generan
-      // la misma geometría y aprovechamos la página sin dejar media hoja vacía.
-      const body = clone.querySelector('#itemsBody');
-      let currentRows = [...body.querySelectorAll('tr')];
-      const rowTemplate = currentRows[currentRows.length - 1]?.cloneNode(true);
-      while (rowTemplate && currentRows.length < MAX_A4_LINES) {
-        const emptyRow = rowTemplate.cloneNode(true);
-        emptyRow.classList.remove('has-data', 'force-visible');
-        emptyRow.querySelectorAll('input, textarea').forEach(el => {
-          if (el.type === 'checkbox') el.checked = false;
-          else el.value = '';
-        });
-        body.appendChild(emptyRow);
-        currentRows.push(emptyRow);
-      }
+    // Para un parte normal (hasta 10 conceptos) todo cabe en una sola A4.
+    // Sólo se permite otra página cuando la tabla de conceptos realmente lo necesita.
+    const bottomNeed=91;
+    if(y+bottomNeed>VPDF.h-VPDF.m){doc.addPage();y=VPDF.m;}
+    else y+=3;
 
-      // Safari/iOS y html2canvas no siempre pintan el valor de inputs en la última
-      // columna. Para el PDF convertimos los valores visibles en texto real.
-      staticizeOutputValues(clone, els.sheet);
-
-      await nextFrame();
-
-      // Render A4 virtual estable. Fijamos una base A4 pero capturamos el tamaño REAL
-      // del clon si algún navegador (especialmente Safari/iPhone) calcula unos píxeles extra.
-      // Así jamás se recorta el lateral derecho: si hay 2-3 px extra, el PDF los escala dentro del A4.
-      const baseWidth = 794;
-      const baseHeight = 1136;
-      stage.style.width = `${baseWidth}px`;
-      stage.style.minWidth = `${baseWidth}px`;
-      clone.style.width = `${baseWidth}px`;
-      clone.style.minWidth = `${baseWidth}px`;
-      clone.style.maxWidth = `${baseWidth}px`;
-      clone.style.minHeight = `${baseHeight}px`;
-      clone.style.height = 'auto';
-      clone.style.maxHeight = 'none';
-
-      await nextFrame();
-      const width = Math.max(baseWidth, Math.ceil(clone.scrollWidth), Math.ceil(clone.getBoundingClientRect().width));
-      const height = Math.max(baseHeight, Math.ceil(clone.scrollHeight), Math.ceil(clone.getBoundingClientRect().height));
-      stage.style.width = `${width}px`;
-      stage.style.height = `${height}px`;
-
-      const canvas = await window.html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width,
-        height,
-        windowWidth: Math.max(width, 1200),
-        windowHeight: Math.max(height, 1600),
-        scrollX: 0,
-        scrollY: 0,
-        x: 0,
-        y: 0,
-        removeContainer: true
-      });
-      return canvas;
-    } finally {
-      stage.remove();
-    }
+    y=vBottom(doc,y,f); y+=2.8;
+    y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=2;
+    vFooter(doc,y,company);
   }
 
-
-  function staticizeOutputValues(clone, sourceSheet) {
-    // IMPORTANTE: para el PDF no confiamos en el valor que Safari haya copiado al
-    // clon. Leemos cada línea directamente de la hoja real y escribimos texto
-    // plano en la celda. Así IMPORTE no puede desaparecer durante html2canvas.
-    const sourceRows = [...sourceSheet.querySelectorAll('#itemsBody tr')];
-    const outputRows = [...clone.querySelectorAll('#itemsBody tr')];
-
-    outputRows.forEach((row, index) => {
-      const sourceRow = sourceRows[index];
-      const read = name => String(sourceRow?.querySelector(`[data-field="${name}"]`)?.value || '').trim();
-      const qtyRaw = read('qty');
-      const concept = read('concept');
-      const priceRaw = read('price');
-      let amountRaw = read('amount');
-
-      // Última red de seguridad: si hay precio pero el campo de importe todavía
-      // estuviera vacío, lo calculamos aquí mismo (cantidad vacía = 1).
-      if (!amountRaw && priceRaw) {
-        const qty = qtyRaw ? parseNumber(qtyRaw) : 1;
-        amountRaw = formatMoney(qty * parseNumber(priceRaw));
-      }
-
-      const values = {
-        qty: qtyRaw,
-        concept,
-        price: priceRaw,
-        amount: amountRaw
-      };
-
-      [
-        ['qty', 'center'],
-        ['concept', 'left'],
-        ['price', 'right'],
-        ['amount', 'right']
-      ].forEach(([name, align]) => {
-        const control = row.querySelector(`[data-field="${name}"]`);
-        if (!control) return;
-        const cell = control.closest('td');
-        const node = document.createElement('div');
-        node.className = `output-static-value output-static-value--${align}`;
-        node.textContent = values[name];
-        if (cell) {
-          cell.replaceChildren(node);
-        } else {
-          control.replaceWith(node);
-        }
-      });
-    });
-
-    // Totales/desglose: también los tomamos de la hoja real, no del clon.
-    const sourceMoney = [...sourceSheet.querySelectorAll('.totals-panel input.money-input, .totals-panel #grandTotalAmount')];
-    const cloneMoney = [...clone.querySelectorAll('.totals-panel input.money-input, .totals-panel #grandTotalAmount')];
-    cloneMoney.forEach((control, index) => {
-      const node = document.createElement('div');
-      node.className = 'output-static-value output-static-value--right output-static-total';
-      node.textContent = String(sourceMoney[index]?.value || '').trim();
-      control.replaceWith(node);
-    });
+  async function vHeader(doc,y,f,company){
+    const h=19, metaW=51, logoW=28;
+    let tx=VPDF.m;
+    if(company?.logo){
+      try{const sz=await vImageSize(company.logo);if(sz){const scale=Math.min(logoW/sz.w,h/sz.h);const w=sz.w*scale,hh=sz.h*scale;doc.addImage(company.logo,vImageFormat(company.logo),VPDF.m+(logoW-w)/2,y+(h-hh)/2,w,hh,undefined,'FAST');tx=VPDF.m+logoW+3.5;}}catch(_){}}
+    const metaX=VPDF.w-VPDF.m-metaW;
+    const textW=metaX-tx-4;
+    vText(doc,(company?.name||'EMPRESA').toUpperCase(),tx,y+5.5,13,'bold',{maxWidth:textW});
+    let ly=y+10;
+    if(company?.slogan){vText(doc,company.slogan,tx,ly,7.5,'normal',{maxWidth:textW});ly+=3.8;}
+    const contact=[company?.phone,company?.email].filter(Boolean).join('  ·  '); if(contact){vText(doc,contact,tx,ly,7.3,'normal',{maxWidth:textW});ly+=3.5;}
+    if(company?.owner)vText(doc,company.owner,tx,ly,7.5,'bold',{maxWidth:textW});
+    vBox(doc,metaX,y,metaW,h);
+    const rh=h/3; const meta=[['DOCUMENTO',f.documentType||'Presupuesto'],['N.º',f.documentNumber||''],['FECHA',formatDateForDisplay(f.documentDate)||'']];
+    meta.forEach((r,i)=>{const ry=y+i*rh;if(i){doc.setDrawColor(...VPDF.line);doc.line(metaX,ry,metaX+metaW,ry);}vLabel(doc,r[0],metaX+2.5,ry+2.6);vText(doc,r[1],metaX+2.5,ry+rh-1.2,8.5,'bold',{maxWidth:metaW-5});});
+    const legal=company?.legalLine||[company?.taxId?`NIF/CIF: ${company.taxId}`:'',company?.address].filter(Boolean).join(' · ');
+    let end=y+h; if(legal){vText(doc,legal,VPDF.m,end+2.6,6.3,'normal',{maxWidth:vContentW()});end+=2.6;}
+    doc.setDrawColor(...VPDF.green);doc.setLineWidth(.55);doc.line(VPDF.m,end+1,VPDF.w-VPDF.m,end+1);return end+1;
   }
 
-  function waitForImage(img) {
-    return new Promise(resolve => {
-      if (!img || !img.src || img.complete) return resolve();
-      const done = () => resolve();
-      img.addEventListener('load', done, { once:true });
-      img.addEventListener('error', done, { once:true });
-      setTimeout(done, 1800);
-    });
+  function vClient(doc,y,f){
+    const h=24;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Datos del cliente',VPDF.m+2.5,y+4);
+    const vals=[['CLIENTE / EMPRESA',f.clientCompany],['NOMBRE',f.clientName],['TELÉFONO',f.clientPhone],['CORREO',f.clientEmail],['DIRECCIÓN',f.clientAddress],['POBLACIÓN',f.clientCity],['PROVINCIA',f.clientProvince],['NIF / DNI',f.clientTaxId]];
+    const cw=(vContentW()-5)/2; vals.forEach((r,i)=>{const c=i%2,rr=Math.floor(i/2),x=VPDF.m+2.5+c*cw,yy=y+7.2+rr*4.2;vLabel(doc,r[0],x,yy);vText(doc,r[1]||'',x+29,yy,7.7,'normal',{maxWidth:cw-31});}); return y+h;
+  }
+  function vCheck(doc,x,y,checked){doc.setDrawColor(...VPDF.muted);doc.setLineWidth(.25);if(checked){doc.setFillColor(...VPDF.green);doc.rect(x,y,3,3,'FD');doc.setDrawColor(255,255,255);doc.setLineWidth(.35);doc.line(x+.6,y+1.6,x+1.3,y+2.3);doc.line(x+1.3,y+2.3,x+2.5,y+.7);}else doc.rect(x,y,3,3);}
+  function vGroup(doc,x,y,w,title,items,f){const h=20;vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+4);items.forEach((it,i)=>{const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+7+row*4.1;vCheck(doc,cx,cy-2.4,!!f[it[0]]);vText(doc,it[1],cx+5,cy,7.1);});return h;}
+  function vServiceGroups(doc,y,f){const gap=3,w=(vContentW()-gap)/2;const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];const work=[['workAntennaIndividual','Antena individual'],['workAntennaCollective','Antena colectiva'],['workSatelliteIndividual','Satélite individual'],['workSatelliteCollective','Satélite colectiva'],['workIntercom','Portero automático'],['workVideoIntercom','Videoportero']];vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+20;}
+  function vDescription(doc,y,f){const h=12;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Descripción del servicio solicitado',VPDF.m+2.5,y+4);const t=String(f.serviceDescription||'').trim();if(t){const lines=doc.splitTextToSize(t,vContentW()-5).slice(0,2);vText(doc,lines,VPDF.m+2.5,y+7.5,7.4);}return y+h;}
+
+  function vItems(doc,y,items){
+    const body=(items.length?items:[{qty:'',concept:'',price:'',amount:''}]).map(i=>[String(i.qty||''),String(i.concept||''),i.price?vMoney(i.price):'',i.amount?vMoney(i.amount):'']);
+    doc.autoTable({startY:y,margin:{left:VPDF.m,right:VPDF.m,top:VPDF.m,bottom:VPDF.m},head:[['CANTIDAD','CONCEPTO','PRECIO','IMPORTE']],body,theme:'grid',showHead:'everyPage',styles:{font:'helvetica',fontSize:7.7,textColor:VPDF.ink,lineColor:VPDF.line,lineWidth:.18,cellPadding:1.55,valign:'middle',minCellHeight:5.2},headStyles:{fillColor:VPDF.head,textColor:VPDF.muted,fontStyle:'bold',fontSize:6.6,halign:'center',minCellHeight:5.8},columnStyles:{0:{cellWidth:17,halign:'center'},1:{cellWidth:'auto',halign:'left'},2:{cellWidth:25,halign:'right'},3:{cellWidth:27,halign:'right'}},rowPageBreak:'avoid'});
+    return doc.lastAutoTable.finalY;
   }
 
-  function syncOutputControls(source, clone) {
-    const sourceControls = [...source.querySelectorAll('input, textarea, select, canvas')];
-    const cloneControls = [...clone.querySelectorAll('input, textarea, select, canvas')];
+  function vBottom(doc,y,f){
+    const gap=3,rightW=60,leftW=vContentW()-rightW-gap;
+    let ly=y;
+    const payH=13;vBox(doc,VPDF.m,ly,leftW,payH);const third=leftW/3;
+    [['Anotaciones para cobro',f.collectionNotes],['Forma de pago',f.paymentMethod],['Recibí',f.receivedBy]].forEach((r,i)=>{if(i){doc.setDrawColor(...VPDF.line);doc.line(VPDF.m+i*third,ly,VPDF.m+i*third,ly+payH);}vLabel(doc,r[0],VPDF.m+i*third+2,ly+3.5);vText(doc,r[1]||'',VPDF.m+i*third+2,ly+8,7.3,'normal',{maxWidth:third-4});});ly+=payH+2;
+    const ibanH=10;vBox(doc,VPDF.m,ly,leftW,ibanH);vLabel(doc,'Cuenta / IBAN',VPDF.m+2,ly+3.3);vText(doc,f.bankAccount||'',VPDF.m+2,ly+7.3,7.6,'normal',{maxWidth:leftW-4});ly+=ibanH+2;
+    const timeH=10;vBox(doc,VPDF.m,ly,leftW,timeH);const t3=leftW/3;[['Fecha',formatDateForDisplay(f.serviceDate)],['Llegada',f.arrivalTime],['Salida',f.departureTime]].forEach((r,i)=>{if(i){doc.setDrawColor(...VPDF.line);doc.line(VPDF.m+i*t3,ly,VPDF.m+i*t3,ly+timeH);}vLabel(doc,r[0],VPDF.m+i*t3+2,ly+3.3);vText(doc,r[1]||'',VPDF.m+i*t3+2,ly+7.2,7.4);});ly+=timeH+2;
+    const obsH=17;vBox(doc,VPDF.m,ly,leftW,obsH);vLabel(doc,'Observaciones generales',VPDF.m+2,ly+3.5);const obs=String(f.generalObservations||'').trim();if(obs){const lines=doc.splitTextToSize(obs,leftW-4).slice(0,3);vText(doc,lines,VPDF.m+2,ly+7.3,7.2);}ly+=obsH;
 
-    sourceControls.forEach((sourceControl, index) => {
-      const cloneControl = cloneControls[index];
-      if (!cloneControl) return;
-
-      if (sourceControl instanceof HTMLInputElement) {
-        if (sourceControl.type === 'date') {
-          const shownDate = formatDateForDisplay(sourceControl.value);
-          try { cloneControl.type = 'text'; } catch (_) {}
-          cloneControl.value = shownDate;
-          cloneControl.setAttribute('value', shownDate);
-        } else {
-          cloneControl.value = sourceControl.value;
-          cloneControl.setAttribute('value', sourceControl.value);
-        }
-        if (sourceControl.type === 'checkbox' || sourceControl.type === 'radio') {
-          cloneControl.checked = sourceControl.checked;
-          if (sourceControl.checked) cloneControl.setAttribute('checked', 'checked');
-          else cloneControl.removeAttribute('checked');
-        }
-      } else if (sourceControl instanceof HTMLTextAreaElement) {
-        cloneControl.value = sourceControl.value;
-        cloneControl.textContent = sourceControl.value;
-      } else if (sourceControl instanceof HTMLSelectElement) {
-        cloneControl.value = sourceControl.value;
-        [...cloneControl.options].forEach(option => {
-          if (option.value === sourceControl.value) option.setAttribute('selected', 'selected');
-          else option.removeAttribute('selected');
-        });
-      } else if (sourceControl instanceof HTMLCanvasElement && cloneControl instanceof HTMLCanvasElement) {
-        cloneControl.width = sourceControl.width;
-        cloneControl.height = sourceControl.height;
-        const context = cloneControl.getContext('2d');
-        context?.drawImage(sourceControl, 0, 0);
-      }
-    });
+    const rx=VPDF.m+leftW+gap;vTotals(doc,rx,y,rightW,f);
+    return Math.max(ly,y+52);
   }
+  function vTotals(doc,x,y,w,f){
+    let cy=y;const split=x+w-24;
+    const detail=[['Materiales',f.materialsAmount],['Mano de obra',f.laborAmount],['Desplazamiento',f.travelAmount],['Plus extra',f.extraAmount]];
+    detail.forEach(r=>{const h=7;vBox(doc,x,cy,w,h);doc.setDrawColor(...VPDF.line);doc.line(split,cy,split,cy+h);vText(doc,r[0],x+2.5,cy+4.6,7.1);vText(doc,r[1]?vMoney(r[1]):'',x+w-2.5,cy+4.6,7.6,'bold',{align:'right'});cy+=h;});
+    const totalRows=[['TOTAL IMPORTE',vMoney(f.subtotalAmount||0),9,VPDF.greenSoft,VPDF.green],['I.V.A. '+(f.vatPercent||0)+' %',vMoney(parseNumber(f.subtotalAmount)*parseNumber(f.vatPercent)/100),8.5,null,VPDF.ink],['TOTAL FACTURA',vMoney(f.grandTotalAmount||0),10,VPDF.green,null]];
+    totalRows.forEach((r,idx)=>{const [lab,val,h,fill,textColor]=r;vBox(doc,x,cy,w,h,fill);doc.setDrawColor(...(idx===2?[255,255,255]:VPDF.line));doc.line(split,cy,split,cy+h);doc.setFont('helvetica','bold');doc.setFontSize(idx===2?8:7.4);doc.setTextColor(...(idx===2?[255,255,255]:(textColor||VPDF.ink)));doc.text(lab,x+2.5,cy+h/2+1.2);doc.setFontSize(idx===2?10.5:8.6);doc.text(val,x+w-2.5,cy+h/2+1.2,{align:'right'});cy+=h;});
+    doc.setTextColor(...VPDF.ink);return cy;
+  }
+
+  async function vConsentSignatures(doc,y,f,sigs){
+    const consentH=11;vBox(doc,VPDF.m,y,vContentW(),consentH);vCheck(doc,VPDF.m+2.5,y+2.2,!!f.waivesEstimate);vText(doc,'Renuncia a presupuesto previo y autoriza la reparación',VPDF.m+7,y+4.5,6.8);vCheck(doc,VPDF.m+2.5,y+6.3,!!f.repairAccepted);vText(doc,'Conforme con la reparación / presupuesto',VPDF.m+7,y+8.6,6.8);vLabel(doc,'Presupuesto n.º',VPDF.m+125,y+3.8);vText(doc,f.acceptedEstimateNumber||'',VPDF.m+125,y+8.2,7.5);
+    y+=consentH+2;const gap=3,w=(vContentW()-gap)/2,h=23;await vSignature(doc,VPDF.m,y,w,h,'Firma del cliente',sigs.clientSignature);await vSignature(doc,VPDF.m+w+gap,y,w,h,'Recibí / firma del técnico',sigs.technicianSignature);return y+h;
+  }
+  async function vSignature(doc,x,y,w,h,title,dataUrl){vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+3.8);if(dataUrl){try{const sz=await vImageSize(dataUrl);if(sz){const aw=w-5,ah=h-7,sc=Math.min(aw/sz.w,ah/sz.h);const iw=sz.w*sc,ih=sz.h*sc;doc.addImage(dataUrl,'PNG',x+(w-iw)/2,y+5+(ah-ih)/2,iw,ih,undefined,'FAST');}}catch(_){}}}
+  function vFooter(doc,y,company){const terms=String(company?.terms||'').trim();doc.setFont('helvetica','normal');doc.setFontSize(5.8);doc.setTextColor(...VPDF.muted);if(terms){const lines=doc.splitTextToSize(terms,vContentW()-55).slice(0,2);doc.text(lines,VPDF.m,y+2);}doc.setFont('helvetica','bold');doc.setTextColor(...VPDF.ink);doc.text('EL EJEMPLAR TIENE EFECTOS DE RECIBO',VPDF.w-VPDF.m,y+2,{align:'right'});}
 
   function formatAllMoneyFields() {
     document.querySelectorAll('.money-input').forEach(formatMoneyField);
