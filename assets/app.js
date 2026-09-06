@@ -31,6 +31,7 @@
       slogan: 'Antenas TV · Satélite · Porteros automáticos · Videoporteros',
       owner: 'Roberto Fuentes González',
       taxId: '',
+      iban: '',
       address: '',
       legalLine: '',
       terms: '',
@@ -44,6 +45,7 @@
       slogan: 'Instalación, reparación y mantenimiento',
       owner: 'Roberto Fuentes González',
       taxId: '',
+      iban: '',
       address: '',
       legalLine: '',
       terms: '',
@@ -244,9 +246,21 @@
         showToast('La hoja queda como copia nueva al cambiar de empresa.');
       }
 
+      const bankField = els.documentForm.elements.namedItem('bankAccount');
+      const previousCompany = state.companies.find(company => company.id === previousCompanyId);
+      const nextCompany = state.companies.find(company => company.id === nextCompanyId);
+      const currentBank = String(bankField?.value || '').trim();
+      const previousDefaultBank = String(previousCompany?.iban || '').trim();
+
       state.activeCompanyId = nextCompanyId;
       setStorageItem(STORAGE.activeCompany, nextCompanyId);
       renderCompanyHeader();
+
+      // Cambia el IBAN solo si estaba vacío o seguía siendo el predeterminado de la empresa anterior.
+      // Así no se pisa un IBAN escrito manualmente para una hoja concreta.
+      if (bankField && (!currentBank || currentBank === previousDefaultBank)) {
+        bankField.value = nextCompany?.iban || '';
+      }
       markDirty();
     });
 
@@ -451,6 +465,7 @@
       slogan: company.slogan || '',
       owner: company.owner || '',
       taxId: company.taxId || '',
+      iban: company.iban || '',
       address: company.address || '',
       legalLine: company.legalLine || '',
       terms: company.terms || '',
@@ -460,6 +475,7 @@
   }
 
   function makeBlankDocument(companyId) {
+    const company = state.companies.find(item => item.id === companyId) || null;
     return {
       version: 1,
       companyId,
@@ -491,7 +507,7 @@
         collectionNotes: '',
         paymentMethod: '',
         receivedBy: '',
-        bankAccount: '',
+        bankAccount: company?.iban || '',
         serviceDate: '',
         arrivalTime: '',
         departureTime: '',
@@ -529,16 +545,16 @@
     if (lineHasData(item)) row.classList.add('has-data');
     row.innerHTML = `
       <td data-label="CANTIDAD">
-        <input data-field="qty" type="text" inputmode="decimal" aria-label="Cantidad" value="${escapeAttribute(item.qty)}">
+        <input data-field="qty" type="text" inputmode="decimal" aria-label="Cantidad" placeholder="1" value="${escapeAttribute(item.qty)}">
       </td>
       <td data-label="CONCEPTO">
-        <textarea data-field="concept" rows="1" aria-label="Concepto">${escapeHtml(item.concept)}</textarea>
+        <textarea data-field="concept" rows="1" aria-label="Concepto" placeholder="Escribe aquí el concepto...">${escapeHtml(item.concept)}</textarea>
       </td>
       <td data-label="PRECIO">
-        <input data-field="price" class="money-input" type="text" inputmode="decimal" aria-label="Precio" value="${escapeAttribute(item.price)}">
+        <input data-field="price" class="money-input" type="text" inputmode="decimal" aria-label="Precio" placeholder="0,00" value="${escapeAttribute(item.price)}">
       </td>
       <td data-label="IMPORTE">
-        <input data-field="amount" class="money-input${item.amountManual ? ' line-amount-manual' : ''}" type="text" inputmode="decimal" aria-label="Importe" value="${escapeAttribute(item.amount)}">
+        <input data-field="amount" class="money-input${item.amountManual ? ' line-amount-manual' : ''}" type="text" inputmode="decimal" aria-label="Importe" placeholder="0,00" value="${escapeAttribute(item.amount)}">
       </td>
       <td data-label="ACCIONES" class="screen-only">
         <div class="line-actions">
@@ -800,7 +816,7 @@
     els.companyForm.reset();
     const values = company || {
       id: '', name: '', phone: '', email: '', slogan: '', owner: '',
-      taxId: '', address: '', legalLine: '', terms: '', logo: ''
+      taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     };
     Object.entries(values).forEach(([key, value]) => {
       const field = els.companyForm.elements.namedItem(key === 'id' ? 'companyId' : key);
@@ -827,6 +843,7 @@
     }
 
     const id = String(formData.get('companyId') || '') || makeId('company');
+    const previousCompany = state.companies.find(item => item.id === id) || null;
     const company = normalizeCompany({
       id,
       name,
@@ -835,6 +852,7 @@
       slogan: formData.get('slogan'),
       owner: formData.get('owner'),
       taxId: formData.get('taxId'),
+      iban: formData.get('iban'),
       address: formData.get('address'),
       legalLine: formData.get('legalLine'),
       terms: formData.get('terms'),
@@ -852,6 +870,13 @@
     renderCompanyHeader();
     renderCompanyList();
     editCompany(id);
+
+    const bankField = els.documentForm.elements.namedItem('bankAccount');
+    const currentBank = String(bankField?.value || '').trim();
+    const previousDefaultBank = String(previousCompany?.iban || '').trim();
+    if (bankField && id === state.activeCompanyId && (!currentBank || currentBank === previousDefaultBank)) {
+      bankField.value = company.iban || '';
+    }
     markDirty();
     showToast('Empresa guardada.');
   }
@@ -1175,572 +1200,273 @@
     els.pdfBtn.disabled = true;
     label.textContent = 'Generando…';
 
+    let overlay;
     try {
+      if (typeof window.html2canvas !== 'function') throw new Error('No se cargó el motor de captura');
       if (!window.jspdf?.jsPDF) throw new Error('No se cargó el motor PDF');
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-      if (typeof doc.autoTable !== 'function') throw new Error('No se cargó el motor de tablas');
 
-      const data = serializeDocument();
+      overlay = document.createElement('div');
+      overlay.className = 'pdf-progress-overlay';
+      overlay.innerHTML = '<div class="pdf-progress-card"><span class="pdf-spinner"></span><strong>Generando PDF</strong><small>Preparando una hoja A4…</small></div>';
+      document.body.appendChild(overlay);
+
+      const canvas = await renderDocumentCanvas();
+      if (!canvas || canvas.width < 100 || canvas.height < 100) throw new Error('La captura de la hoja no es válida');
+
+      // Detectar una captura realmente vacía antes de crear el PDF.
+      const check = canvas.getContext('2d', { willReadFrequently: true });
+      const sample = check.getImageData(0, 0, Math.min(canvas.width, 500), Math.min(canvas.height, 500)).data;
+      let nonWhite = 0;
+      for (let i = 0; i < sample.length; i += 40) {
+        if (sample[i] < 245 || sample[i + 1] < 245 || sample[i + 2] < 245) { nonWhite++; if (nonWhite > 20) break; }
+      }
+      if (nonWhite <= 20) throw new Error('La hoja se capturó en blanco');
+
+      const fields = serializeDocument().fields;
       const company = getActiveCompany();
-      await buildDocumentPdf(doc, data, company);
-
       const filename = [
-        data.fields.documentType || 'documento',
+        fields.documentType || 'documento',
         company?.name || 'empresa',
-        data.fields.documentNumber ? `n-${data.fields.documentNumber}` : '',
-        data.fields.documentDate || new Date().toISOString().slice(0, 10)
+        fields.documentNumber ? `n-${fields.documentNumber}` : '',
+        fields.documentDate || new Date().toISOString().slice(0, 10)
       ].filter(Boolean).map(slugify).join('_') + '.pdf';
 
-      doc.save(filename);
-      showToast('PDF generado correctamente.');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+      const pageW = 210, pageH = 297, margin = 4;
+      const maxW = pageW - margin * 2, maxH = pageH - margin * 2;
+      const ratio = canvas.width / canvas.height;
+      let outW = maxW, outH = outW / ratio;
+      if (outH > maxH) { outH = maxH; outW = outH * ratio; }
+      const x = (pageW - outW) / 2;
+      // Alinear arriba: evita el gran margen superior que producía el centrado vertical.
+      const y = margin;
+      const imgData = canvas.toDataURL('image/jpeg', 0.94);
+      pdf.addImage(imgData, 'JPEG', x, y, outW, outH, undefined, 'FAST');
+      pdf.save(filename);
+      showToast('PDF generado correctamente en una sola hoja A4.');
     } catch (error) {
       console.error('PDF:', error);
       showToast(`No se pudo generar el PDF${error?.message ? ': ' + error.message : ''}`, 'error');
     } finally {
+      overlay?.remove();
       els.pdfBtn.disabled = false;
       label.textContent = originalText;
     }
   }
 
-  /* =====================================================
-     MOTOR DE PDF · v1 PRO
-     - PDF vectorial real (texto seleccionable, nítido a
-       cualquier zoom), no una captura de pantalla.
-     - La tabla de conceptos usa autoTable: pagina sola,
-       así que ya no hay límite artificial de líneas.
-     - Todo el resto del documento se re-dibuja punto por
-       punto a partir de los mismos datos que ves en pantalla.
-     ===================================================== */
+  async function renderDocumentCanvas() {
+    const stage = document.createElement('div');
+    stage.className = 'output-stage output-stage--capture';
+    const clone = els.sheet.cloneNode(true);
+    clone.id = 'outputSheetClone';
+    clone.classList.add('output-clone');
+    syncOutputControls(els.sheet, clone);
+    clone.querySelectorAll('.screen-only').forEach(node => node.remove());
+    clone.querySelectorAll('.company-logo-placeholder').forEach(node => node.remove());
+    stage.appendChild(clone);
+    document.body.appendChild(stage);
 
-  const PDF_COLOR_INK = [26, 34, 29];
-  const PDF_COLOR_MUTED = [104, 116, 108];
-  const PDF_COLOR_LINE = [199, 208, 202];
-  const PDF_COLOR_ACCENT = [47, 125, 76];
-  const PDF_COLOR_ACCENT_SOFT = [231, 245, 236];
-  const PDF_PAGE_W = 210;
-  const PDF_PAGE_H = 297;
-  const PDF_MARGIN = 10;
-  const PDF_CONTENT_W = PDF_PAGE_W - PDF_MARGIN * 2;
+    try {
+      if (document.fonts?.ready) await document.fonts.ready;
+      await nextFrame();
+      await nextFrame();
 
-  const PDF_REQUEST_OPTIONS = [
-    ['requestInstallation', 'Instalación'],
-    ['requestRepair', 'Reparación'],
-    ['requestMaintenance', 'Mantenimiento'],
-    ['requestInformation', 'Información'],
-    ['requestEstimate', 'Presupuesto'],
-    ['requestSupply', 'Suministro']
-  ];
+      // Limpiar controles de edición para que el PDF parezca un documento, no una web.
+      clone.querySelectorAll('textarea').forEach(textarea => {
+        textarea.style.height = 'auto';
+        textarea.style.height = `${Math.max(textarea.scrollHeight, textarea.id === 'generalObservations' ? 52 : 26)}px`;
+        textarea.style.resize = 'none';
+        textarea.style.overflow = 'hidden';
+      });
+      clone.querySelectorAll('img').forEach(img => {
+        if (img.src && !img.src.startsWith('data:')) img.crossOrigin = 'anonymous';
+      });
+      await Promise.all([...clone.querySelectorAll('img')].filter(i => i.src).map(waitForImage));
 
-  const PDF_WORK_OPTIONS = [
-    ['workAntennaIndividual', 'Antena individual'],
-    ['workAntennaCollective', 'Antena colectiva'],
-    ['workSatelliteIndividual', 'Satélite individual'],
-    ['workSatelliteCollective', 'Satélite colectiva'],
-    ['workIntercom', 'Portero automático'],
-    ['workVideoIntercom', 'Videoportero']
-  ];
+      // PDF A4 PRO: nunca dejamos más de MAX_A4_LINES en la copia de salida.
+      // Las líneas vacías sobrantes se recortan; si faltan, se completan hasta el mínimo visual.
+      const outputRows = [...clone.querySelectorAll('#itemsBody tr')];
+      while (outputRows.length > MAX_A4_LINES) {
+        const candidate = outputRows.pop();
+        const hasValue = [...candidate.querySelectorAll('input, textarea')].some(el => String(el.value || '').trim());
+        if (hasValue) {
+          outputRows.push(candidate);
+          break;
+        }
+        candidate.remove();
+      }
 
-  async function buildDocumentPdf(doc, data, company) {
-    const fields = data.fields || {};
-    let y = PDF_MARGIN;
+      // La salida A4 siempre reserva exactamente 10 líneas: así PC y móvil generan
+      // la misma geometría y aprovechamos la página sin dejar media hoja vacía.
+      const body = clone.querySelector('#itemsBody');
+      let currentRows = [...body.querySelectorAll('tr')];
+      const rowTemplate = currentRows[currentRows.length - 1]?.cloneNode(true);
+      while (rowTemplate && currentRows.length < MAX_A4_LINES) {
+        const emptyRow = rowTemplate.cloneNode(true);
+        emptyRow.classList.remove('has-data', 'force-visible');
+        emptyRow.querySelectorAll('input, textarea').forEach(el => {
+          if (el.type === 'checkbox') el.checked = false;
+          else el.value = '';
+        });
+        body.appendChild(emptyRow);
+        currentRows.push(emptyRow);
+      }
 
-    doc.setFont('helvetica', 'normal');
-    doc.setDrawColor(...PDF_COLOR_LINE);
-    doc.setTextColor(...PDF_COLOR_INK);
+      // Safari/iOS y html2canvas no siempre pintan el valor de inputs en la última
+      // columna. Para el PDF convertimos los valores visibles en texto real.
+      staticizeOutputValues(clone, els.sheet);
 
-    y = await pdfDrawHeader(doc, y, fields, company);
-    y = pdfDrawLegalLine(doc, y, company);
-    y += 4;
+      await nextFrame();
 
-    y = pdfDrawClientBox(doc, y, fields);
-    y += 4;
+      // Render A4 virtual FIJO. Nunca usamos el alto/ancho calculado por el viewport del móvil.
+      // 794 x 1136 mantiene exactamente la proporción del área útil A4 de 202 x 289 mm
+      // (márgenes de 4 mm por cada lado), por lo que PC/iPhone/Android generan el mismo PDF.
+      const width = 794;
+      const height = 1136;
+      stage.style.width = `${width}px`;
+      stage.style.height = `${height}px`;
+      clone.style.width = `${width}px`;
+      clone.style.minWidth = `${width}px`;
+      clone.style.maxWidth = `${width}px`;
+      clone.style.height = `${height}px`;
+      clone.style.minHeight = `${height}px`;
+      clone.style.maxHeight = `${height}px`;
 
-    y = pdfDrawServiceBoxes(doc, y, fields);
-    y += 4;
+      await nextFrame();
 
-    y = pdfDrawServiceDescription(doc, y, fields);
-    y += 4;
-
-    y = pdfEnsureSpace(doc, y, 24);
-    y = pdfDrawItemsTable(doc, y, data.items || []);
-    y += 5;
-
-    y = pdfEnsureSpace(doc, y, 60);
-    y = pdfDrawBottomGrid(doc, y, fields);
-    y += 4;
-
-    y = pdfEnsureSpace(doc, y, 55);
-    y = await pdfDrawConsentAndSignatures(doc, y, fields, data.signatures || {});
-    y += 4;
-
-    pdfDrawFooter(doc, y, company);
-  }
-
-  function pdfEnsureSpace(doc, y, needed) {
-    if (y + needed > PDF_PAGE_H - PDF_MARGIN) {
-      doc.addPage();
-      return PDF_MARGIN;
+      const canvas = await window.html2canvas(clone, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width,
+        height,
+        windowWidth: Math.max(width, 1200),
+        windowHeight: Math.max(height, 1600),
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        removeContainer: true
+      });
+      return canvas;
+    } finally {
+      stage.remove();
     }
-    return y;
   }
 
-  function pdfBox(doc, x, y, w, h) {
-    doc.setDrawColor(...PDF_COLOR_LINE);
-    doc.setLineWidth(0.25);
-    doc.rect(x, y, w, h);
+
+  function staticizeOutputValues(clone, sourceSheet) {
+    // IMPORTANTE: para el PDF no confiamos en el valor que Safari haya copiado al
+    // clon. Leemos cada línea directamente de la hoja real y escribimos texto
+    // plano en la celda. Así IMPORTE no puede desaparecer durante html2canvas.
+    const sourceRows = [...sourceSheet.querySelectorAll('#itemsBody tr')];
+    const outputRows = [...clone.querySelectorAll('#itemsBody tr')];
+
+    outputRows.forEach((row, index) => {
+      const sourceRow = sourceRows[index];
+      const read = name => String(sourceRow?.querySelector(`[data-field="${name}"]`)?.value || '').trim();
+      const qtyRaw = read('qty');
+      const concept = read('concept');
+      const priceRaw = read('price');
+      let amountRaw = read('amount');
+
+      // Última red de seguridad: si hay precio pero el campo de importe todavía
+      // estuviera vacío, lo calculamos aquí mismo (cantidad vacía = 1).
+      if (!amountRaw && priceRaw) {
+        const qty = qtyRaw ? parseNumber(qtyRaw) : 1;
+        amountRaw = formatMoney(qty * parseNumber(priceRaw));
+      }
+
+      const values = {
+        qty: qtyRaw,
+        concept,
+        price: priceRaw,
+        amount: amountRaw
+      };
+
+      [
+        ['qty', 'center'],
+        ['concept', 'left'],
+        ['price', 'right'],
+        ['amount', 'right']
+      ].forEach(([name, align]) => {
+        const control = row.querySelector(`[data-field="${name}"]`);
+        if (!control) return;
+        const cell = control.closest('td');
+        const node = document.createElement('div');
+        node.className = `output-static-value output-static-value--${align}`;
+        node.textContent = values[name];
+        if (cell) {
+          cell.replaceChildren(node);
+        } else {
+          control.replaceWith(node);
+        }
+      });
+    });
+
+    // Totales/desglose: también los tomamos de la hoja real, no del clon.
+    const sourceMoney = [...sourceSheet.querySelectorAll('.totals-panel input.money-input, .totals-panel #grandTotalAmount')];
+    const cloneMoney = [...clone.querySelectorAll('.totals-panel input.money-input, .totals-panel #grandTotalAmount')];
+    cloneMoney.forEach((control, index) => {
+      const node = document.createElement('div');
+      node.className = 'output-static-value output-static-value--right output-static-total';
+      node.textContent = String(sourceMoney[index]?.value || '').trim();
+      control.replaceWith(node);
+    });
   }
 
-  function pdfSectionLabel(doc, x, y, text) {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(...PDF_COLOR_MUTED);
-    doc.text(text.toUpperCase(), x, y);
-    doc.setTextColor(...PDF_COLOR_INK);
-  }
-
-  function pdfGetImageFormat(dataUrl) {
-    if (/^data:image\/png/i.test(dataUrl)) return 'PNG';
-    if (/^data:image\/webp/i.test(dataUrl)) return 'WEBP';
-    if (/^data:image\/svg/i.test(dataUrl)) return 'SVG';
-    return 'JPEG';
-  }
-
-  function pdfGetImageSize(dataUrl) {
+  function waitForImage(img) {
     return new Promise(resolve => {
-      const img = new Image();
-      img.onload = () => resolve({ w: img.naturalWidth || 1, h: img.naturalHeight || 1 });
-      img.onerror = () => resolve(null);
-      img.src = dataUrl;
+      if (!img || !img.src || img.complete) return resolve();
+      const done = () => resolve();
+      img.addEventListener('load', done, { once:true });
+      img.addEventListener('error', done, { once:true });
+      setTimeout(done, 1800);
     });
   }
 
-  async function pdfDrawHeader(doc, y, fields, company) {
-    const headerH = 26;
-    const metaW = 54;
-    const logoBoxW = 32;
-    let textX = PDF_MARGIN;
+  function syncOutputControls(source, clone) {
+    const sourceControls = [...source.querySelectorAll('input, textarea, select, canvas')];
+    const cloneControls = [...clone.querySelectorAll('input, textarea, select, canvas')];
 
-    if (company?.logo) {
-      try {
-        const size = await pdfGetImageSize(company.logo);
-        if (size && size.w && size.h) {
-          const format = pdfGetImageFormat(company.logo);
-          if (format !== 'SVG') {
-            const scale = Math.min(logoBoxW / size.w, headerH / size.h, 1);
-            const w = size.w * scale, h = size.h * scale;
-            doc.addImage(company.logo, format, PDF_MARGIN + (logoBoxW - w) / 2, y + (headerH - h) / 2, w, h, undefined, 'FAST');
-          }
+    sourceControls.forEach((sourceControl, index) => {
+      const cloneControl = cloneControls[index];
+      if (!cloneControl) return;
+
+      if (sourceControl instanceof HTMLInputElement) {
+        if (sourceControl.type === 'date') {
+          const shownDate = formatDateForDisplay(sourceControl.value);
+          try { cloneControl.type = 'text'; } catch (_) {}
+          cloneControl.value = shownDate;
+          cloneControl.setAttribute('value', shownDate);
+        } else {
+          cloneControl.value = sourceControl.value;
+          cloneControl.setAttribute('value', sourceControl.value);
         }
-        textX = PDF_MARGIN + logoBoxW + 5;
-      } catch (_) {
-        textX = PDF_MARGIN + logoBoxW + 5;
-      }
-    }
-
-    const textW = PDF_PAGE_W - PDF_MARGIN - metaW - 4 - textX;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(15);
-    doc.setTextColor(...PDF_COLOR_INK);
-    doc.text(String(company?.name || 'EMPRESA').toUpperCase(), textX, y + 6, { maxWidth: Math.max(textW, 20) });
-
-    let ly = y + 11.5;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.6);
-    if (company?.slogan) {
-      doc.setTextColor(...PDF_COLOR_MUTED);
-      doc.text(company.slogan, textX, ly, { maxWidth: Math.max(textW, 20) });
-      ly += 4.4;
-    }
-    const contact = [company?.phone, company?.email].filter(Boolean).join('   ·   ');
-    if (contact) {
-      doc.setTextColor(...PDF_COLOR_INK);
-      doc.text(contact, textX, ly, { maxWidth: Math.max(textW, 20) });
-      ly += 4.4;
-    }
-    if (company?.owner) {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.6);
-      doc.text(company.owner, textX, ly, { maxWidth: Math.max(textW, 20) });
-    }
-
-    const metaX = PDF_PAGE_W - PDF_MARGIN - metaW;
-    pdfBox(doc, metaX, y, metaW, headerH);
-    const rowH = headerH / 3;
-    const metaRows = [
-      ['DOCUMENTO', fields.documentType || 'Presupuesto'],
-      ['N.º', fields.documentNumber || '—'],
-      ['FECHA', formatDateForDisplay(fields.documentDate) || '—']
-    ];
-    metaRows.forEach(([labelText, value], index) => {
-      const ry = y + rowH * index;
-      if (index > 0) {
-        doc.setDrawColor(...PDF_COLOR_LINE);
-        doc.line(metaX, ry, metaX + metaW, ry);
-      }
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.4);
-      doc.setTextColor(...PDF_COLOR_MUTED);
-      doc.text(labelText, metaX + 3, ry + 3.4);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10.5);
-      doc.setTextColor(...PDF_COLOR_INK);
-      doc.text(String(value), metaX + 3, ry + rowH - 1.6, { maxWidth: metaW - 6 });
-    });
-
-    return y + headerH;
-  }
-
-  function pdfDrawLegalLine(doc, y, company) {
-    const legal = company?.legalLine || [
-      company?.taxId ? `NIF/CIF: ${company.taxId}` : '',
-      company?.address
-    ].filter(Boolean).join('  ·  ');
-    let ny = y + 3;
-    if (legal) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.2);
-      doc.setTextColor(...PDF_COLOR_MUTED);
-      doc.text(legal, PDF_MARGIN, ny, { maxWidth: PDF_CONTENT_W });
-      ny += 2.6;
-    }
-    doc.setDrawColor(...PDF_COLOR_ACCENT);
-    doc.setLineWidth(0.7);
-    doc.line(PDF_MARGIN, ny, PDF_PAGE_W - PDF_MARGIN, ny);
-    doc.setTextColor(...PDF_COLOR_INK);
-    return ny;
-  }
-
-  function pdfDrawClientBox(doc, y, fields) {
-    const boxH = 32;
-    pdfBox(doc, PDF_MARGIN, y, PDF_CONTENT_W, boxH);
-    pdfSectionLabel(doc, PDF_MARGIN + 3, y + 5, 'Datos del cliente');
-
-    const pairs = [
-      ['Cliente / empresa', fields.clientCompany],
-      ['Nombre', fields.clientName],
-      ['Teléfono', fields.clientPhone],
-      ['Correo', fields.clientEmail],
-      ['Dirección', fields.clientAddress],
-      ['Población', fields.clientCity],
-      ['Provincia', fields.clientProvince],
-      ['NIF / DNI', fields.clientTaxId]
-    ];
-    const colW = (PDF_CONTENT_W - 6) / 2;
-    const rowH = 6.2;
-    let startY = y + 9;
-    pairs.forEach(([labelText, value], index) => {
-      const col = index % 2;
-      const row = Math.floor(index / 2);
-      const cx = PDF_MARGIN + 3 + col * colW;
-      const cy = startY + row * rowH;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.3);
-      doc.setTextColor(...PDF_COLOR_MUTED);
-      doc.text(labelText.toUpperCase(), cx, cy);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(...PDF_COLOR_INK);
-      doc.text(String(value || '—'), cx, cy + 3.9, { maxWidth: colW - 4 });
-    });
-
-    return y + boxH;
-  }
-
-  function pdfDrawCheckbox(doc, x, y, size, checked) {
-    doc.setDrawColor(...PDF_COLOR_MUTED);
-    doc.setLineWidth(0.3);
-    if (checked) {
-      doc.setFillColor(...PDF_COLOR_ACCENT);
-      doc.roundedRect(x, y, size, size, 0.5, 0.5, 'FD');
-      doc.setDrawColor(255, 255, 255);
-      doc.setLineWidth(0.45);
-      doc.line(x + size * 0.2, y + size * 0.55, x + size * 0.42, y + size * 0.78);
-      doc.line(x + size * 0.42, y + size * 0.78, x + size * 0.82, y + size * 0.22);
-    } else {
-      doc.roundedRect(x, y, size, size, 0.5, 0.5, 'D');
-    }
-  }
-
-  function pdfDrawCheckGroup(doc, x, y, w, title, options, fields) {
-    const rowH = 5.4;
-    const boxH = 8 + rowH * options.length;
-    pdfBox(doc, x, y, w, boxH);
-    pdfSectionLabel(doc, x + 3, y + 5, title);
-    options.forEach(([name, labelText], index) => {
-      const ry = y + 9 + index * rowH;
-      pdfDrawCheckbox(doc, x + 3, ry - 2.9, 3.4, Boolean(fields[name]));
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.4);
-      doc.setTextColor(...PDF_COLOR_INK);
-      doc.text(labelText, x + 9, ry);
-    });
-    return boxH;
-  }
-
-  function pdfDrawServiceBoxes(doc, y, fields) {
-    const gap = 4;
-    const colW = (PDF_CONTENT_W - gap) / 2;
-    const h1 = pdfDrawCheckGroup(doc, PDF_MARGIN, y, colW, 'Solicitud de', PDF_REQUEST_OPTIONS, fields);
-    const h2 = pdfDrawCheckGroup(doc, PDF_MARGIN + colW + gap, y, colW, 'Tipo de trabajo', PDF_WORK_OPTIONS, fields);
-    return y + Math.max(h1, h2);
-  }
-
-  function pdfDrawServiceDescription(doc, y, fields) {
-    const text = String(fields.serviceDescription || '').trim();
-    const boxH = 16;
-    pdfBox(doc, PDF_MARGIN, y, PDF_CONTENT_W, boxH);
-    pdfSectionLabel(doc, PDF_MARGIN + 3, y + 5, 'Descripción del servicio solicitado');
-    if (text) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.6);
-      doc.setTextColor(...PDF_COLOR_INK);
-      const lines = doc.splitTextToSize(text, PDF_CONTENT_W - 6).slice(0, 2);
-      doc.text(lines, PDF_MARGIN + 3, y + 10.5);
-    }
-    return y + boxH;
-  }
-
-  function pdfDrawItemsTable(doc, y, items) {
-    const rows = items
-      .filter(item => [item.qty, item.concept, item.price, item.amount].some(v => String(v || '').trim() !== ''))
-      .map(item => [
-        String(item.qty || '1'),
-        String(item.concept || ''),
-        item.price ? `${formatMoney(parseNumber(item.price))} €` : '',
-        item.amount ? `${formatMoney(parseNumber(item.amount))} €` : ''
-      ]);
-
-    if (!rows.length) rows.push(['', 'Sin conceptos añadidos', '', '']);
-
-    doc.autoTable({
-      startY: y,
-      margin: { left: PDF_MARGIN, right: PDF_MARGIN },
-      head: [['CANTIDAD', 'CONCEPTO', 'PRECIO', 'IMPORTE']],
-      body: rows,
-      theme: 'grid',
-      styles: {
-        font: 'helvetica',
-        fontSize: 8.6,
-        textColor: PDF_COLOR_INK,
-        lineColor: PDF_COLOR_LINE,
-        lineWidth: 0.2,
-        cellPadding: 2.2,
-        valign: 'middle'
-      },
-      headStyles: {
-        fillColor: [245, 247, 245],
-        textColor: PDF_COLOR_MUTED,
-        fontStyle: 'bold',
-        fontSize: 7,
-        halign: 'center'
-      },
-      columnStyles: {
-        0: { cellWidth: 18, halign: 'center' },
-        1: { cellWidth: 'auto', halign: 'left' },
-        2: { cellWidth: 26, halign: 'right' },
-        3: { cellWidth: 28, halign: 'right' }
-      }
-    });
-
-    return doc.lastAutoTable.finalY;
-  }
-
-  function pdfDrawBottomGrid(doc, y, fields) {
-    const gap = 5;
-    const rightW = 62;
-    const leftW = PDF_CONTENT_W - rightW - gap;
-    const leftBottom = pdfDrawLeftColumn(doc, PDF_MARGIN, y, leftW, fields);
-    const rightBottom = pdfDrawTotalsPanel(doc, PDF_MARGIN + leftW + gap, y, rightW, fields);
-    return Math.max(leftBottom, rightBottom);
-  }
-
-  function pdfLabelValueRow(doc, x, y, w, labelText, value) {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.3);
-    doc.setTextColor(...PDF_COLOR_MUTED);
-    doc.text(labelText.toUpperCase(), x, y);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.8);
-    doc.setTextColor(...PDF_COLOR_INK);
-    doc.text(String(value || '—'), x, y + 3.9, { maxWidth: w });
-  }
-
-  function pdfDrawLeftColumn(doc, x, y, w, fields) {
-    let cy = y;
-    const rowH = 9.2;
-    const boxH1 = 6 + rowH;
-    pdfBox(doc, x, cy, w, boxH1);
-    const third = (w - 6) / 3;
-    pdfLabelValueRow(doc, x + 3, cy + 5.5, third, 'Anotaciones para cobro', fields.collectionNotes);
-    pdfLabelValueRow(doc, x + 3 + third + 3, cy + 5.5, third, 'Forma de pago', fields.paymentMethod);
-    pdfLabelValueRow(doc, x + 3 + (third + 3) * 2, cy + 5.5, third, 'Recibí', fields.receivedBy);
-    cy += boxH1 + 3;
-
-    const boxH2 = 6 + rowH;
-    pdfBox(doc, x, cy, w, boxH2);
-    pdfLabelValueRow(doc, x + 3, cy + 5.5, w - 6, 'Cuenta / IBAN', fields.bankAccount);
-    cy += boxH2 + 3;
-
-    const boxH3 = 6 + rowH;
-    pdfBox(doc, x, cy, w, boxH3);
-    const timeThird = (w - 6) / 3;
-    pdfLabelValueRow(doc, x + 3, cy + 5.5, timeThird, 'Fecha', formatDateForDisplay(fields.serviceDate));
-    pdfLabelValueRow(doc, x + 3 + timeThird + 3, cy + 5.5, timeThird, 'Llegada', fields.arrivalTime);
-    pdfLabelValueRow(doc, x + 3 + (timeThird + 3) * 2, cy + 5.5, timeThird, 'Salida', fields.departureTime);
-    cy += boxH3 + 3;
-
-    const obsText = String(fields.generalObservations || '').trim();
-    const obsH = 20;
-    pdfBox(doc, x, cy, w, obsH);
-    pdfSectionLabel(doc, x + 3, cy + 5, 'Observaciones generales');
-    if (obsText) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.4);
-      doc.setTextColor(...PDF_COLOR_INK);
-      const lines = doc.splitTextToSize(obsText, w - 6).slice(0, 3);
-      doc.text(lines, x + 3, cy + 9.5);
-    }
-    cy += obsH;
-
-    return cy;
-  }
-
-  function pdfDrawTotalsPanel(doc, x, y, w, fields) {
-    let cy = y;
-    const rowH = 8.4;
-
-    const detailRows = [
-      ['Materiales', fields.materialsAmount],
-      ['Mano de obra', fields.laborAmount],
-      ['Desplazamiento', fields.travelAmount],
-      ['Plus extra', fields.extraAmount]
-    ];
-    detailRows.forEach(([labelText, value]) => {
-      pdfBox(doc, x, cy, w, rowH);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.6);
-      doc.setTextColor(...PDF_COLOR_MUTED);
-      doc.text(labelText, x + 3, cy + rowH / 2 + 1.2);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.6);
-      doc.setTextColor(...PDF_COLOR_INK);
-      const amount = value ? `${formatMoney(parseNumber(value))} €` : '—';
-      doc.text(amount, x + w - 3, cy + rowH / 2 + 1.2, { align: 'right' });
-      cy += rowH;
-    });
-
-    const strongH = 10.5;
-    doc.setFillColor(...PDF_COLOR_ACCENT_SOFT);
-    doc.rect(x, cy, w, strongH, 'F');
-    pdfBox(doc, x, cy, w, strongH);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.8);
-    doc.setTextColor(...PDF_COLOR_ACCENT);
-    doc.text('TOTAL IMPORTE', x + 3, cy + strongH / 2 + 1.3);
-    doc.setFontSize(10.5);
-    doc.text(fields.subtotalAmount ? `${formatMoney(parseNumber(fields.subtotalAmount))} €` : '0,00 €', x + w - 3, cy + strongH / 2 + 1.3, { align: 'right' });
-    cy += strongH;
-
-    pdfBox(doc, x, cy, w, rowH);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.6);
-    doc.setTextColor(...PDF_COLOR_MUTED);
-    doc.text(`I.V.A. (${fields.vatPercent || 0}%)`, x + 3, cy + rowH / 2 + 1.2);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.6);
-    doc.setTextColor(...PDF_COLOR_INK);
-    const vat = parseNumber(fields.subtotalAmount) * parseNumber(fields.vatPercent) / 100;
-    doc.text(formatCurrency(vat), x + w - 3, cy + rowH / 2 + 1.2, { align: 'right' });
-    cy += rowH;
-
-    const grandH = 12.5;
-    doc.setFillColor(...PDF_COLOR_ACCENT);
-    doc.rect(x, cy, w, grandH, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.4);
-    doc.setTextColor(255, 255, 255);
-    doc.text('TOTAL FACTURA', x + 3, cy + grandH / 2 + 1.4);
-    doc.setFontSize(12);
-    const grand = fields.grandTotalAmount ? `${formatMoney(parseNumber(fields.grandTotalAmount))} €` : formatCurrency(parseNumber(fields.subtotalAmount) + vat);
-    doc.text(grand, x + w - 3, cy + grandH / 2 + 1.4, { align: 'right' });
-    doc.setTextColor(...PDF_COLOR_INK);
-    cy += grandH;
-
-    return cy;
-  }
-
-  async function pdfDrawConsentAndSignatures(doc, y, fields, signatures) {
-    const consentH = 15;
-    pdfBox(doc, PDF_MARGIN, y, PDF_CONTENT_W, consentH);
-    pdfDrawCheckbox(doc, PDF_MARGIN + 3, y + 3.2, 3.2, Boolean(fields.waivesEstimate));
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.6);
-    doc.setTextColor(...PDF_COLOR_INK);
-    doc.text('Renuncia a presupuesto previo y autoriza la reparación', PDF_MARGIN + 9, y + 5.8, { maxWidth: PDF_CONTENT_W - 12 });
-
-    pdfDrawCheckbox(doc, PDF_MARGIN + 3, y + 9.2, 3.2, Boolean(fields.repairAccepted));
-    doc.text('Conforme con la reparación / presupuesto', PDF_MARGIN + 9, y + 11.8, { maxWidth: 95 });
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.3);
-    doc.setTextColor(...PDF_COLOR_MUTED);
-    doc.text('PRESUPUESTO N.º', PDF_MARGIN + 118, y + 9.2);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.6);
-    doc.setTextColor(...PDF_COLOR_INK);
-    doc.text(String(fields.acceptedEstimateNumber || '—'), PDF_MARGIN + 118, y + 13);
-
-    let sy = y + consentH + 4;
-    const gap = 4;
-    const sigW = (PDF_CONTENT_W - gap) / 2;
-    const sigH = 30;
-
-    await pdfDrawSignatureBox(doc, PDF_MARGIN, sy, sigW, sigH, 'Firma del cliente', signatures.clientSignature);
-    await pdfDrawSignatureBox(doc, PDF_MARGIN + sigW + gap, sy, sigW, sigH, 'Recibí / firma del técnico', signatures.technicianSignature);
-
-    return sy + sigH;
-  }
-
-  async function pdfDrawSignatureBox(doc, x, y, w, h, title, signatureDataUrl) {
-    pdfBox(doc, x, y, w, h);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(...PDF_COLOR_MUTED);
-    doc.text(title.toUpperCase(), x + 3, y + 5);
-
-    if (signatureDataUrl) {
-      try {
-        const size = await pdfGetImageSize(signatureDataUrl);
-        if (size && size.w && size.h) {
-          const areaW = w - 6, areaH = h - 12;
-          const scale = Math.min(areaW / size.w, areaH / size.h);
-          const sw = size.w * scale, sh = size.h * scale;
-          doc.addImage(signatureDataUrl, 'PNG', x + (w - sw) / 2, y + 8 + (areaH - sh) / 2, sw, sh, undefined, 'FAST');
+        if (sourceControl.type === 'checkbox' || sourceControl.type === 'radio') {
+          cloneControl.checked = sourceControl.checked;
+          if (sourceControl.checked) cloneControl.setAttribute('checked', 'checked');
+          else cloneControl.removeAttribute('checked');
         }
-      } catch (_) { /* firma no disponible, se deja el recuadro en blanco */ }
-    } else {
-      doc.setDrawColor(...PDF_COLOR_LINE);
-      doc.setLineWidth(0.2);
-      doc.line(x + 6, y + h - 6, x + w - 6, y + h - 6);
-    }
-  }
-
-  function pdfDrawFooter(doc, y, company) {
-    const terms = String(company?.terms || '').trim();
-    let fy = y + 4;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.8);
-    doc.setTextColor(...PDF_COLOR_MUTED);
-    if (terms) {
-      const lines = doc.splitTextToSize(terms, PDF_CONTENT_W).slice(0, 3);
-      doc.text(lines, PDF_MARGIN, fy);
-      fy += lines.length * 3.2 + 2;
-    }
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(...PDF_COLOR_INK);
-    doc.text('EL EJEMPLAR TIENE EFECTOS DE RECIBO', PDF_MARGIN, fy);
+      } else if (sourceControl instanceof HTMLTextAreaElement) {
+        cloneControl.value = sourceControl.value;
+        cloneControl.textContent = sourceControl.value;
+      } else if (sourceControl instanceof HTMLSelectElement) {
+        cloneControl.value = sourceControl.value;
+        [...cloneControl.options].forEach(option => {
+          if (option.value === sourceControl.value) option.setAttribute('selected', 'selected');
+          else option.removeAttribute('selected');
+        });
+      } else if (sourceControl instanceof HTMLCanvasElement && cloneControl instanceof HTMLCanvasElement) {
+        cloneControl.width = sourceControl.width;
+        cloneControl.height = sourceControl.height;
+        const context = cloneControl.getContext('2d');
+        context?.drawImage(sourceControl, 0, 0);
+      }
+    });
   }
 
   function formatAllMoneyFields() {
@@ -1920,6 +1646,10 @@
 
   function escapeAttribute(value) {
     return escapeHtml(value).replace(/\n/g, '&#10;');
+  }
+
+  function nextFrame() {
+    return new Promise(resolve => requestAnimationFrame(resolve));
   }
 
   init();
