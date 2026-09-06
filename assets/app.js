@@ -55,9 +55,9 @@
     {
       id: 'company-rfg-servicios',
       name: 'R.F.G. SERVICIOS INTEGRALES EN VIVIENDA',
-      phone: '641 58 93 94',
+      phone: '670 042 626 (24h)',
       email: '',
-      slogan: 'Limpieza y mantenimiento de canalones y tejados · Reparación de goteras, filtraciones e impermeabilización de cubiertas',
+      slogan: 'Tejados · Limpieza de canalones · Mantenimiento de vivienda',
       owner: 'Roberto Fuentes González',
       taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     }
@@ -72,30 +72,12 @@
     ['workVideoIntercom', 'Videoportero']
   ];
 
-  const STANDARD_REQUEST_TYPES = [
-    ['requestInstallation', 'Instalación'],
-    ['requestRepair', 'Reparación'],
-    ['requestMaintenance', 'Mantenimiento'],
-    ['requestInformation', 'Información'],
-    ['requestEstimate', 'Presupuesto'],
-    ['requestSupply', 'Suministro']
-  ];
-
-  const RFG_REQUEST_TYPES = [
-    ['requestInstallation', 'Limpieza'],
-    ['requestRepair', 'Reparación'],
-    ['requestMaintenance', 'Mantenimiento'],
-    ['requestInformation', 'Revisión / diagnóstico'],
-    ['requestEstimate', 'Presupuesto'],
-    ['requestSupply', 'Urgencia / filtración']
-  ];
-
   const RFG_WORK_TYPES = [
-    ['workAntennaIndividual', 'Canalones y bajantes'],
-    ['workAntennaCollective', 'Tejado / cubierta'],
-    ['workSatelliteIndividual', 'Goteras / filtraciones'],
+    ['workAntennaIndividual', 'Limpieza de canalones'],
+    ['workAntennaCollective', 'Reparación de tejados'],
+    ['workSatelliteIndividual', 'Mantenimiento de tejados'],
     ['workSatelliteCollective', 'Impermeabilización'],
-    ['workIntercom', 'Tejas y remates'],
+    ['workIntercom', 'Revisión de goteras'],
     ['workVideoIntercom', 'Otros trabajos']
   ];
 
@@ -606,16 +588,7 @@
       if (['company-antena-city', 'company-antenas-abaso', 'company-antenas-zalla'].includes(defaultCompany.id)) {
         existing.slogan = ANTENNA_DEFAULT_SLOGAN;
       }
-      // Migración segura del teléfono de R.F.G.: solo sustituye el antiguo valor de fábrica o uno vacío.
-      if (defaultCompany.id === 'company-rfg-servicios' && (!existing.phone || existing.phone === '670 042 626 (24h)')) {
-        existing.phone = '641 58 93 94';
-      }
     });
-  }
-
-  function requestTypesForCompany(companyOrId) {
-    const id = typeof companyOrId === 'string' ? companyOrId : companyOrId?.id;
-    return id === 'company-rfg-servicios' ? RFG_REQUEST_TYPES : STANDARD_REQUEST_TYPES;
   }
 
   function workTypesForCompany(companyOrId) {
@@ -623,8 +596,9 @@
     return id === 'company-rfg-servicios' ? RFG_WORK_TYPES : STANDARD_WORK_TYPES;
   }
 
-  function renderServiceLabels() {
-    [...requestTypesForCompany(getActiveCompany()), ...workTypesForCompany(getActiveCompany())].forEach(([name, label]) => {
+  function renderWorkTypeLabels() {
+    const fields = workTypesForCompany(getActiveCompany());
+    fields.forEach(([name, label]) => {
       const input = els.documentForm.elements.namedItem(name);
       const span = input?.closest('label')?.querySelector('span');
       if (span) span.textContent = label;
@@ -974,7 +948,7 @@
     els.companyTerms.textContent = company.terms || '';
     els.companyTerms.hidden = !company.terms;
 
-    renderServiceLabels();
+    renderWorkTypeLabels();
 
     const logoWrap = document.getElementById('companyLogoWrap');
     const brand = document.getElementById('companyBrand');
@@ -1512,7 +1486,7 @@
   }
   function vCheck(doc,x,y,checked){doc.setDrawColor(...VPDF.muted);doc.setLineWidth(.25);if(checked){doc.setFillColor(...VPDF.green);doc.rect(x,y,3,3,'FD');doc.setDrawColor(255,255,255);doc.setLineWidth(.35);doc.line(x+.6,y+1.6,x+1.3,y+2.3);doc.line(x+1.3,y+2.3,x+2.5,y+.7);}else doc.rect(x,y,3,3);}
   function vGroup(doc,x,y,w,title,items,f){const h=22;vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+4.3);items.forEach((it,i)=>{const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+9.2+row*4.3;vCheck(doc,cx,cy-2.5,!!f[it[0]]);vText(doc,it[1],cx+5,cy,7.1);});return h;}
-  function vServiceGroups(doc,y,f,company){const gap=3,w=(vContentW()-gap)/2;const req=requestTypesForCompany(company);const work=workTypesForCompany(company);vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+22;}
+  function vServiceGroups(doc,y,f,company){const gap=3,w=(vContentW()-gap)/2;const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];const work=workTypesForCompany(company);vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+22;}
   function vDescription(doc,y,f){const h=12;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Descripción del servicio solicitado',VPDF.m+2.5,y+4);const t=String(f.serviceDescription||'').trim();if(t){const lines=doc.splitTextToSize(t,vContentW()-5).slice(0,2);vText(doc,lines,VPDF.m+2.5,y+7.5,7.4);}return y+h;}
 
   function vItems(doc,y,items){
