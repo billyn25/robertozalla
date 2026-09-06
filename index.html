@@ -34,11 +34,11 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         <span>Nueva</span>
       </button>
-      <button class="action-button action-button--quiet temporarily-hidden" id="documentsBtn" type="button">
+      <button class="action-button action-button--quiet" id="documentsBtn" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h5l2 2H18.5A1.5 1.5 0 0 1 20 7.5v10a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5v-12Z"/></svg>
         <span>Guardadas</span>
       </button>
-      <button class="action-button action-button--quiet temporarily-hidden" id="saveDocumentBtn" type="button">
+      <button class="action-button action-button--quiet" id="saveDocumentBtn" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h12l2 2v14H5V4Z"/><path d="M8 4v6h8V4M8 20v-6h8v6"/></svg>
         <span>Guardar</span>
       </button>
@@ -175,7 +175,7 @@
           <div class="bottom-left">
             <div class="payment-row boxed">
               <label><span>ANOTACIONES PARA COBRO</span><input name="collectionNotes" type="text"></label>
-              <label><span>FORMA DE PAGO</span><input name="paymentMethod" type="text" list="paymentOptions"><datalist id="paymentOptions"><option value="Efectivo"><option value="Tarjeta"><option value="Transferencia"><option value="Domiciliación"><option value="Pendiente"></datalist></label>
+              <label><span>FORMA DE PAGO</span><select name="paymentMethod" aria-label="Forma de pago"><option value="">Seleccionar…</option><option value="Efectivo">Efectivo</option><option value="Tarjeta">Tarjeta</option><option value="Transferencia">Transferencia</option><option value="Domiciliación">Domiciliación</option><option value="Pendiente">Pendiente</option></select></label>
               <label><span>RECIBÍ</span><input name="receivedBy" type="text"></label>
             </div>
 
@@ -244,13 +244,13 @@
           <div class="signature-box boxed">
             <div class="signature-title">Firma del cliente</div>
             <canvas id="clientSignature" class="signature-canvas" width="520" height="160" aria-label="Firma del cliente"></canvas>
-            <button class="clear-signature screen-only" type="button" data-signature="clientSignature">Borrar firma</button>
+            <div class="signature-actions screen-only"><button class="signature-toggle" type="button" data-signature="clientSignature">Firmar</button><button class="clear-signature" type="button" data-signature="clientSignature">Borrar</button></div>
           </div>
 
           <div class="signature-box boxed">
             <div class="signature-title">Recibí / firma del técnico</div>
             <canvas id="technicianSignature" class="signature-canvas" width="520" height="160" aria-label="Firma del técnico"></canvas>
-            <button class="clear-signature screen-only" type="button" data-signature="technicianSignature">Borrar firma</button>
+            <div class="signature-actions screen-only"><button class="signature-toggle" type="button" data-signature="technicianSignature">Firmar</button><button class="clear-signature" type="button" data-signature="technicianSignature">Borrar</button></div>
           </div>
         </section>
 
@@ -299,6 +299,7 @@
             <label class="editor-field"><span>Responsable</span><input name="owner" type="text"></label>
             <label class="editor-field"><span>NIF / CIF</span><input name="taxId" type="text"></label>
             <label class="editor-field editor-field--wide"><span>Dirección fiscal</span><input name="address" type="text"></label>
+            <label class="editor-field editor-field--wide"><span>Cuenta / IBAN por defecto</span><input name="iban" type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="42" placeholder="ES00 0000 0000 0000 0000 0000"><small>Opcional. Se rellenará automáticamente al crear una hoja de esta empresa.</small></label>
             <label class="editor-field editor-field--wide"><span>Línea legal de cabecera</span><input name="legalLine" type="text" placeholder="Razón social · CIF · dirección"></label>
             <label class="editor-field editor-field--wide"><span>Condiciones / garantía al pie</span><textarea name="terms" rows="3"></textarea></label>
           </div>
@@ -336,8 +337,8 @@
 
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>
