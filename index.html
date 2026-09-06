@@ -44,7 +44,7 @@
       </button>
       <button class="action-button action-button--primary" id="pdfBtn" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v5h5M9 16h6M9 12h6"/></svg>
-        <span>Exportar PDF</span>
+        <span class="pdf-label"><span class="pdf-label__full">Exportar PDF</span><span class="pdf-label__short">PDF</span></span>
       </button>
     </nav>
   </header>
@@ -174,13 +174,13 @@
         <section class="bottom-grid paper-section">
           <div class="bottom-left">
             <div class="payment-row boxed">
-              <label><span>ANOTACIONES PARA COBRO</span><input name="collectionNotes" type="text"></label>
-              <label><span>FORMA DE PAGO</span><input name="paymentMethod" type="text" list="paymentOptions"><datalist id="paymentOptions"><option value="Efectivo"><option value="Tarjeta"><option value="Transferencia"><option value="Domiciliación"><option value="Pendiente"></datalist></label>
-              <label><span>RECIBÍ</span><input name="receivedBy" type="text"></label>
+              <label><span>ANOTACIONES PARA COBRO</span><input name="collectionNotes" type="text" placeholder="Escribe las anotaciones..."></label>
+              <label><span>FORMA DE PAGO</span><input name="paymentMethod" type="text" list="paymentOptions" placeholder="Efectivo, transferencia, etc..."><datalist id="paymentOptions"><option value="Efectivo"><option value="Tarjeta"><option value="Transferencia"><option value="Domiciliación"><option value="Pendiente"></datalist></label>
+              <label><span>RECIBÍ</span><input name="receivedBy" type="text" placeholder="Nombre y firma..."></label>
             </div>
 
             <div class="bank-row boxed">
-              <label><span>CUENTA / IBAN</span><input name="bankAccount" type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="34"></label>
+              <label><span>CUENTA / IBAN</span><input name="bankAccount" type="text" inputmode="text" placeholder="ES00 0000 0000 0000 0000 0000" autocomplete="off" spellcheck="false" maxlength="42"></label>
             </div>
 
             <div class="time-row boxed">
@@ -216,8 +216,10 @@
             <small class="calculation-mode screen-only" id="subtotalMode">Automático desde las líneas</small>
 
             <div class="total-row total-row--vat">
-              <label for="vatPercent">I.V.A.</label>
-              <div class="vat-editor"><input id="vatPercent" name="vatPercent" type="text" inputmode="decimal" value="21"><span>%</span></div>
+              <div class="vat-left">
+                <label for="vatPercent">I.V.A.</label>
+                <div class="vat-editor"><input id="vatPercent" name="vatPercent" type="text" inputmode="decimal" value="21"><span>%</span></div>
+              </div>
               <output id="vatAmount">0,00 €</output>
             </div>
 
@@ -296,6 +298,7 @@
             <label class="editor-field editor-field--wide"><span>Eslogan / servicios</span><input name="slogan" type="text" placeholder="Instalación, reparación y mantenimiento"></label>
             <label class="editor-field"><span>Responsable</span><input name="owner" type="text"></label>
             <label class="editor-field"><span>NIF / CIF</span><input name="taxId" type="text"></label>
+            <label class="editor-field editor-field--wide"><span>Cuenta / IBAN por defecto</span><input name="iban" type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="42" placeholder="ES00 0000 0000 0000 0000 0000"><small>Opcional. Se rellenará automáticamente al crear una hoja de esta empresa.</small></label>
             <label class="editor-field editor-field--wide"><span>Dirección fiscal</span><input name="address" type="text"></label>
             <label class="editor-field editor-field--wide"><span>Línea legal de cabecera</span><input name="legalLine" type="text" placeholder="Razón social · CIF · dirección"></label>
             <label class="editor-field editor-field--wide"><span>Condiciones / garantía al pie</span><textarea name="terms" rows="3"></textarea></label>
@@ -334,8 +337,8 @@
 
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>
