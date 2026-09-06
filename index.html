@@ -44,7 +44,7 @@
       </button>
       <button class="action-button action-button--primary" id="pdfBtn" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6V3Z"/><path d="M14 3v5h5M9 16h6M9 12h6"/></svg>
-        <span class="pdf-label"><span class="pdf-label__full">Exportar PDF</span><span class="pdf-label__short">PDF</span></span>
+        <span>Exportar PDF</span>
       </button>
     </nav>
   </header>
@@ -216,10 +216,8 @@
             <small class="calculation-mode screen-only" id="subtotalMode">Automático desde las líneas</small>
 
             <div class="total-row total-row--vat">
-              <div class="vat-left">
-                <label for="vatPercent">I.V.A.</label>
-                <div class="vat-editor"><input id="vatPercent" name="vatPercent" type="text" inputmode="decimal" value="21"><span>%</span></div>
-              </div>
+              <label for="vatPercent">I.V.A.</label>
+              <div class="vat-editor"><input id="vatPercent" name="vatPercent" type="text" inputmode="decimal" value="21"><span>%</span></div>
               <output id="vatAmount">0,00 €</output>
             </div>
 
@@ -336,8 +334,8 @@
 
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>
