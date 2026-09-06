@@ -1381,7 +1381,7 @@
   }
 
   async function vHeader(doc,y,f,company){
-    const h=26, metaW=51, logoW=28;
+    const h=29, metaW=51, logoW=28;
     let tx=VPDF.m;
     if(company?.logo){
       try{const sz=await vImageSize(company.logo);if(sz){const scale=Math.min(logoW/sz.w,h/sz.h);const w=sz.w*scale,hh=sz.h*scale;doc.addImage(company.logo,vImageFormat(company.logo),VPDF.m+(logoW-w)/2,y+(h-hh)/2,w,hh,undefined,'FAST');tx=VPDF.m+logoW+3.5;}}catch(_){}}
@@ -1394,20 +1394,20 @@
     if(company?.owner)vText(doc,company.owner,tx,ly,7.5,'bold',{maxWidth:textW});
     vBox(doc,metaX,y,metaW,h);
     const rh=h/3; const meta=[['DOCUMENTO',f.documentType||'Presupuesto'],['N.º',f.documentNumber||''],['FECHA',formatDateForDisplay(f.documentDate)||'']];
-    meta.forEach((r,i)=>{const ry=y+i*rh;if(i){doc.setDrawColor(...VPDF.line);doc.line(metaX,ry,metaX+metaW,ry);}vLabel(doc,r[0],metaX+2.5,ry+3.3);vText(doc,r[1],metaX+2.5,ry+rh-1.8,8.4,'bold',{maxWidth:metaW-5});});
+    meta.forEach((r,i)=>{const ry=y+i*rh;if(i){doc.setDrawColor(...VPDF.line);doc.line(metaX,ry,metaX+metaW,ry);}vLabel(doc,r[0],metaX+2.5,ry+3.5);vText(doc,r[1],metaX+2.5,ry+rh-2.0,8.4,'bold',{maxWidth:metaW-5});});
     const legal=company?.legalLine||[company?.taxId?`NIF/CIF: ${company.taxId}`:'',company?.address].filter(Boolean).join(' · ');
     let end=y+h; if(legal){vText(doc,legal,VPDF.m,end+2.6,6.3,'normal',{maxWidth:vContentW()});end+=2.6;}
     doc.setDrawColor(...VPDF.green);doc.setLineWidth(.55);doc.line(VPDF.m,end+1,VPDF.w-VPDF.m,end+1);return end+1;
   }
 
   function vClient(doc,y,f){
-    const h=32;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Datos del cliente',VPDF.m+2.8,y+5.0);
+    const h=34;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Datos del cliente',VPDF.m+2.8,y+5.2);
     const vals=[['CLIENTE / EMPRESA',f.clientCompany],['NOMBRE',f.clientName],['TELÉFONO',f.clientPhone],['CORREO',f.clientEmail],['DIRECCIÓN',f.clientAddress],['POBLACIÓN',f.clientCity],['PROVINCIA',f.clientProvince],['NIF / DNI',f.clientTaxId]];
-    const cw=(vContentW()-6)/2; vals.forEach((r,i)=>{const c=i%2,rr=Math.floor(i/2),x=VPDF.m+3+c*cw,yy=y+9.2+rr*5.2;vLabel(doc,r[0],x,yy);vText(doc,r[1]||'',x+30,yy,7.7,'normal',{maxWidth:cw-32});}); return y+h;
+    const cw=(vContentW()-6)/2; vals.forEach((r,i)=>{const c=i%2,rr=Math.floor(i/2),x=VPDF.m+3+c*cw,yy=y+10.0+rr*5.45;vLabel(doc,r[0],x,yy);vText(doc,r[1]||'',x+30,yy,7.7,'normal',{maxWidth:cw-32});}); return y+h;
   }
   function vCheck(doc,x,y,checked){doc.setDrawColor(...VPDF.muted);doc.setLineWidth(.25);if(checked){doc.setFillColor(...VPDF.green);doc.rect(x,y,3,3,'FD');doc.setDrawColor(255,255,255);doc.setLineWidth(.35);doc.line(x+.6,y+1.6,x+1.3,y+2.3);doc.line(x+1.3,y+2.3,x+2.5,y+.7);}else doc.rect(x,y,3,3);}
-  function vGroup(doc,x,y,w,title,items,f){const h=20;vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+4);items.forEach((it,i)=>{const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+7+row*4.1;vCheck(doc,cx,cy-2.4,!!f[it[0]]);vText(doc,it[1],cx+5,cy,7.1);});return h;}
-  function vServiceGroups(doc,y,f){const gap=3,w=(vContentW()-gap)/2;const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];const work=[['workAntennaIndividual','Antena individual'],['workAntennaCollective','Antena colectiva'],['workSatelliteIndividual','Satélite individual'],['workSatelliteCollective','Satélite colectiva'],['workIntercom','Portero automático'],['workVideoIntercom','Videoportero']];vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+20;}
+  function vGroup(doc,x,y,w,title,items,f){const h=22;vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+4.3);items.forEach((it,i)=>{const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+9.2+row*4.3;vCheck(doc,cx,cy-2.5,!!f[it[0]]);vText(doc,it[1],cx+5,cy,7.1);});return h;}
+  function vServiceGroups(doc,y,f){const gap=3,w=(vContentW()-gap)/2;const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];const work=[['workAntennaIndividual','Antena individual'],['workAntennaCollective','Antena colectiva'],['workSatelliteIndividual','Satélite individual'],['workSatelliteCollective','Satélite colectiva'],['workIntercom','Portero automático'],['workVideoIntercom','Videoportero']];vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+22;}
   function vDescription(doc,y,f){const h=12;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Descripción del servicio solicitado',VPDF.m+2.5,y+4);const t=String(f.serviceDescription||'').trim();if(t){const lines=doc.splitTextToSize(t,vContentW()-5).slice(0,2);vText(doc,lines,VPDF.m+2.5,y+7.5,7.4);}return y+h;}
 
   function vItems(doc,y,items){

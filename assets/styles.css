@@ -1247,15 +1247,17 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 @media (max-width:760px){
   html,body{max-width:100%;overflow-x:hidden}
   body{background:#eef1ef}
-  .appbar{position:sticky;top:0;z-index:50;display:grid;grid-template-columns:minmax(0,1fr) 44px 44px 44px 74px;grid-template-rows:44px 44px;gap:8px;align-items:center;min-height:104px;padding:calc(9px + env(safe-area-inset-top)) 10px 9px;background:#17211c}
+  .appbar{position:sticky;top:0;z-index:50;display:grid;grid-template-columns:minmax(0,1fr) 44px 44px 44px;grid-template-rows:44px 44px;gap:8px;align-items:center;min-height:104px;padding:calc(9px + env(safe-area-inset-top)) 10px 9px;background:#17211c}
   .appbar__brand,.appbar__company>label{display:none}
   .appbar__company,.appbar__actions{display:contents}
-  .appbar__company select{grid-column:1;grid-row:1;width:100%;min-width:0;height:42px;padding:0 34px 0 12px;color:#f5f7f5;background:#223028;border:1px solid #46544c;border-radius:10px;font-size:14px;font-weight:800;text-overflow:ellipsis}
+  .appbar__company select{grid-column:1;grid-row:1;width:100%;min-width:0;height:42px;padding:0 34px 0 12px;color:#f5f7f5;background:#223028;border:1px solid #46544c;border-radius:10px;font-size:14px;font-weight:800;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
   .appbar__company .icon-button{grid-column:2;grid-row:1;width:44px;height:44px;margin:0;border-radius:10px}
   .appbar__actions .temporarily-hidden{display:none!important}
   .appbar__actions #newDocumentBtn{grid-column:3;grid-row:1;width:44px;height:44px;min-width:44px;padding:0;justify-content:center;border-radius:10px}
   .appbar__actions #newDocumentBtn span{display:none}
-  .appbar__actions #documentsBtn{grid-column:4;grid-row:1;width:44px;height:44px;min-width:44px;padding:0;justify-content:center;border-radius:10px}.appbar__actions #documentsBtn span{display:none}.appbar__actions #saveDocumentBtn{grid-column:1/5;grid-row:2;width:100%;height:44px;min-width:0;padding:0 14px;justify-content:center;border-radius:10px}.appbar__actions #saveDocumentBtn span{display:inline;font-size:13px;font-weight:850}.appbar__actions #pdfBtn{grid-column:5;grid-row:1/3;width:74px;height:96px;min-width:74px;padding:0 8px;display:flex;flex-direction:column;gap:5px;justify-content:center;border-radius:12px;background:#27844e;border-color:#27844e;color:#fff}
+  .appbar__actions #documentsBtn{grid-column:4;grid-row:1;width:44px;height:44px;min-width:44px;padding:0;justify-content:center;border-radius:10px}.appbar__actions #documentsBtn span{display:none}
+  .appbar__actions #saveDocumentBtn{grid-column:1/3;grid-row:2;width:100%;height:44px;min-width:0;padding:0 14px;justify-content:center;border-radius:10px}.appbar__actions #saveDocumentBtn span{display:inline;font-size:13px;font-weight:850}
+  .appbar__actions #pdfBtn{grid-column:3/5;grid-row:2;width:100%;height:44px;min-width:0;padding:0 12px;display:flex;flex-direction:row;gap:7px;justify-content:center;border-radius:10px;background:#27844e;border-color:#27844e;color:#fff}
   .appbar__actions #pdfBtn svg{display:block;width:17px;height:17px;flex:0 0 auto}
   .appbar__actions #pdfBtn .pdf-label{font-size:12px;font-weight:900;white-space:nowrap}
   .appbar__actions #pdfBtn .pdf-label__full{display:none}
