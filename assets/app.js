@@ -381,8 +381,9 @@
       if (event.target.closest('#itemsBody')) return;
       const breakdownIds = new Set(['materialsAmount', 'laborAmount', 'travelAmount', 'extraAmount']);
       if (breakdownIds.has(event.target.id)) {
-        // Al escribir en el desglose, ese bloque pasa a ser la fuente del total.
-        state.subtotalMode = 'breakdown';
+        // Las líneas y el desglose son conceptos acumulables.
+        // Escribir aquí vuelve el subtotal a cálculo automático combinado.
+        state.subtotalMode = 'combined';
         state.grandTotalMode = 'auto';
       } else if (event.target === els.subtotalAmount) {
         state.subtotalMode = 'manual';
@@ -486,21 +487,21 @@
     });
 
     els.totalFromLinesBtn.addEventListener('click', () => {
-      state.subtotalMode = 'lines';
+      state.subtotalMode = 'combined';
       state.grandTotalMode = 'auto';
       calculateTotals();
       markDirty();
     });
 
     els.totalFromBreakdownBtn.addEventListener('click', () => {
-      state.subtotalMode = 'breakdown';
+      state.subtotalMode = 'combined';
       state.grandTotalMode = 'auto';
       calculateTotals();
       markDirty();
     });
 
     els.resetSubtotalBtn.addEventListener('click', () => {
-      state.subtotalMode = 'lines';
+      state.subtotalMode = 'combined';
       state.grandTotalMode = 'auto';
       calculateTotals();
       markDirty();
@@ -808,32 +809,31 @@
     const lineTotal = [...els.itemsBody.querySelectorAll('tr')].reduce((sum, row) => {
       return sum + parseNumber(row.querySelector('[data-field="amount"]')?.value || '');
     }, 0);
-
     const breakdownTotal = ['materialsAmount', 'laborAmount', 'travelAmount', 'extraAmount']
       .reduce((sum, id) => sum + parseNumber(document.getElementById(id).value), 0);
 
-    if (state.subtotalMode === 'lines') {
-      els.subtotalAmount.value = lineTotal ? formatMoney(lineTotal) : '';
-    } else if (state.subtotalMode === 'breakdown') {
-      els.subtotalAmount.value = breakdownTotal ? formatMoney(breakdownTotal) : '';
+    // Regla única: todo concepto económico introducido suma.
+    // Solo TOTAL IMPORTE manual sustituye esta suma de forma explícita.
+    if (state.subtotalMode !== 'manual') {
+      state.subtotalMode = 'combined';
+      const automaticSubtotal = lineTotal + breakdownTotal;
+      els.subtotalAmount.value = automaticSubtotal ? formatMoney(automaticSubtotal) : '';
     }
 
     const subtotal = parseNumber(els.subtotalAmount.value);
     const vatPercent = parseNumber(els.vatPercent.value);
     const vat = subtotal * vatPercent / 100;
-    els.vatAmount.textContent = formatCurrency(vat);
+    els.vatAmount.textContent = formatMoney(vat) + ' €';
 
-    if (state.grandTotalMode === 'auto') {
+    if (state.grandTotalMode !== 'manual') {
+      state.grandTotalMode = 'auto';
       const grandTotal = subtotal + vat;
       els.grandTotalAmount.value = grandTotal ? formatMoney(grandTotal) : '';
     }
 
     els.subtotalMode.textContent = state.subtotalMode === 'manual'
       ? 'Total escrito manualmente'
-      : state.subtotalMode === 'breakdown'
-        ? 'Automático desde materiales, mano de obra, desplazamiento y plus'
-        : 'Automático desde las líneas';
-
+      : 'Automático: líneas + materiales + mano de obra + desplazamiento + plus';
     els.grandTotalMode.textContent = state.grandTotalMode === 'manual'
       ? 'Total final escrito manualmente'
       : 'Automático con IVA';
@@ -885,7 +885,7 @@
     }
 
     state.currentDocumentId = documentId;
-    state.subtotalMode = data.subtotalMode || 'lines';
+    state.subtotalMode = data.subtotalMode === 'manual' ? 'manual' : 'combined';
     state.grandTotalMode = data.grandTotalMode || 'auto';
 
     renderCompanySelect();
@@ -1594,17 +1594,34 @@
     let text = String(value ?? '').trim().replace(/\s/g, '').replace(/€/g, '');
     if (!text) return 0;
 
+    const commaCount = (text.match(/,/g) || []).length;
+    const dotCount = (text.match(/\./g) || []).length;
     const comma = text.lastIndexOf(',');
     const dot = text.lastIndexOf('.');
+
     if (comma >= 0 && dot >= 0) {
+      // 1.234,56 (ES) o 1,234.56 (EN)
       if (comma > dot) text = text.replace(/\./g, '').replace(',', '.');
       else text = text.replace(/,/g, '');
-    } else if (comma >= 0) {
-      text = text.replace(/\./g, '').replace(',', '.');
-    } else if ((text.match(/\./g) || []).length > 1) {
-      const parts = text.split('.');
-      const decimal = parts.pop();
-      text = `${parts.join('')}.${decimal}`;
+    } else if (commaCount > 1) {
+      // 1,234,567 => separadores de miles
+      text = text.replace(/,/g, '');
+    } else if (dotCount > 1) {
+      // 1.234.567 => separadores de miles
+      text = text.replace(/\./g, '');
+    } else if (commaCount === 1) {
+      const [left, right = ''] = text.split(',');
+      // En campos monetarios, tres cifras finales suelen indicar miles: 1,234 => 1234.
+      // Con 1-2 cifras finales se trata como decimal: 12,5 / 12,50.
+      text = right.length === 3 && left.replace(/^[+-]/, '').length >= 1 && left !== '0'
+        ? `${left}${right}`
+        : `${left}.${right}`;
+    } else if (dotCount === 1) {
+      const [left, right = ''] = text.split('.');
+      // Igual para formato español escrito con punto: 1.234 => 1234; 12.50 => 12,50.
+      text = right.length === 3 && left.replace(/^[+-]/, '').length >= 1 && left !== '0'
+        ? `${left}${right}`
+        : `${left}.${right}`;
     }
 
     text = text.replace(/[^0-9+\-.]/g, '');
