@@ -1478,25 +1478,97 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 }
 
 
-/* V55 FECHAS MOVIL: ambas fechas centradas vertical y horizontalmente */
-@media (max-width:760px){
-  #documentDate,
-  #serviceDate,
-  input[name="serviceDate"],
-  input[type="date"].service-date,
-  .service-date{
-    text-align:center !important;
-    padding-top:0 !important;
-    padding-bottom:0 !important;
-    line-height:1.2 !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-  }
-  #documentDate::-webkit-date-and-time-value,
+#documentDate::-webkit-date-and-time-value,
   #serviceDate::-webkit-date-and-time-value,
   input[name="serviceDate"]::-webkit-date-and-time-value{
     text-align:center !important;
     min-height:100% !important;
+  }
+}
+
+
+/* V56 FECHAS iPHONE: centrado vertical REAL del contenido nativo de type=date */
+@media (max-width:760px){
+  #documentDate,
+  #serviceDate{
+    box-sizing:border-box !important;
+    height:58px !important;
+    min-height:58px !important;
+    padding:0 14px !important;
+    line-height:58px !important;
+    text-align:center !important;
+    vertical-align:middle !important;
+  }
+
+  #documentDate::-webkit-datetime-edit,
+  #serviceDate::-webkit-datetime-edit{
+    display:block !important;
+    box-sizing:border-box !important;
+    height:58px !important;
+    line-height:58px !important;
+    padding:0 !important;
+    text-align:center !important;
+  }
+
+  #documentDate::-webkit-date-and-time-value,
+  #serviceDate::-webkit-date-and-time-value{
+    display:block !important;
+    height:58px !important;
+    line-height:58px !important;
+    padding:0 !important;
+    margin:0 !important;
+    text-align:center !important;
+  }
+
+  #documentDate::-webkit-datetime-edit-fields-wrapper,
+  #serviceDate::-webkit-datetime-edit-fields-wrapper{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    height:58px !important;
+    padding:0 !important;
+  }
+}
+
+/* V56b: segunda FECHA identificada y centrada realmente en Safari/iPhone */
+@media (max-width:760px){
+  .time-row label:has(#serviceDate){
+    position:relative !important;
+  }
+
+  #serviceDate{
+    width:100% !important;
+    height:100% !important;
+    min-height:84px !important;
+    box-sizing:border-box !important;
+    padding:0 14px !important;
+    text-align:center !important;
+    line-height:normal !important;
+  }
+
+  #serviceDate::-webkit-datetime-edit{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:100% !important;
+    height:100% !important;
+    padding:0 !important;
+    text-align:center !important;
+  }
+
+  #serviceDate::-webkit-date-and-time-value{
+    width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    text-align:center !important;
+  }
+
+  #serviceDate::-webkit-datetime-edit-fields-wrapper{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:100% !important;
+    height:100% !important;
+    padding:0 !important;
   }
 }
