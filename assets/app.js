@@ -22,35 +22,81 @@
     maximumFractionDigits: 2
   });
 
+  const ANTENNA_DEFAULT_SLOGAN = 'Instalación, reparación y mantenimiento de Antenas TV · Satélite · Porteros automáticos · Videoporteros';
+
   const defaultCompanies = [
     {
       id: 'company-antena-city',
       name: 'ANTENA CITY',
       phone: '641 58 93 94 (24h)',
       email: 'antenascity@gmail.com',
-      slogan: 'Antenas TV · Satélite · Porteros automáticos · Videoporteros',
+      slogan: ANTENNA_DEFAULT_SLOGAN,
       owner: 'Roberto Fuentes González',
-      taxId: '',
-      iban: '',
-      address: '',
-      legalLine: '',
-      terms: '',
-      logo: ''
+      taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     },
     {
       id: 'company-antenas-abaso',
       name: 'ANTENAS ABASO',
       phone: '670 042 626 (24h)',
       email: 'antenasabaso@gmail.com',
-      slogan: 'Instalación, reparación y mantenimiento',
+      slogan: ANTENNA_DEFAULT_SLOGAN,
       owner: 'Roberto Fuentes González',
-      taxId: '',
-      iban: '',
-      address: '',
-      legalLine: '',
-      terms: '',
-      logo: ''
+      taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
+    },
+    {
+      id: 'company-antenas-zalla',
+      name: 'ANTENAS ZALLA',
+      phone: '670 042 626 (24h)',
+      email: 'antenasabaso@gmail.com',
+      slogan: ANTENNA_DEFAULT_SLOGAN,
+      owner: 'Roberto Fuentes González',
+      taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
+    },
+    {
+      id: 'company-rfg-servicios',
+      name: 'R.F.G. SERVICIOS INTEGRALES EN VIVIENDA',
+      phone: '641 58 93 94',
+      email: '',
+      slogan: 'Limpieza y mantenimiento de canalones y tejados · Reparación de goteras, filtraciones e impermeabilización de cubiertas',
+      owner: 'Roberto Fuentes González',
+      taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     }
+  ];
+
+  const STANDARD_WORK_TYPES = [
+    ['workAntennaIndividual', 'Antena individual'],
+    ['workAntennaCollective', 'Antena colectiva'],
+    ['workSatelliteIndividual', 'Satélite individual'],
+    ['workSatelliteCollective', 'Satélite colectiva'],
+    ['workIntercom', 'Portero automático'],
+    ['workVideoIntercom', 'Videoportero']
+  ];
+
+  const STANDARD_REQUEST_TYPES = [
+    ['requestInstallation', 'Instalación'],
+    ['requestRepair', 'Reparación'],
+    ['requestMaintenance', 'Mantenimiento'],
+    ['requestInformation', 'Información'],
+    ['requestEstimate', 'Presupuesto'],
+    ['requestSupply', 'Suministro']
+  ];
+
+  const RFG_REQUEST_TYPES = [
+    ['requestInstallation', 'Limpieza'],
+    ['requestRepair', 'Reparación'],
+    ['requestMaintenance', 'Mantenimiento'],
+    ['requestInformation', 'Revisión / diagnóstico'],
+    ['requestEstimate', 'Presupuesto'],
+    ['requestSupply', 'Urgencia / filtración']
+  ];
+
+  const RFG_WORK_TYPES = [
+    ['workAntennaIndividual', 'Canalones y bajantes'],
+    ['workAntennaCollective', 'Tejado / cubierta'],
+    ['workSatelliteIndividual', 'Goteras / filtraciones'],
+    ['workSatelliteCollective', 'Impermeabilización'],
+    ['workIntercom', 'Tejas y remates'],
+    ['workVideoIntercom', 'Otros trabajos']
   ];
 
   const els = {
@@ -116,6 +162,7 @@
   };
 
   if (!state.companies.length) state.companies = defaultCompanies.map(normalizeCompany);
+  ensureBuiltInCompanies();
   state.activeCompanyId = getStorageItem(STORAGE.activeCompany) || state.companies[0].id;
   if (!state.companies.some(company => company.id === state.activeCompanyId)) {
     state.activeCompanyId = state.companies[0].id;
@@ -547,6 +594,43 @@
     });
   }
 
+  function ensureBuiltInCompanies() {
+    const byId = new Map(state.companies.map(company => [company.id, company]));
+    defaultCompanies.forEach(defaultCompany => {
+      const existing = byId.get(defaultCompany.id);
+      if (!existing) {
+        state.companies.push(normalizeCompany(defaultCompany));
+        return;
+      }
+      // La línea descriptiva solicitada debe quedar igual en las tres marcas de antenas.
+      if (['company-antena-city', 'company-antenas-abaso', 'company-antenas-zalla'].includes(defaultCompany.id)) {
+        existing.slogan = ANTENNA_DEFAULT_SLOGAN;
+      }
+      // Migración segura del teléfono de R.F.G.: solo sustituye el antiguo valor de fábrica o uno vacío.
+      if (defaultCompany.id === 'company-rfg-servicios' && (!existing.phone || existing.phone === '670 042 626 (24h)')) {
+        existing.phone = '641 58 93 94';
+      }
+    });
+  }
+
+  function requestTypesForCompany(companyOrId) {
+    const id = typeof companyOrId === 'string' ? companyOrId : companyOrId?.id;
+    return id === 'company-rfg-servicios' ? RFG_REQUEST_TYPES : STANDARD_REQUEST_TYPES;
+  }
+
+  function workTypesForCompany(companyOrId) {
+    const id = typeof companyOrId === 'string' ? companyOrId : companyOrId?.id;
+    return id === 'company-rfg-servicios' ? RFG_WORK_TYPES : STANDARD_WORK_TYPES;
+  }
+
+  function renderServiceLabels() {
+    [...requestTypesForCompany(getActiveCompany()), ...workTypesForCompany(getActiveCompany())].forEach(([name, label]) => {
+      const input = els.documentForm.elements.namedItem(name);
+      const span = input?.closest('label')?.querySelector('span');
+      if (span) span.textContent = label;
+    });
+  }
+
   function normalizeCompany(company) {
     const legacyDefaultLogos = new Set([
       'assets/logo-antena-city.png',
@@ -889,6 +973,8 @@
 
     els.companyTerms.textContent = company.terms || '';
     els.companyTerms.hidden = !company.terms;
+
+    renderServiceLabels();
 
     const logoWrap = document.getElementById('companyLogoWrap');
     const brand = document.getElementById('companyBrand');
@@ -1382,7 +1468,7 @@
     let y=VPDF.m;
     y=await vHeader(doc,y,f,company); y+=2.4;
     y=vClient(doc,y,f); y+=2.4;
-    y=vServiceGroups(doc,y,f); y+=2.4;
+    y=vServiceGroups(doc,y,f,company); y+=2.4;
     y=vDescription(doc,y,f); y+=2.6;
 
     const rows=(data.items||[]).filter(i=>[i.qty,i.concept,i.price,i.amount].some(v=>String(v||'').trim()));
@@ -1426,7 +1512,7 @@
   }
   function vCheck(doc,x,y,checked){doc.setDrawColor(...VPDF.muted);doc.setLineWidth(.25);if(checked){doc.setFillColor(...VPDF.green);doc.rect(x,y,3,3,'FD');doc.setDrawColor(255,255,255);doc.setLineWidth(.35);doc.line(x+.6,y+1.6,x+1.3,y+2.3);doc.line(x+1.3,y+2.3,x+2.5,y+.7);}else doc.rect(x,y,3,3);}
   function vGroup(doc,x,y,w,title,items,f){const h=22;vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+4.3);items.forEach((it,i)=>{const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+9.2+row*4.3;vCheck(doc,cx,cy-2.5,!!f[it[0]]);vText(doc,it[1],cx+5,cy,7.1);});return h;}
-  function vServiceGroups(doc,y,f){const gap=3,w=(vContentW()-gap)/2;const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];const work=[['workAntennaIndividual','Antena individual'],['workAntennaCollective','Antena colectiva'],['workSatelliteIndividual','Satélite individual'],['workSatelliteCollective','Satélite colectiva'],['workIntercom','Portero automático'],['workVideoIntercom','Videoportero']];vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+22;}
+  function vServiceGroups(doc,y,f,company){const gap=3,w=(vContentW()-gap)/2;const req=requestTypesForCompany(company);const work=workTypesForCompany(company);vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+22;}
   function vDescription(doc,y,f){const h=12;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Descripción del servicio solicitado',VPDF.m+2.5,y+4);const t=String(f.serviceDescription||'').trim();if(t){const lines=doc.splitTextToSize(t,vContentW()-5).slice(0,2);vText(doc,lines,VPDF.m+2.5,y+7.5,7.4);}return y+h;}
 
   function vItems(doc,y,items){
