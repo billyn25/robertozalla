@@ -55,9 +55,9 @@
     {
       id: 'company-rfg-servicios',
       name: 'R.F.G. SERVICIOS INTEGRALES EN VIVIENDA',
-      phone: '670 042 626 (24h)',
+      phone: '641 58 93 94',
       email: '',
-      slogan: 'Tejados · Limpieza de canalones · Mantenimiento de vivienda',
+      slogan: 'Limpieza y mantenimiento de canalones y tejados · Reparación de goteras, filtraciones e impermeabilización de cubiertas',
       owner: 'Roberto Fuentes González',
       taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     }
@@ -584,9 +584,15 @@
         state.companies.push(normalizeCompany(defaultCompany));
         return;
       }
-      // La línea descriptiva solicitada debe quedar igual en las tres marcas de antenas.
+      // Las tres marcas de antenas comparten la línea descriptiva solicitada.
       if (['company-antena-city', 'company-antenas-abaso', 'company-antenas-zalla'].includes(defaultCompany.id)) {
         existing.slogan = ANTENNA_DEFAULT_SLOGAN;
+      }
+      // Migración muy conservadora de R.F.G.: solo corrige los valores de fábrica antiguos.
+      // Si el usuario ya los editó, no se pisan sus datos.
+      if (defaultCompany.id === 'company-rfg-servicios') {
+        if (!existing.phone || existing.phone === '670 042 626 (24h)') existing.phone = defaultCompany.phone;
+        if (!existing.slogan || existing.slogan === 'Tejados · Limpieza de canalones · Mantenimiento de vivienda') existing.slogan = defaultCompany.slogan;
       }
     });
   }
@@ -1460,24 +1466,71 @@
   }
 
   async function vHeader(doc,y,f,company){
-    const metaW=51, logoW=28; let tx=VPDF.m;
-    const metaX=VPDF.w-VPDF.m-metaW; let textW=metaX-tx-4;
+    const metaW=51, logoW=28;
+    const metaX=VPDF.w-VPDF.m-metaW;
+    let tx=VPDF.m;
+    let logoData=null;
+
+    if(company?.logo){
+      try{
+        const sz=await vImageSize(company.logo);
+        if(sz){
+          tx=VPDF.m+logoW+3.5;
+          logoData=sz;
+        }
+      }catch(_){}
+    }
+
+    const textW=Math.max(44,metaX-tx-4);
     const name=String(company?.name||'EMPRESA').toUpperCase();
     const slogan=String(company?.slogan||'').trim();
     const contact=[company?.phone,company?.email].filter(Boolean).join('  ·  ');
     const owner=String(company?.owner||'').trim();
+
     doc.setFont('helvetica','bold'); doc.setFontSize(11.2);
-    let nameLines=doc.splitTextToSize(name,textW).slice(0,2);
+    const nameLines=doc.splitTextToSize(name,textW).slice(0,3);
     doc.setFont('helvetica','normal'); doc.setFontSize(6.9);
-    let sloganLines=slogan?doc.splitTextToSize(slogan,textW).slice(0,3):[];
-    const h=Math.max(29,6+nameLines.length*4.6+sloganLines.length*3.3+(contact?3.5:0)+(owner?3.8:0)+3);
-    if(company?.logo){try{const sz=await vImageSize(company.logo);if(sz){const scale=Math.min(logoW/sz.w,h/sz.h),w=sz.w*scale,hh=sz.h*scale;doc.addImage(company.logo,vImageFormat(company.logo),VPDF.m+(logoW-w)/2,y+(h-hh)/2,w,hh,undefined,'FAST');tx=VPDF.m+logoW+3.5;textW=metaX-tx-4;doc.setFont('helvetica','bold');doc.setFontSize(11.2);nameLines=doc.splitTextToSize(name,textW).slice(0,2);doc.setFont('helvetica','normal');doc.setFontSize(6.9);sloganLines=slogan?doc.splitTextToSize(slogan,textW).slice(0,3):[];}}catch(_){}}
-    let ly=y+5.7; doc.setFont('helvetica','bold');doc.setFontSize(11.2);doc.setTextColor(...VPDF.ink);doc.text(nameLines,tx,ly);ly+=nameLines.length*4.6;
-    if(sloganLines.length){doc.setFont('helvetica','normal');doc.setFontSize(6.9);doc.text(sloganLines,tx,ly);ly+=sloganLines.length*3.3;}
-    if(contact){vText(doc,contact,tx,ly,6.9,'normal',{maxWidth:textW});ly+=3.5;} if(owner)vText(doc,owner,tx,ly,7.2,'bold',{maxWidth:textW});
-    vBox(doc,metaX,y,metaW,h); const rh=h/3; const meta=[['DOCUMENTO',f.documentType||'Presupuesto'],['N.º',f.documentNumber||''],['FECHA',formatDateForDisplay(f.documentDate)||'']];
-    meta.forEach((r,i)=>{const ry=y+i*rh;if(i){doc.setDrawColor(...VPDF.line);doc.line(metaX,ry,metaX+metaW,ry);}vLabel(doc,r[0],metaX+2.5,ry+3.5);vText(doc,r[1],metaX+2.5,ry+rh-2,8.4,'bold',{maxWidth:metaW-5});});
-    const legal=company?.legalLine||[company?.taxId?`NIF/CIF: ${company.taxId}`:'',company?.address].filter(Boolean).join(' · ');let end=y+h;if(legal){vText(doc,legal,VPDF.m,end+2.6,6.3,'normal',{maxWidth:vContentW()});end+=2.6;}doc.setDrawColor(...VPDF.green);doc.setLineWidth(.55);doc.line(VPDF.m,end+1,VPDF.w-VPDF.m,end+1);return end+1;
+    const sloganLines=slogan?doc.splitTextToSize(slogan,textW).slice(0,4):[];
+    const contactLines=contact?doc.splitTextToSize(contact,textW).slice(0,2):[];
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.2);
+    const ownerLines=owner?doc.splitTextToSize(owner,textW).slice(0,2):[];
+
+    // La altura nace del contenido REAL para impedir solapes en empresas largas como R.F.G.
+    const contentH=5.7 + nameLines.length*4.6 + sloganLines.length*3.25 + contactLines.length*3.25 + ownerLines.length*3.45 + 2.2;
+    const h=Math.max(29,contentH);
+
+    if(logoData){
+      const scale=Math.min(logoW/logoData.w,(h-2)/logoData.h);
+      const w=logoData.w*scale, hh=logoData.h*scale;
+      doc.addImage(company.logo,vImageFormat(company.logo),VPDF.m+(logoW-w)/2,y+(h-hh)/2,w,hh,undefined,'FAST');
+    }
+
+    let ly=y+5.7;
+    doc.setFont('helvetica','bold'); doc.setFontSize(11.2); doc.setTextColor(...VPDF.ink);
+    doc.text(nameLines,tx,ly); ly+=nameLines.length*4.6;
+    if(sloganLines.length){doc.setFont('helvetica','normal');doc.setFontSize(6.9);doc.text(sloganLines,tx,ly);ly+=sloganLines.length*3.25;}
+    if(contactLines.length){doc.setFont('helvetica','normal');doc.setFontSize(6.9);doc.text(contactLines,tx,ly);ly+=contactLines.length*3.25;}
+    if(ownerLines.length){doc.setFont('helvetica','bold');doc.setFontSize(7.2);doc.text(ownerLines,tx,ly);}
+
+    vBox(doc,metaX,y,metaW,h);
+    const rh=h/3;
+    const meta=[['DOCUMENTO',f.documentType||'Presupuesto'],['N.º',f.documentNumber||''],['FECHA',formatDateForDisplay(f.documentDate)||'']];
+    meta.forEach((r,i)=>{
+      const ry=y+i*rh;
+      if(i){doc.setDrawColor(...VPDF.line);doc.line(metaX,ry,metaX+metaW,ry);}
+      vLabel(doc,r[0],metaX+2.5,ry+3.5);
+      vText(doc,r[1],metaX+2.5,ry+rh-2.0,8.4,'bold',{maxWidth:metaW-5});
+    });
+
+    const legal=company?.legalLine||[company?.taxId?`NIF/CIF: ${company.taxId}`:'',company?.address].filter(Boolean).join(' · ');
+    let end=y+h;
+    if(legal){
+      const legalLines=doc.splitTextToSize(legal,vContentW()).slice(0,2);
+      vText(doc,legalLines,VPDF.m,end+2.6,6.3,'normal');
+      end+=legalLines.length*2.6;
+    }
+    doc.setDrawColor(...VPDF.green);doc.setLineWidth(.55);doc.line(VPDF.m,end+1,VPDF.w-VPDF.m,end+1);
+    return end+1;
   }
 
   function vClient(doc,y,f){

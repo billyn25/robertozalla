@@ -954,7 +954,38 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 .output-clone .company-brand__text strong{font-size:9px!important;}
 .output-clone .paper-section{margin-bottom:7px!important;}
 .output-clone .paper-footer{margin-top:5px!important;}
-\n\n/* v11 PRO — móvil compacto + PDF A4 idéntico desde cualquier dispositivo */\n\n\n/* El clon de exportación NO hereda nunca la maquetación móvil. */\n.output-clone .paper-section{margin-bottom:8px!important}\n.output-clone .top-details{display:grid!important;grid-template-columns:minmax(0,1.55fr) minmax(245px,1fr)!important;gap:9px!important}\n.output-clone .field-grid--client{display:grid!important;grid-template-columns:1fr 1fr!important}\n.output-clone .field{display:grid!important;grid-template-columns:92px minmax(0,1fr)!important;min-height:25px!important}\n.output-clone .field--wide{grid-column:1/-1!important}\n.output-clone .field input{min-height:25px!important;font-size:10px!important}\n.output-clone .service-boxes{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}\n.output-clone .check-list label{min-height:22px!important}\n.output-clone .check-list input{width:14px!important;height:14px!important}\n.output-clone .service-description textarea{min-height:52px!important;font-size:10px!important}\n.output-clone .items-table-wrap{overflow:visible!important;border:1px solid var(--line)!important}\n.output-clone .items-table tr{margin:0!important;border:0!important;border-radius:0!important;background:#fff!important}\n.output-clone .items-table td{height:31px!important;min-height:31px!important;border-right:1px solid var(--line)!important;border-top:1px solid var(--line)!important}\n.output-clone .items-table textarea,.output-clone .items-table input{min-height:29px!important;padding:3px 5px!important;font-size:10px!important}\n.output-clone .bottom-grid{display:grid!important;grid-template-columns:minmax(0,1fr) 205px!important;gap:9px!important}\n.output-clone .payment-row{display:grid!important;grid-template-columns:1.15fr 1fr 1fr!important}\n.output-clone .time-row{display:grid!important;grid-template-columns:1fr 1fr 1fr!important}\n.output-clone .payment-row input,.output-clone .time-row input{min-height:31px!important;font-size:10px!important}\n.output-clone .observations textarea{min-height:72px!important;font-size:10px!important;line-height:18px!important}\n.output-clone .total-row{min-height:31px!important;grid-template-columns:minmax(0,1fr) 90px!important}\n.output-clone .total-row--vat{grid-template-columns:minmax(0,1fr) 58px 86px!important}\n.output-clone .total-row input,.output-clone .total-row output{min-height:31px!important;font-size:10px!important;padding:4px!important}\n.output-clone .consent-signatures{display:grid!important;grid-template-columns:1.2fr 1fr 1fr!important}\n.output-clone .signature-box{min-height:86px!important}\n.output-clone input[type=date]{font-size:10px!important}\n
+
+
+/* v11 PRO — móvil compacto + PDF A4 idéntico desde cualquier dispositivo */
+
+
+/* El clon de exportación NO hereda nunca la maquetación móvil. */
+.output-clone .paper-section{margin-bottom:8px!important}
+.output-clone .top-details{display:grid!important;grid-template-columns:minmax(0,1.55fr) minmax(245px,1fr)!important;gap:9px!important}
+.output-clone .field-grid--client{display:grid!important;grid-template-columns:1fr 1fr!important}
+.output-clone .field{display:grid!important;grid-template-columns:92px minmax(0,1fr)!important;min-height:25px!important}
+.output-clone .field--wide{grid-column:1/-1!important}
+.output-clone .field input{min-height:25px!important;font-size:10px!important}
+.output-clone .service-boxes{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+.output-clone .check-list label{min-height:22px!important}
+.output-clone .check-list input{width:14px!important;height:14px!important}
+.output-clone .service-description textarea{min-height:52px!important;font-size:10px!important}
+.output-clone .items-table-wrap{overflow:visible!important;border:1px solid var(--line)!important}
+.output-clone .items-table tr{margin:0!important;border:0!important;border-radius:0!important;background:#fff!important}
+.output-clone .items-table td{height:31px!important;min-height:31px!important;border-right:1px solid var(--line)!important;border-top:1px solid var(--line)!important}
+.output-clone .items-table textarea,.output-clone .items-table input{min-height:29px!important;padding:3px 5px!important;font-size:10px!important}
+.output-clone .bottom-grid{display:grid!important;grid-template-columns:minmax(0,1fr) 205px!important;gap:9px!important}
+.output-clone .payment-row{display:grid!important;grid-template-columns:1.15fr 1fr 1fr!important}
+.output-clone .time-row{display:grid!important;grid-template-columns:1fr 1fr 1fr!important}
+.output-clone .payment-row input,.output-clone .time-row input{min-height:31px!important;font-size:10px!important}
+.output-clone .observations textarea{min-height:72px!important;font-size:10px!important;line-height:18px!important}
+.output-clone .total-row{min-height:31px!important;grid-template-columns:minmax(0,1fr) 90px!important}
+.output-clone .total-row--vat{grid-template-columns:minmax(0,1fr) 58px 86px!important}
+.output-clone .total-row input,.output-clone .total-row output{min-height:31px!important;font-size:10px!important;padding:4px!important}
+.output-clone .consent-signatures{display:grid!important;grid-template-columns:1.2fr 1fr 1fr!important}
+.output-clone .signature-box{min-height:86px!important}
+.output-clone input[type=date]{font-size:10px!important}
+
 /* v12 PRO — cabecera móvil y gestor de empresas rehechos */
 
 
@@ -1393,94 +1424,55 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   #companyModal .danger-button{min-height:36px}
 }
 
+/* =========================================================
+   AUDITORÍA 2026-09 — ajustes consolidados
+   ========================================================= */
 
-
-/* v47 — iPhone: el selector superior debe identificar la empresa completa.
-   Se excluye del mínimo de 17px reservado a campos editables para evitar
-   que ANTENA CITY / ANTENAS ABASO / ANTENAS ZALLA queden como "ANTENA…". */
-@media (max-width:760px){
-  .appbar__company select{
-    font-size:12px!important;
-    line-height:1!important;
-    letter-spacing:-.15px!important;
-    padding-left:9px!important;
-    padding-right:22px!important;
+/* PC: el nombre largo de R.F.G. debe verse completo en el gestor. */
+@media (min-width:761px){
+  #companyModal .company-manager{grid-template-columns:310px minmax(0,1fr)}
+  #companyModal .company-list-item{min-height:58px}
+  #companyModal .company-list-item strong{
+    white-space:normal; overflow:visible; text-overflow:clip;
+    line-height:1.18; overflow-wrap:anywhere;
   }
-}
-@media (max-width:390px){
-  .appbar__company select{
-    font-size:11.5px!important;
-    letter-spacing:-.25px!important;
-  }
+  #companyModal .company-list-item small{margin-top:5px}
+  #companyModal .editor-field--wide input[name="name"]{font-size:12.5px}
 }
 
-/* v48 — móvil: forma de pago más visible + fecha de cabecera centrada */
 @media (max-width:760px){
+  /* El selector superior es navegación, no un campo de edición: puede ser más compacto. */
+  .appbar__company select{
+    font-size:12px!important; line-height:1!important; letter-spacing:-.15px!important;
+    padding-left:9px!important; padding-right:22px!important;
+  }
+
+  /* Forma de pago: misma presencia/tamaño táctil que los demás campos. */
   .payment-row select[name="paymentMethod"]{
-    -webkit-appearance:auto;
-    appearance:auto;
-    display:block!important;
-    width:calc(100% - 16px)!important;
-    max-width:calc(100% - 16px)!important;
-    height:52px!important;
-    min-height:52px!important;
-    margin:7px 8px 9px!important;
-    padding:0 42px 0 14px!important;
-    border:1px solid #c6d4cc!important;
-    border-radius:10px!important;
-    background-color:#fbfefc!important;
-    font-size:17px!important;
-    line-height:52px!important;
-    box-sizing:border-box!important;
+    -webkit-appearance:auto; appearance:auto; display:block!important;
+    width:calc(100% - 16px)!important; max-width:calc(100% - 16px)!important;
+    height:52px!important; min-height:52px!important; margin:7px 8px 9px!important;
+    padding:0 42px 0 14px!important; border:1px solid #c6d4cc!important;
+    border-radius:10px!important; background-color:#fbfefc!important;
+    font-size:17px!important; line-height:normal!important; box-sizing:border-box!important;
   }
 
+  /* Fecha de cabecera: centrada de verdad en Safari iOS, horizontal y verticalmente. */
+  .document-meta label:last-child{min-height:50px!important}
   #documentDate{
-    text-align:center!important;
-    padding-left:42px!important;
-    padding-right:42px!important;
+    -webkit-appearance:none!important; appearance:none!important;
+    display:block!important; width:100%!important; height:50px!important; min-height:50px!important;
+    padding:0 42px!important; margin:0!important; line-height:50px!important;
+    text-align:center!important; box-sizing:border-box!important;
   }
   #documentDate::-webkit-date-and-time-value{
-    text-align:center!important;
-    margin:0!important;
+    display:flex!important; align-items:center!important; justify-content:center!important;
+    width:100%!important; height:50px!important; min-height:50px!important;
+    padding:0!important; margin:0!important; line-height:50px!important; text-align:center!important;
   }
+  #documentDate::-webkit-calendar-picker-indicator{margin:0 0 0 auto!important}
 }
 
-/* v49 — PC: nombres largos completos en el gestor de empresas */
-@media (min-width:761px){
-  #companyModal .company-manager{
-    grid-template-columns:300px minmax(0,1fr)!important;
-  }
-  #companyModal .company-list-item strong{
-    white-space:normal!important;
-    overflow:visible!important;
-    text-overflow:clip!important;
-    line-height:1.18!important;
-    overflow-wrap:anywhere!important;
-  }
-  #companyModal .company-list-item small{
-    margin-top:5px!important;
-  }
-  #companyModal .editor-field--wide input[name="name"]{
-    font-size:12.5px!important;
-  }
+@media (max-width:390px){
+  .appbar__company select{font-size:11.5px!important;letter-spacing:-.25px!important}
 }
-
-/* v49 — PC: nombres largos de empresa completos en el gestor */
-@media (min-width:761px){
-  #companyModal .company-manager{
-    grid-template-columns:310px minmax(0,1fr);
-  }
-  #companyModal .company-list-item strong{
-    white-space:normal;
-    overflow:visible;
-    text-overflow:clip;
-    line-height:1.18;
-    overflow-wrap:anywhere;
-  }
-  #companyModal .company-list-item{
-    min-height:58px;
-  }
-}
-
-/* V50 FECHA MOVIL */
-@media (max-width:760px){#documentDate{padding-top:0!important;padding-bottom:0!important;line-height:normal!important;text-align:center!important;}}
