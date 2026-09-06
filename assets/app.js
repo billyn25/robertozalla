@@ -31,7 +31,6 @@
       slogan: 'Antenas TV · Satélite · Porteros automáticos · Videoporteros',
       owner: 'Roberto Fuentes González',
       taxId: '',
-      iban: '',
       address: '',
       legalLine: '',
       terms: '',
@@ -45,7 +44,6 @@
       slogan: 'Instalación, reparación y mantenimiento',
       owner: 'Roberto Fuentes González',
       taxId: '',
-      iban: '',
       address: '',
       legalLine: '',
       terms: '',
@@ -128,6 +126,7 @@
       this.drawing = false;
       this.empty = true;
       this.lastPoint = null;
+      this.activePointerId = null;
       this.configure();
       this.bind();
     }
@@ -136,58 +135,109 @@
       this.ctx.lineCap = 'round';
       this.ctx.lineJoin = 'round';
       this.ctx.strokeStyle = '#18221c';
+      this.ctx.fillStyle = '#18221c';
       this.ctx.lineWidth = 3;
     }
 
     bind() {
-      this.canvas.addEventListener('pointerdown', event => this.start(event));
-      this.canvas.addEventListener('pointermove', event => this.move(event));
-      this.canvas.addEventListener('pointerup', event => this.end(event));
-      this.canvas.addEventListener('pointercancel', event => this.end(event));
-      this.canvas.addEventListener('pointerleave', event => {
-        if (this.drawing && event.buttons === 0) this.end(event);
-      });
+      // Pointer Events funcionan bien en escritorio/Android. En iOS Safari
+      // usamos touch explícito: evita el fallo en el que sólo quedaban puntos.
+      if (window.PointerEvent && !(/iP(ad|hone|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))) {
+        this.canvas.addEventListener('pointerdown', e => this.pointerStart(e));
+        this.canvas.addEventListener('pointermove', e => this.pointerMove(e));
+        this.canvas.addEventListener('pointerup', e => this.pointerEnd(e));
+        this.canvas.addEventListener('pointercancel', e => this.pointerEnd(e));
+      } else {
+        this.canvas.addEventListener('touchstart', e => this.touchStart(e), { passive: false });
+        this.canvas.addEventListener('touchmove', e => this.touchMove(e), { passive: false });
+        this.canvas.addEventListener('touchend', e => this.touchEnd(e), { passive: false });
+        this.canvas.addEventListener('touchcancel', e => this.touchEnd(e), { passive: false });
+        this.canvas.addEventListener('mousedown', e => this.mouseStart(e));
+        window.addEventListener('mousemove', e => this.mouseMove(e));
+        window.addEventListener('mouseup', e => this.mouseEnd(e));
+      }
     }
 
-    point(event) {
+    pointFromClient(clientX, clientY) {
       const rect = this.canvas.getBoundingClientRect();
-      return {
-        x: (event.clientX - rect.left) * (this.canvas.width / rect.width),
-        y: (event.clientY - rect.top) * (this.canvas.height / rect.height)
-      };
+      const sx = this.canvas.width / Math.max(rect.width, 1);
+      const sy = this.canvas.height / Math.max(rect.height, 1);
+      return { x: (clientX - rect.left) * sx, y: (clientY - rect.top) * sy };
     }
 
-    start(event) {
-      event.preventDefault();
-      this.canvas.setPointerCapture?.(event.pointerId);
+    beginAt(point) {
       this.drawing = true;
-      this.lastPoint = this.point(event);
+      this.lastPoint = point;
       this.ctx.beginPath();
-      this.ctx.arc(this.lastPoint.x, this.lastPoint.y, 1.5, 0, Math.PI * 2);
-      this.ctx.fillStyle = '#18221c';
-      this.ctx.fill();
+      this.ctx.moveTo(point.x, point.y);
       this.empty = false;
     }
 
-    move(event) {
-      if (!this.drawing) return;
-      event.preventDefault();
-      const point = this.point(event);
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.lastPoint.x, this.lastPoint.y);
+    drawTo(point) {
+      if (!this.drawing || !this.lastPoint) return;
       this.ctx.lineTo(point.x, point.y);
       this.ctx.stroke();
+      this.ctx.beginPath();
+      this.ctx.moveTo(point.x, point.y);
       this.lastPoint = point;
       this.empty = false;
     }
 
-    end(event) {
+    finish() {
       if (!this.drawing) return;
-      event.preventDefault();
       this.drawing = false;
       this.lastPoint = null;
+      this.activePointerId = null;
       this.onChange?.();
     }
+
+    pointerStart(event) {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      event.preventDefault();
+      this.activePointerId = event.pointerId;
+      try { this.canvas.setPointerCapture(event.pointerId); } catch (_) {}
+      this.beginAt(this.pointFromClient(event.clientX, event.clientY));
+    }
+
+    pointerMove(event) {
+      if (!this.drawing || (this.activePointerId !== null && event.pointerId !== this.activePointerId)) return;
+      event.preventDefault();
+      const events = typeof event.getCoalescedEvents === 'function' ? event.getCoalescedEvents() : [event];
+      for (const e of events) this.drawTo(this.pointFromClient(e.clientX, e.clientY));
+    }
+
+    pointerEnd(event) {
+      if (this.activePointerId !== null && event.pointerId !== this.activePointerId) return;
+      event.preventDefault();
+      this.finish();
+    }
+
+    touchStart(event) {
+      if (!event.touches.length) return;
+      event.preventDefault();
+      const t = event.touches[0];
+      this.beginAt(this.pointFromClient(t.clientX, t.clientY));
+    }
+
+    touchMove(event) {
+      if (!this.drawing || !event.touches.length) return;
+      event.preventDefault();
+      const t = event.touches[0];
+      this.drawTo(this.pointFromClient(t.clientX, t.clientY));
+    }
+
+    touchEnd(event) {
+      if (this.drawing) event.preventDefault();
+      this.finish();
+    }
+
+    mouseStart(event) {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      this.beginAt(this.pointFromClient(event.clientX, event.clientY));
+    }
+    mouseMove(event) { if (this.drawing) this.drawTo(this.pointFromClient(event.clientX, event.clientY)); }
+    mouseEnd(event) { if (this.drawing) { event.preventDefault(); this.finish(); } }
 
     clear(notify = true) {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -196,9 +246,7 @@
       if (notify) this.onChange?.();
     }
 
-    toDataURL() {
-      return this.empty ? '' : this.canvas.toDataURL('image/png');
-    }
+    toDataURL() { return this.empty ? '' : this.canvas.toDataURL('image/png'); }
 
     load(dataUrl) {
       this.clear(false);
@@ -246,27 +294,20 @@
         showToast('La hoja queda como copia nueva al cambiar de empresa.');
       }
 
-      const bankField = els.documentForm.elements.namedItem('bankAccount');
-      const previousCompany = state.companies.find(company => company.id === previousCompanyId);
-      const nextCompany = state.companies.find(company => company.id === nextCompanyId);
-      const currentBank = String(bankField?.value || '').trim();
-      const previousDefaultBank = String(previousCompany?.iban || '').trim();
-
       state.activeCompanyId = nextCompanyId;
       setStorageItem(STORAGE.activeCompany, nextCompanyId);
       renderCompanyHeader();
-
-      // Cambia el IBAN solo si estaba vacío o seguía siendo el predeterminado de la empresa anterior.
-      // Así no se pisa un IBAN escrito manualmente para una hoja concreta.
-      if (bankField && (!currentBank || currentBank === previousDefaultBank)) {
-        bankField.value = nextCompany?.iban || '';
-      }
       markDirty();
     });
 
     els.documentForm.addEventListener('input', event => {
       if (event.target.closest('#itemsBody')) return;
-      if (event.target === els.subtotalAmount) {
+      const breakdownIds = new Set(['materialsAmount', 'laborAmount', 'travelAmount', 'extraAmount']);
+      if (breakdownIds.has(event.target.id)) {
+        // Al escribir en el desglose, ese bloque pasa a ser la fuente del total.
+        state.subtotalMode = 'breakdown';
+        state.grandTotalMode = 'auto';
+      } else if (event.target === els.subtotalAmount) {
         state.subtotalMode = 'manual';
         state.grandTotalMode = 'auto';
       } else if (event.target === els.grandTotalAmount) {
@@ -465,7 +506,6 @@
       slogan: company.slogan || '',
       owner: company.owner || '',
       taxId: company.taxId || '',
-      iban: company.iban || '',
       address: company.address || '',
       legalLine: company.legalLine || '',
       terms: company.terms || '',
@@ -475,7 +515,6 @@
   }
 
   function makeBlankDocument(companyId) {
-    const company = state.companies.find(item => item.id === companyId) || null;
     return {
       version: 1,
       companyId,
@@ -507,7 +546,7 @@
         collectionNotes: '',
         paymentMethod: '',
         receivedBy: '',
-        bankAccount: company?.iban || '',
+        bankAccount: '',
         serviceDate: '',
         arrivalTime: '',
         departureTime: '',
@@ -545,16 +584,16 @@
     if (lineHasData(item)) row.classList.add('has-data');
     row.innerHTML = `
       <td data-label="CANTIDAD">
-        <input data-field="qty" type="text" inputmode="decimal" aria-label="Cantidad" placeholder="1" value="${escapeAttribute(item.qty)}">
+        <input data-field="qty" type="text" inputmode="decimal" aria-label="Cantidad" value="${escapeAttribute(item.qty)}">
       </td>
       <td data-label="CONCEPTO">
-        <textarea data-field="concept" rows="1" aria-label="Concepto" placeholder="Escribe aquí el concepto...">${escapeHtml(item.concept)}</textarea>
+        <textarea data-field="concept" rows="1" aria-label="Concepto">${escapeHtml(item.concept)}</textarea>
       </td>
       <td data-label="PRECIO">
-        <input data-field="price" class="money-input" type="text" inputmode="decimal" aria-label="Precio" placeholder="0,00" value="${escapeAttribute(item.price)}">
+        <input data-field="price" class="money-input" type="text" inputmode="decimal" aria-label="Precio" value="${escapeAttribute(item.price)}">
       </td>
       <td data-label="IMPORTE">
-        <input data-field="amount" class="money-input${item.amountManual ? ' line-amount-manual' : ''}" type="text" inputmode="decimal" aria-label="Importe" placeholder="0,00" value="${escapeAttribute(item.amount)}">
+        <input data-field="amount" class="money-input${item.amountManual ? ' line-amount-manual' : ''}" type="text" inputmode="decimal" aria-label="Importe" value="${escapeAttribute(item.amount)}">
       </td>
       <td data-label="ACCIONES" class="screen-only">
         <div class="line-actions">
@@ -816,7 +855,7 @@
     els.companyForm.reset();
     const values = company || {
       id: '', name: '', phone: '', email: '', slogan: '', owner: '',
-      taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
+      taxId: '', address: '', legalLine: '', terms: '', logo: ''
     };
     Object.entries(values).forEach(([key, value]) => {
       const field = els.companyForm.elements.namedItem(key === 'id' ? 'companyId' : key);
@@ -843,7 +882,6 @@
     }
 
     const id = String(formData.get('companyId') || '') || makeId('company');
-    const previousCompany = state.companies.find(item => item.id === id) || null;
     const company = normalizeCompany({
       id,
       name,
@@ -852,7 +890,6 @@
       slogan: formData.get('slogan'),
       owner: formData.get('owner'),
       taxId: formData.get('taxId'),
-      iban: formData.get('iban'),
       address: formData.get('address'),
       legalLine: formData.get('legalLine'),
       terms: formData.get('terms'),
@@ -870,13 +907,6 @@
     renderCompanyHeader();
     renderCompanyList();
     editCompany(id);
-
-    const bankField = els.documentForm.elements.namedItem('bankAccount');
-    const currentBank = String(bankField?.value || '').trim();
-    const previousDefaultBank = String(previousCompany?.iban || '').trim();
-    if (bankField && id === state.activeCompanyId && (!currentBank || currentBank === previousDefaultBank)) {
-      bankField.value = company.iban || '';
-    }
     markDirty();
     showToast('Empresa guardada.');
   }
@@ -1319,21 +1349,25 @@
 
       await nextFrame();
 
-      // Render A4 virtual FIJO. Nunca usamos el alto/ancho calculado por el viewport del móvil.
-      // 794 x 1136 mantiene exactamente la proporción del área útil A4 de 202 x 289 mm
-      // (márgenes de 4 mm por cada lado), por lo que PC/iPhone/Android generan el mismo PDF.
-      const width = 794;
-      const height = 1136;
-      stage.style.width = `${width}px`;
-      stage.style.height = `${height}px`;
-      clone.style.width = `${width}px`;
-      clone.style.minWidth = `${width}px`;
-      clone.style.maxWidth = `${width}px`;
-      clone.style.height = `${height}px`;
-      clone.style.minHeight = `${height}px`;
-      clone.style.maxHeight = `${height}px`;
+      // Render A4 virtual estable. Fijamos una base A4 pero capturamos el tamaño REAL
+      // del clon si algún navegador (especialmente Safari/iPhone) calcula unos píxeles extra.
+      // Así jamás se recorta el lateral derecho: si hay 2-3 px extra, el PDF los escala dentro del A4.
+      const baseWidth = 794;
+      const baseHeight = 1136;
+      stage.style.width = `${baseWidth}px`;
+      stage.style.minWidth = `${baseWidth}px`;
+      clone.style.width = `${baseWidth}px`;
+      clone.style.minWidth = `${baseWidth}px`;
+      clone.style.maxWidth = `${baseWidth}px`;
+      clone.style.minHeight = `${baseHeight}px`;
+      clone.style.height = 'auto';
+      clone.style.maxHeight = 'none';
 
       await nextFrame();
+      const width = Math.max(baseWidth, Math.ceil(clone.scrollWidth), Math.ceil(clone.getBoundingClientRect().width));
+      const height = Math.max(baseHeight, Math.ceil(clone.scrollHeight), Math.ceil(clone.getBoundingClientRect().height));
+      stage.style.width = `${width}px`;
+      stage.style.height = `${height}px`;
 
       const canvas = await window.html2canvas(clone, {
         scale: 2,
