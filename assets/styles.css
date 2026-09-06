@@ -1530,35 +1530,30 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   }
 }
 
-/* V56b: segunda FECHA identificada y centrada realmente en Safari/iPhone */
-@media (max-width:760px){
-  .time-row label:has(#serviceDate){
-    position:relative !important;
-  }
 
+/* V57 SEGUNDA FECHA: conserva tamaño original y centra solo el texto */
+@media (max-width:760px){
   #serviceDate{
-    width:100% !important;
-    height:100% !important;
-    min-height:84px !important;
+    display:block !important;
+    width:calc(100% - 16px) !important;
+    max-width:calc(100% - 16px) !important;
+    min-width:0 !important;
+    height:50px !important;
+    min-height:50px !important;
+    margin:6px 8px 8px !important;
+    padding:0 12px !important;
     box-sizing:border-box !important;
-    padding:0 14px !important;
     text-align:center !important;
     line-height:normal !important;
   }
 
-  #serviceDate::-webkit-datetime-edit{
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    width:100% !important;
-    height:100% !important;
-    padding:0 !important;
+  #serviceDate::-webkit-date-and-time-value{
     text-align:center !important;
+    margin:0 !important;
+    padding:0 !important;
   }
 
-  #serviceDate::-webkit-date-and-time-value{
-    width:100% !important;
-    margin:0 !important;
+  #serviceDate::-webkit-datetime-edit{
     padding:0 !important;
     text-align:center !important;
   }
@@ -1567,8 +1562,7 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     display:flex !important;
     align-items:center !important;
     justify-content:center !important;
-    width:100% !important;
-    height:100% !important;
+    height:50px !important;
     padding:0 !important;
   }
 }
