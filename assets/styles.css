@@ -1476,3 +1476,27 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 @media (max-width:390px){
   .appbar__company select{font-size:11.5px!important;letter-spacing:-.25px!important}
 }
+
+
+/* V55 FECHAS MOVIL: ambas fechas centradas vertical y horizontalmente */
+@media (max-width:760px){
+  #documentDate,
+  #serviceDate,
+  input[name="serviceDate"],
+  input[type="date"].service-date,
+  .service-date{
+    text-align:center !important;
+    padding-top:0 !important;
+    padding-bottom:0 !important;
+    line-height:1.2 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+  #documentDate::-webkit-date-and-time-value,
+  #serviceDate::-webkit-date-and-time-value,
+  input[name="serviceDate"]::-webkit-date-and-time-value{
+    text-align:center !important;
+    min-height:100% !important;
+  }
+}

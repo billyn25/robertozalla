@@ -81,6 +81,8 @@
     ['workVideoIntercom', 'Otros trabajos']
   ];
 
+  const BUILT_IN_COMPANY_IDS = new Set(defaultCompanies.map(company => company.id));
+
   const els = {
     documentForm: document.getElementById('documentForm'),
     sheet: document.getElementById('documentSheet'),
@@ -107,8 +109,6 @@
     grandTotalAmount: document.getElementById('grandTotalAmount'),
     subtotalMode: document.getElementById('subtotalMode'),
     grandTotalMode: document.getElementById('grandTotalMode'),
-    totalFromLinesBtn: document.getElementById('totalFromLinesBtn'),
-    totalFromBreakdownBtn: document.getElementById('totalFromBreakdownBtn'),
     resetSubtotalBtn: document.getElementById('resetSubtotalBtn'),
     resetGrandTotalBtn: document.getElementById('resetGrandTotalBtn'),
     companyModal: document.getElementById('companyModal'),
@@ -133,7 +133,7 @@
     documents: loadJSON(STORAGE.documents, []),
     counters: loadJSON(STORAGE.counters, {}),
     currentDocumentId: null,
-    subtotalMode: 'lines',
+    subtotalMode: 'combined',
     grandTotalMode: 'auto',
     editingCompanyId: null,
     logoDraft: '',
@@ -366,8 +366,10 @@
       const currentBank = String(bankField?.value || '').trim();
       const previousDefaultBank = String(previousCompany?.iban || '').trim();
 
+      const workProfileChanged = workProfileForCompany(previousCompanyId) !== workProfileForCompany(nextCompanyId);
       state.activeCompanyId = nextCompanyId;
       setStorageItem(STORAGE.activeCompany, nextCompanyId);
+      if (workProfileChanged) clearWorkTypeChecks();
       renderCompanyHeader();
       if (bankField && (!currentBank || currentBank === previousDefaultBank)) bankField.value = nextCompany?.iban || '';
       const numberField = els.documentForm.elements.namedItem('documentNumber');
@@ -486,19 +488,6 @@
       markDirty();
     });
 
-    els.totalFromLinesBtn.addEventListener('click', () => {
-      state.subtotalMode = 'combined';
-      state.grandTotalMode = 'auto';
-      calculateTotals();
-      markDirty();
-    });
-
-    els.totalFromBreakdownBtn.addEventListener('click', () => {
-      state.subtotalMode = 'combined';
-      state.grandTotalMode = 'auto';
-      calculateTotals();
-      markDirty();
-    });
 
     els.resetSubtotalBtn.addEventListener('click', () => {
       state.subtotalMode = 'combined';
@@ -601,6 +590,18 @@
   function workTypesForCompany(companyOrId) {
     const id = typeof companyOrId === 'string' ? companyOrId : companyOrId?.id;
     return id === 'company-rfg-servicios' ? RFG_WORK_TYPES : STANDARD_WORK_TYPES;
+  }
+
+  function workProfileForCompany(companyOrId) {
+    const id = typeof companyOrId === 'string' ? companyOrId : companyOrId?.id;
+    return id === 'company-rfg-servicios' ? 'rfg' : 'standard';
+  }
+
+  function clearWorkTypeChecks() {
+    [...STANDARD_WORK_TYPES].forEach(([name]) => {
+      const field = els.documentForm.elements.namedItem(name);
+      if (field) field.checked = false;
+    });
   }
 
   function renderWorkTypeLabels() {
@@ -719,7 +720,7 @@
         acceptedEstimateNumber: ''
       },
       items: Array.from({ length: MIN_INITIAL_LINES }, blankLine),
-      subtotalMode: 'lines',
+      subtotalMode: 'combined',
       grandTotalMode: 'auto',
       signatures: {
         clientSignature: '',
@@ -1024,7 +1025,7 @@
       if (field) field.value = value || '';
     });
     renderLogoPreview(state.logoDraft);
-    els.deleteCompanyBtn.disabled = !company || state.companies.length <= 1;
+    els.deleteCompanyBtn.disabled = !company || state.companies.length <= 1 || BUILT_IN_COMPANY_IDS.has(company.id);
     els.duplicateCompanyBtn.disabled = !company;
     renderCompanyList();
 
@@ -1088,7 +1089,16 @@
     const id = state.editingCompanyId;
     const company = state.companies.find(item => item.id === id);
     if (!company || state.companies.length <= 1) return;
-    if (!confirm(`¿Eliminar la empresa “${company.name}”? Los documentos guardados conservarán la referencia, pero ya no podrán mostrar esta cabecera.`)) return;
+    if (BUILT_IN_COMPANY_IDS.has(id)) {
+      showToast('Las empresas principales se pueden editar, pero no eliminar.', 'error');
+      return;
+    }
+    const linkedDocuments = state.documents.filter(documentData => documentData.companyId === id).length;
+    if (linkedDocuments) {
+      showToast(`No se puede eliminar: hay ${linkedDocuments} documento${linkedDocuments === 1 ? '' : 's'} guardado${linkedDocuments === 1 ? '' : 's'} con esta empresa.`, 'error');
+      return;
+    }
+    if (!confirm(`¿Eliminar la empresa “${company.name}”?`)) return;
 
     state.companies = state.companies.filter(item => item.id !== id);
     if (state.activeCompanyId === id) state.activeCompanyId = state.companies[0].id;
