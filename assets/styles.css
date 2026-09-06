@@ -1444,3 +1444,43 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     margin:0!important;
   }
 }
+
+/* v49 — PC: nombres largos completos en el gestor de empresas */
+@media (min-width:761px){
+  #companyModal .company-manager{
+    grid-template-columns:300px minmax(0,1fr)!important;
+  }
+  #companyModal .company-list-item strong{
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    line-height:1.18!important;
+    overflow-wrap:anywhere!important;
+  }
+  #companyModal .company-list-item small{
+    margin-top:5px!important;
+  }
+  #companyModal .editor-field--wide input[name="name"]{
+    font-size:12.5px!important;
+  }
+}
+
+/* v49 — PC: nombres largos de empresa completos en el gestor */
+@media (min-width:761px){
+  #companyModal .company-manager{
+    grid-template-columns:310px minmax(0,1fr);
+  }
+  #companyModal .company-list-item strong{
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+    line-height:1.18;
+    overflow-wrap:anywhere;
+  }
+  #companyModal .company-list-item{
+    min-height:58px;
+  }
+}
+
+/* V50 FECHA MOVIL */
+@media (max-width:760px){#documentDate{padding-top:0!important;padding-bottom:0!important;line-height:normal!important;text-align:center!important;}}

@@ -1460,23 +1460,24 @@
   }
 
   async function vHeader(doc,y,f,company){
-    const h=29, metaW=51, logoW=28;
-    let tx=VPDF.m;
-    if(company?.logo){
-      try{const sz=await vImageSize(company.logo);if(sz){const scale=Math.min(logoW/sz.w,h/sz.h);const w=sz.w*scale,hh=sz.h*scale;doc.addImage(company.logo,vImageFormat(company.logo),VPDF.m+(logoW-w)/2,y+(h-hh)/2,w,hh,undefined,'FAST');tx=VPDF.m+logoW+3.5;}}catch(_){}}
-    const metaX=VPDF.w-VPDF.m-metaW;
-    const textW=metaX-tx-4;
-    vText(doc,(company?.name||'EMPRESA').toUpperCase(),tx,y+6.8,13,'bold',{maxWidth:textW});
-    let ly=y+12.2;
-    if(company?.slogan){vText(doc,company.slogan,tx,ly,7.5,'normal',{maxWidth:textW});ly+=3.8;}
-    const contact=[company?.phone,company?.email].filter(Boolean).join('  ·  '); if(contact){vText(doc,contact,tx,ly,7.3,'normal',{maxWidth:textW});ly+=3.5;}
-    if(company?.owner)vText(doc,company.owner,tx,ly,7.5,'bold',{maxWidth:textW});
-    vBox(doc,metaX,y,metaW,h);
-    const rh=h/3; const meta=[['DOCUMENTO',f.documentType||'Presupuesto'],['N.º',f.documentNumber||''],['FECHA',formatDateForDisplay(f.documentDate)||'']];
-    meta.forEach((r,i)=>{const ry=y+i*rh;if(i){doc.setDrawColor(...VPDF.line);doc.line(metaX,ry,metaX+metaW,ry);}vLabel(doc,r[0],metaX+2.5,ry+3.5);vText(doc,r[1],metaX+2.5,ry+rh-2.0,8.4,'bold',{maxWidth:metaW-5});});
-    const legal=company?.legalLine||[company?.taxId?`NIF/CIF: ${company.taxId}`:'',company?.address].filter(Boolean).join(' · ');
-    let end=y+h; if(legal){vText(doc,legal,VPDF.m,end+2.6,6.3,'normal',{maxWidth:vContentW()});end+=2.6;}
-    doc.setDrawColor(...VPDF.green);doc.setLineWidth(.55);doc.line(VPDF.m,end+1,VPDF.w-VPDF.m,end+1);return end+1;
+    const metaW=51, logoW=28; let tx=VPDF.m;
+    const metaX=VPDF.w-VPDF.m-metaW; let textW=metaX-tx-4;
+    const name=String(company?.name||'EMPRESA').toUpperCase();
+    const slogan=String(company?.slogan||'').trim();
+    const contact=[company?.phone,company?.email].filter(Boolean).join('  ·  ');
+    const owner=String(company?.owner||'').trim();
+    doc.setFont('helvetica','bold'); doc.setFontSize(11.2);
+    let nameLines=doc.splitTextToSize(name,textW).slice(0,2);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.9);
+    let sloganLines=slogan?doc.splitTextToSize(slogan,textW).slice(0,3):[];
+    const h=Math.max(29,6+nameLines.length*4.6+sloganLines.length*3.3+(contact?3.5:0)+(owner?3.8:0)+3);
+    if(company?.logo){try{const sz=await vImageSize(company.logo);if(sz){const scale=Math.min(logoW/sz.w,h/sz.h),w=sz.w*scale,hh=sz.h*scale;doc.addImage(company.logo,vImageFormat(company.logo),VPDF.m+(logoW-w)/2,y+(h-hh)/2,w,hh,undefined,'FAST');tx=VPDF.m+logoW+3.5;textW=metaX-tx-4;doc.setFont('helvetica','bold');doc.setFontSize(11.2);nameLines=doc.splitTextToSize(name,textW).slice(0,2);doc.setFont('helvetica','normal');doc.setFontSize(6.9);sloganLines=slogan?doc.splitTextToSize(slogan,textW).slice(0,3):[];}}catch(_){}}
+    let ly=y+5.7; doc.setFont('helvetica','bold');doc.setFontSize(11.2);doc.setTextColor(...VPDF.ink);doc.text(nameLines,tx,ly);ly+=nameLines.length*4.6;
+    if(sloganLines.length){doc.setFont('helvetica','normal');doc.setFontSize(6.9);doc.text(sloganLines,tx,ly);ly+=sloganLines.length*3.3;}
+    if(contact){vText(doc,contact,tx,ly,6.9,'normal',{maxWidth:textW});ly+=3.5;} if(owner)vText(doc,owner,tx,ly,7.2,'bold',{maxWidth:textW});
+    vBox(doc,metaX,y,metaW,h); const rh=h/3; const meta=[['DOCUMENTO',f.documentType||'Presupuesto'],['N.º',f.documentNumber||''],['FECHA',formatDateForDisplay(f.documentDate)||'']];
+    meta.forEach((r,i)=>{const ry=y+i*rh;if(i){doc.setDrawColor(...VPDF.line);doc.line(metaX,ry,metaX+metaW,ry);}vLabel(doc,r[0],metaX+2.5,ry+3.5);vText(doc,r[1],metaX+2.5,ry+rh-2,8.4,'bold',{maxWidth:metaW-5});});
+    const legal=company?.legalLine||[company?.taxId?`NIF/CIF: ${company.taxId}`:'',company?.address].filter(Boolean).join(' · ');let end=y+h;if(legal){vText(doc,legal,VPDF.m,end+2.6,6.3,'normal',{maxWidth:vContentW()});end+=2.6;}doc.setDrawColor(...VPDF.green);doc.setLineWidth(.55);doc.line(VPDF.m,end+1,VPDF.w-VPDF.m,end+1);return end+1;
   }
 
   function vClient(doc,y,f){
