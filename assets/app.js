@@ -1682,18 +1682,24 @@
   function vServiceGroups(doc,y,f,company){const gap=3,w=(vContentW()-gap)/2;const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];const work=workTypesForCompany(company);vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+22;}
   function vDescription(doc,y,f){
     const title='DESCRIPCIÓN DEL SERVICIO SOLICITADO';
-    const lines=vServiceTextLines(doc,f.serviceDescription||'',w-5);
+    const x=VPDF.m;
+    const width=vContentW();
+    const maxTextWidth=width-5;
+    const lines=vServiceTextLines(doc,f.serviceDescription||'',maxTextWidth);
     const lineH=3.6;
     const contentH=Math.max(10, lines.length ? lines.length*lineH+4.5 : 10);
     const h=5.8+contentH;
-    vBox(doc,x,y,w,h);
+
+    vBox(doc,x,y,width,h);
     vLabel(doc,title,x+2.5,y+3.6);
+
     if(lines.length){
       doc.setFont('helvetica','normal');
       doc.setFontSize(7.5);
       doc.setTextColor(...VPDF.ink);
       doc.text(lines,x+2.5,y+8.0,{lineHeightFactor:1.15});
     }
+
     return y+h;
   }
 
