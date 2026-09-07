@@ -1335,34 +1335,55 @@
   function saveCurrentDocument() {
     formatAllMoneyFields();
     calculateTotals();
-    const data = serializeDocument();
-    const now = new Date().toISOString();
 
-    if (state.currentDocumentId) {
-      const index = state.documents.findIndex(document => document.id === state.currentDocumentId);
-      if (index >= 0) {
-        state.documents[index] = {
-          ...state.documents[index],
-          ...data,
-          id: state.currentDocumentId,
-          updatedAt: now
-        };
-      } else {
-        state.currentDocumentId = null;
-      }
+    const numberField = els.documentForm.querySelector('[name="documentNumber"]');
+    if (numberField && !String(numberField.value || '').trim()) {
+      numberField.value = nextDocumentNumber(state.activeCompanyId);
     }
 
-    if (!state.currentDocumentId) {
+    const data = serializeDocument();
+    const now = new Date().toISOString();
+    const docNumber = String(data.fields?.documentNumber || '').trim();
+
+    // A document number identifies one saved document for one company.
+    // This also heals the old "same document saved once without number" case.
+    let targetIndex = state.currentDocumentId
+      ? state.documents.findIndex(document => document.id === state.currentDocumentId)
+      : -1;
+
+    if (targetIndex < 0 && docNumber) {
+      targetIndex = state.documents.findIndex(document =>
+        document.companyId === data.companyId &&
+        String(document.fields?.documentNumber || '').trim() === docNumber
+      );
+    }
+
+    if (targetIndex >= 0) {
+      const existing = state.documents[targetIndex];
+      state.currentDocumentId = existing.id;
+      state.documents[targetIndex] = {
+        ...existing, ...data, id: existing.id,
+        createdAt: existing.createdAt || now, updatedAt: now
+      };
+    } else {
       state.currentDocumentId = makeId('document');
       state.documents.unshift({
-        ...data,
-        id: state.currentDocumentId,
-        createdAt: now,
-        updatedAt: now
+        ...data, id: state.currentDocumentId, createdAt: now, updatedAt: now
       });
     }
 
-    commitDocumentNumber(data.companyId, data.fields.documentNumber);
+    // Remove accidental duplicates with the same company + document number.
+    if (docNumber) {
+      state.documents = state.documents.filter((document, index) => {
+        if (document.id === state.currentDocumentId) return true;
+        return !(
+          document.companyId === data.companyId &&
+          String(document.fields?.documentNumber || '').trim() === docNumber
+        );
+      });
+    }
+
+    commitDocumentNumber(data.companyId, docNumber);
     state.documents.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
     saveJSON(STORAGE.documents, state.documents);
     state.dirty = false;
@@ -1597,11 +1618,11 @@
       let y=VPDF.m;
       y=await vHeader(doc,y,f,company); y+=2.2;
       y=vClient(doc,y,f); y+=2.2;
-      y=vServiceGroups(doc,y,f,company); y+=0.8; y=vAntennaWarrantyNotice(doc,y,company); y+=0.8; y=vDescription(doc,y,f); y+=2.4;
+      y=vServiceGroups(doc,y,f,company); y+=1.0; y=vAntennaWarrantyNotice(doc,y,company); y+=1.0; y=vDescription(doc,y,f); y+=2.4;
       return y;
     }
 
-    async function renderFinal(y){y+=1.2;y=vBottom(doc,y,f);y+=1.2;y=vRepairWarrantyLine(doc,y,company);y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=0.8;if(y+4.2>pageBottom)return {fits:false,y};vFooter(doc,y,company);return {fits:true,y};}
+    async function renderFinal(y){y+=1.5;y=vBottom(doc,y,f);y+=1.5;y=vRepairWarrantyLine(doc,y,company);y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=1.0;if(y+4.2>pageBottom)return {fits:false,y};vFooter(doc,y,company);return {fits:true,y};}
 
     // 1) Intentar una sola página.
     // Reducimos ÚNICAMENTE filas vacías: 10 -> ... -> 5.
@@ -1953,7 +1974,7 @@ doc.setTextColor(...VPDF.ink);return y+2.8;
 }
 async function vConsentSignatures(doc,y,f,sigs){
     const consentH=11;vBox(doc,VPDF.m,y,vContentW(),consentH);vCheck(doc,VPDF.m+2.5,y+2.2,!!f.waivesEstimate);vText(doc,'Renuncia a presupuesto previo y autoriza la reparación',VPDF.m+7,y+4.5,6.8);vCheck(doc,VPDF.m+2.5,y+6.3,!!f.repairAccepted);vText(doc,'Conforme con la reparación / presupuesto',VPDF.m+7,y+8.6,6.8);vLabel(doc,'Presupuesto n.º',VPDF.m+125,y+3.8);vText(doc,f.acceptedEstimateNumber||'',VPDF.m+125,y+8.2,7.5);
-    y+=consentH+2;const gap=3,w=(vContentW()-gap)/2,h=16.5;await vSignature(doc,VPDF.m,y,w,h,'Firma del cliente',sigs.clientSignature);await vSignature(doc,VPDF.m+w+gap,y,w,h,'Recibí / firma del técnico',sigs.technicianSignature);return y+h;
+    y+=consentH+2;const gap=3,w=(vContentW()-gap)/2,h=15.5;await vSignature(doc,VPDF.m,y,w,h,'Firma del cliente',sigs.clientSignature);await vSignature(doc,VPDF.m+w+gap,y,w,h,'Recibí / firma del técnico',sigs.technicianSignature);return y+h;
   }
   async function vSignature(doc,x,y,w,h,title,dataUrl){vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+3.8);if(dataUrl){try{const sz=await vImageSize(dataUrl);if(sz){const aw=w-5,ah=h-7,sc=Math.min(aw/sz.w,ah/sz.h);const iw=sz.w*sc,ih=sz.h*sc;doc.addImage(dataUrl,'PNG',x+(w-iw)/2,y+5+(ah-ih)/2,iw,ih,undefined,'FAST');}}catch(_){}}}
   function vFooter(doc,y,company){const terms=String(company?.terms||'').trim();doc.setFont('helvetica','normal');doc.setFontSize(5.8);doc.setTextColor(...VPDF.muted);if(terms){const lines=doc.splitTextToSize(terms,vContentW()-55).slice(0,2);doc.text(lines,VPDF.m,y+2);}doc.setFont('helvetica','bold');doc.setTextColor(...VPDF.ink);doc.text('EL EJEMPLAR TIENE EFECTOS DE RECIBO',VPDF.w-VPDF.m,y+2,{align:'right'});}

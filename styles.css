@@ -2540,3 +2540,59 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 
 .fixed-legal-note{box-sizing:border-box;width:100%;max-width:100%;margin:10px 0 5px;padding:7px 9px;border:1px solid #dbe4df;border-radius:8px;background:#fafcfb;color:#68756e;font-size:9px;line-height:1.35;overflow-wrap:anywhere}
 @media screen and (max-width:760px){.paper .fixed-legal-note{margin-top:12px!important;padding:7px 9px!important;font-size:8.5px!important;line-height:1.35!important}}
+
+/* V104 · Mis documentos: modal más limpio y jerarquía clara */
+#documentsModal .modal__dialog--documents{
+  width:min(920px,calc(100vw - 40px));
+  border:1px solid #d7e0da;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 24px 70px rgba(15,34,24,.22);
+}
+#documentsModal .modal__header{
+  padding:20px 22px 16px;
+  background:#fbfcfb;
+  border-bottom:0;
+}
+#documentsModal .modal__header h2{font-size:22px;letter-spacing:-.02em}
+#documentsModal .modal__header p{margin-top:4px;color:#738078}
+#documentsModal .documents-tools{
+  padding:12px 18px 14px;
+  background:#fbfcfb;
+  border-bottom:1px solid #e4e9e6;
+}
+#documentsModal .search-field{
+  min-height:44px;
+  border-color:#d4ddd7;
+  border-radius:12px;
+  box-shadow:0 1px 2px rgba(20,45,30,.03);
+}
+#documentsModal .documents-list{gap:10px;padding:14px 18px 20px;background:#f7f9f8}
+#documentsModal .document-card{
+  padding:14px 15px;
+  border-color:#dce4df;
+  border-radius:13px;
+  box-shadow:0 2px 7px rgba(25,45,35,.035);
+}
+#documentsModal .document-card__title strong{font-size:14px;color:#1d2d24}
+#documentsModal .document-card__meta{margin-top:7px}
+#documentsModal .document-card__actions button{min-height:36px;border-radius:9px}
+#documentsModal .document-card__actions [data-doc-action="open"]{
+  color:#1f653b;background:#edf7f0;border-color:#b9d5c3;
+}
+#documentsModal .document-card__actions [data-doc-action="duplicate"]{
+  background:#fff;border-color:#d4ddd7;
+}
+#documentsModal .document-card__actions .delete-doc{
+  color:#9b3838;background:#fff8f8;border-color:#e6caca;
+}
+@media (max-width:760px){
+  #documentsModal .modal__dialog--documents{
+    left:10px;right:10px;top:calc(10px + env(safe-area-inset-top));
+    width:auto;max-height:calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+  #documentsModal .modal__header{padding:16px 15px 12px}
+  #documentsModal .documents-tools{padding:10px 12px 12px}
+  #documentsModal .documents-list{padding:12px}
+  #documentsModal .document-card{padding:13px}
+}
