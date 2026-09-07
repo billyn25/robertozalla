@@ -1648,3 +1648,41 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     gap:7px !important;
   }
 }
+
+
+/* V64 — segunda FECHA replica el centrado vertical de la fecha superior */
+@media (max-width:760px){
+  #serviceDate{
+    -webkit-appearance:none !important;
+    appearance:none !important;
+    height:50px !important;
+    min-height:50px !important;
+    line-height:50px !important;
+    padding-top:0 !important;
+    padding-bottom:0 !important;
+    text-align:center !important;
+  }
+
+  #serviceDate::-webkit-date-and-time-value{
+    height:50px !important;
+    line-height:50px !important;
+    padding:0 !important;
+    margin:0 !important;
+    text-align:center !important;
+  }
+
+  #serviceDate::-webkit-datetime-edit{
+    height:50px !important;
+    line-height:50px !important;
+    padding:0 !important;
+    margin:0 !important;
+    text-align:center !important;
+  }
+
+  #serviceDate::-webkit-datetime-edit-fields-wrapper{
+    height:50px !important;
+    line-height:50px !important;
+    padding:0 !important;
+    margin:0 !important;
+  }
+}
