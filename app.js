@@ -164,6 +164,8 @@
 
   if (!state.companies.length) state.companies = defaultCompanies.map(normalizeCompany);
   ensureBuiltInCompanies();
+  // Guarda las migraciones de datos de fábrica para que no reaparezcan al recargar.
+  saveJSON(STORAGE.companies, state.companies);
   state.activeCompanyId = getStorageItem(STORAGE.activeCompany) || state.companies[0].id;
   if (!state.companies.some(company => company.id === state.activeCompanyId)) {
     state.activeCompanyId = state.companies[0].id;
@@ -626,6 +628,13 @@
       if (!existing) {
         state.companies.push(normalizeCompany(defaultCompany));
         return;
+      }
+
+      // V107: elimina únicamente el nombre de fábrica que quedó guardado
+      // en versiones anteriores. Si el usuario escribe otro nombre, se conserva.
+      if (String(existing.owner || '').trim().toLowerCase() === 'roberto fuentes gonzález' ||
+          String(existing.owner || '').trim().toLowerCase() === 'roberto fuentes gonzalo') {
+        existing.owner = '';
       }
       // Las tres marcas de antenas comparten la línea descriptiva solicitada.
       if (['company-antena-city', 'company-antenas-abaso', 'company-antenas-zalla'].includes(defaultCompany.id)) {
