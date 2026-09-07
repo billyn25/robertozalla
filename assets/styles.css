@@ -1709,3 +1709,40 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   width:78% !important;
   height:78% !important;
 }
+
+
+/* V66 — iconos de actividad integrados junto al nombre, sin caja */
+.company-title-row{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+.company-title-row h1{margin:0}
+.company-activity-icon{
+  display:inline-flex;
+  flex:0 0 auto;
+  width:24px;
+  height:24px;
+  color:#244d39;
+}
+.company-activity-icon svg{
+  display:block;
+  width:100%;
+  height:100%;
+}
+
+/* Sin logo personalizado, no se reserva columna grande. */
+.company-brand--no-logo{
+  grid-template-columns:minmax(0,1fr) !important;
+}
+.company-brand--no-logo .company-logo-wrap{
+  display:none !important;
+}
+
+@media (max-width:760px){
+  .company-activity-icon{
+    width:22px;
+    height:22px;
+  }
+}

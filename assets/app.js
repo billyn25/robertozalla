@@ -101,6 +101,7 @@
     companyTerms: document.getElementById('companyTerms'),
     companyLogo: document.getElementById('companyLogo'),
     companyLogoPlaceholder: document.getElementById('companyLogoPlaceholder'),
+    companyActivityIcon: document.getElementById('companyActivityIcon'),
     itemsBody: document.getElementById('itemsBody'),
     addLineBtn: document.getElementById('addLineBtn'),
     subtotalAmount: document.getElementById('subtotalAmount'),
@@ -934,6 +935,36 @@
     });
   }
 
+
+  function getActivityIconType(company) {
+    if (!company) return '';
+    if (['company-antena-city','company-antenas-abaso','company-antenas-zalla'].includes(company.id)) return 'antenna';
+    if (company.id === 'company-rfg-servicios') return 'roof';
+    return '';
+  }
+
+  function getActivityIconSvg(type) {
+    if (type === 'antenna') {
+      return `<svg viewBox="0 0 32 32" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 11v16M11 27h10M16 14l-5 13M16 14l5 13M13 20h6M10.5 9.5a7.5 7.5 0 0 1 0-5M21.5 9.5a7.5 7.5 0 0 0 0-5M7.5 12.5a11.5 11.5 0 0 1 0-11M24.5 12.5a11.5 11.5 0 0 0 0-11" stroke-width="1.7"/>
+          <circle cx="16" cy="9" r="1.6" fill="currentColor" stroke="none"/>
+        </g>
+      </svg>`;
+    }
+    if (type === 'roof') {
+      return `<svg viewBox="0 0 32 32" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
+          <path d="M5 15 16 6l11 9M8 14v10h16V14"/>
+          <path d="M7 25h18M9 18h14"/>
+          <path d="M24 18v5c0 2 1.2 3 3 3"/>
+          <path d="M27 26c0 1.6-1 2.8-2.3 2.8S22.5 27.6 22.5 26c0-1.1 1.1-2.5 2.2-3.8 1.1 1.3 2.3 2.7 2.3 3.8Z"/>
+        </g>
+      </svg>`;
+    }
+    return '';
+  }
+
   function renderCompanyHeader() {
     const company = getActiveCompany();
     if (!company) return;
@@ -964,11 +995,11 @@
 
     const logoWrap = document.getElementById('companyLogoWrap');
     const brand = document.getElementById('companyBrand');
-    const antennaCompanyIds = new Set([
-      'company-antena-city',
-      'company-antenas-abaso',
-      'company-antenas-zalla'
-    ]);
+    const activityType = getActivityIconType(company);
+    if (els.companyActivityIcon) {
+      els.companyActivityIcon.innerHTML = getActivityIconSvg(activityType);
+      els.companyActivityIcon.hidden = !activityType;
+    }
 
     if (company.logo) {
       els.companyLogo.src = company.logo;
@@ -978,17 +1009,7 @@
       logoWrap.hidden = false;
       brand.classList.add('company-brand--has-logo');
       brand.classList.remove('company-brand--no-logo');
-    } else if (antennaCompanyIds.has(company.id)) {
-      // Icono SVG integrado: solo forma parte de la cabecera de las empresas de antenas.
-      els.companyLogo.removeAttribute('src');
-      els.companyLogo.alt = '';
-      els.companyLogo.hidden = true;
-      els.companyLogoPlaceholder.hidden = false;
-      logoWrap.hidden = false;
-      brand.classList.add('company-brand--has-logo');
-      brand.classList.remove('company-brand--no-logo');
     } else {
-      // R.F.G. y empresas personalizadas sin logo: cabecera limpia, sin icono provisional.
       els.companyLogo.removeAttribute('src');
       els.companyLogo.alt = '';
       els.companyLogo.hidden = true;
@@ -1494,6 +1515,31 @@
     y=vBottom(doc,y,f); y+=2.8;
     y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=2;
     vFooter(doc,y,company);
+  }
+
+
+  function vDrawActivityIcon(doc,type,x,y,size=8){
+    doc.setDrawColor(...VPDF.green);
+    doc.setTextColor(...VPDF.green);
+    doc.setLineWidth(.45);
+
+    if(type==='antenna'){
+      const cx=x+size/2, top=y+1, base=y+size-1;
+      doc.line(cx,top+2,cx,base);
+      doc.line(cx,top+4,x+2,base);
+      doc.line(cx,top+4,x+size-2,base);
+      doc.line(x+2,base,x+size-2,base);
+      doc.line(cx-2.2,y+size*.58,cx+2.2,y+size*.58);
+      doc.circle(cx,top+1.1,.65,'F');
+      doc.arc?.(cx,top+1.1,2.4,200,340);
+      doc.arc?.(cx,top+1.1,3.8,200,340);
+    } else if(type==='roof'){
+      doc.line(x+1,y+size*.48,x+size/2,y+1.2);
+      doc.line(x+size/2,y+1.2,x+size-1,y+size*.48);
+      doc.rect(x+2.2,y+size*.45,size-4.4,size*.38);
+      doc.line(x+size-2.2,y+size*.5,x+size-2.2,y+size*.78);
+      doc.circle(x+size-1.2,y+size*.87,.55,'S');
+    }
   }
 
   async function vHeader(doc,y,f,company){
