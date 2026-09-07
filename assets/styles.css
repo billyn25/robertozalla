@@ -2021,3 +2021,81 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     background:#fff !important;
   }
 }
+
+
+/* =========================================================
+   V91 — separación visual de bloques móvil
+   Sobre V90. Solo móvil. Sin tocar PC, PDF ni lógica.
+   ========================================================= */
+@media screen and (max-width:760px){
+
+  /* Separación clara entre bloques principales */
+  .paper .payment-row,
+  .paper .bank-row,
+  .paper .time-row,
+  .paper .observations,
+  .paper .totals-panel,
+  .paper .consent-box,
+  .paper .signature-box{
+    margin-top:10px !important;
+    background:#f7f9f8 !important;
+    border:1px solid #d5dfda !important;
+    border-radius:10px !important;
+  }
+
+  /* Forma de pago / Recibí: campos blancos dentro del bloque */
+  .paper .payment-row > label{
+    background:#f7f9f8 !important;
+  }
+
+  .paper .payment-row > label > input,
+  .paper .payment-row > label > select{
+    background:#fff !important;
+  }
+
+  /* CUENTA / IBAN: misma jerarquía visual y tipografía que el resto */
+  .paper .bank-row > label > span{
+    font-family:inherit !important;
+    font-size:10px !important;
+    line-height:1.2 !important;
+    font-weight:700 !important;
+    letter-spacing:0 !important;
+    text-transform:none !important;
+    color:#2f4037 !important;
+    background:#f7f9f8 !important;
+  }
+
+  .paper .bank-row > label > input{
+    background:#fff !important;
+  }
+
+  /* Fecha / Llegada / Salida: separar del bloque anterior sin líneas negras */
+  .paper .time-row > label{
+    background:#f7f9f8 !important;
+  }
+
+  .paper .time-row > label > input{
+    background:#fff !important;
+  }
+
+  /* Observaciones como bloque reconocible */
+  .paper .observations{
+    padding:8px !important;
+  }
+
+  .paper .observations > textarea{
+    background:#fff !important;
+  }
+
+  /* Mantener divisores suaves dentro de bloques */
+  .paper .payment-row > label + label,
+  .paper .time-row > label + label,
+  .paper .bank-row > label > span{
+    border-color:#dfe7e2 !important;
+  }
+
+  /* Un poco de aire entre bloque izquierdo y totales */
+  .paper .bottom-left + .totals-panel{
+    margin-top:10px !important;
+  }
+}
