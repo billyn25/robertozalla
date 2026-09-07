@@ -1824,3 +1824,25 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     transform:translateY(1px);
   }
 }
+
+
+/* V78 móvil — un solo PDF fijo y más espacio para el selector de empresa */
+@media screen and (max-width:760px){
+  #pdfBtn{
+    display:none !important;
+  }
+
+  .appbar__company{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+  }
+
+  .appbar__company select{
+    width:100% !important;
+    max-width:none !important;
+  }
+
+  .appbar__actions{
+    flex:0 0 auto !important;
+  }
+}

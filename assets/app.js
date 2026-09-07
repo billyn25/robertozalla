@@ -369,14 +369,12 @@
 
   function bindEvents() {
 
-  const mobilePdfFab = document.getElementById('mobilePdfFab');
-  if (mobilePdfFab && !mobilePdfFab.dataset.bound) {
-    mobilePdfFab.addEventListener('click', () => {
-      const originalPdfButton = document.getElementById('pdfBtn');
-      if (originalPdfButton) originalPdfButton.click();
-    });
-    mobilePdfFab.dataset.bound = '1';
-  }
+    const mobilePdfFab = document.getElementById('mobilePdfFab');
+    if (mobilePdfFab && !mobilePdfFab.dataset.bound) {
+      mobilePdfFab.addEventListener('click', exportPdf);
+      mobilePdfFab.dataset.bound = '1';
+    }
+
 
     els.companySelect.addEventListener('change', () => {
       const previousCompanyId = state.activeCompanyId;
