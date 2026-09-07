@@ -369,12 +369,6 @@
 
   function bindEvents() {
 
-    const mobilePdfFab = document.getElementById('mobilePdfFab');
-    if (mobilePdfFab && !mobilePdfFab.dataset.bound) {
-      mobilePdfFab.addEventListener('click', exportPdf);
-      mobilePdfFab.dataset.bound = '1';
-    }
-
 
     els.companySelect.addEventListener('change', () => {
       const previousCompanyId = state.activeCompanyId;
@@ -575,6 +569,21 @@
     els.documentsList.addEventListener('click', handleDocumentListAction);
 
     els.pdfBtn.addEventListener('click', exportPdf);
+
+    const mobilePdfFab = document.getElementById('mobilePdfFab');
+    if (mobilePdfFab) {
+      mobilePdfFab.addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (mobilePdfFab.disabled) return;
+        mobilePdfFab.disabled = true;
+        try {
+          await exportPdf();
+        } finally {
+          mobilePdfFab.disabled = false;
+        }
+      });
+    }
 
     document.addEventListener('click', event => {
       const closeTarget = event.target.closest('[data-close-modal]');

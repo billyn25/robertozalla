@@ -1846,3 +1846,70 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     flex:0 0 auto !important;
   }
 }
+
+
+/* V79 — botón PDF flotante realmente interactivo */
+@media screen and (max-width:760px){
+  #mobilePdfFab{
+    pointer-events:auto !important;
+    cursor:pointer !important;
+    user-select:none;
+    -webkit-user-select:none;
+    position:fixed !important;
+    z-index:2147483000 !important;
+  }
+  #mobilePdfFab:disabled{
+    opacity:.72;
+    pointer-events:none;
+  }
+}
+
+
+/* V80 móvil — elimina la columna fantasma del PDF superior */
+@media screen and (max-width:760px){
+  .appbar{
+    grid-template-columns:minmax(0,1fr) repeat(4,36px) !important;
+    grid-template-rows:40px !important;
+  }
+
+  /* El bloque Empresa ocupa la primera columna; sus hijos se integran en la rejilla. */
+  .appbar__company{
+    display:contents !important;
+  }
+
+  .appbar__company label{
+    display:none !important;
+  }
+
+  #companySelect{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+  }
+
+  #manageCompaniesBtn{
+    grid-column:2 !important;
+    grid-row:1 !important;
+  }
+
+  #newDocumentBtn{
+    grid-column:3 !important;
+    grid-row:1 !important;
+  }
+
+  #documentsBtn{
+    grid-column:4 !important;
+    grid-row:1 !important;
+  }
+
+  #saveDocumentBtn{
+    grid-column:5 !important;
+    grid-row:1 !important;
+  }
+
+  #pdfBtn{
+    display:none !important;
+  }
+}
