@@ -1841,13 +1841,20 @@
     return y+Math.max(reqH,workH);
   }
   function vAntennaWarrantyNotice(doc,y,company){
-if(!ANTENNA_COMPANY_IDS.has(company?.id))return y;
-const text='Quedan excluidos de la garantía los trabajos en los que exista manipulación posterior sin autorización de ANTENA CITY, así como los problemas ocasionados por el mal uso de los elementos que son objetos de esta garantía tanto como fenómenos atmosféricos, rayos, alteraciones eléctricas y cortocircuitos. Es imprescindible la presentación de este documento para cualquier reclamación o consulta relacionada con el mismo. Garantía de instalación 2 años.';
-doc.setFont('helvetica','normal');doc.setFontSize(4.8);doc.setTextColor(...VPDF.muted);
-const lines=doc.splitTextToSize(text,vContentW()-5),h=2.2+lines.length*1.55;
-doc.setDrawColor(...VPDF.line);doc.rect(VPDF.m,y,vContentW(),h);
-doc.text(lines,VPDF.m+2.5,y+2.25,{lineHeightFactor:1.0});
-doc.setTextColor(...VPDF.ink);return y+h;
+  const isAntenna=ANTENNA_COMPANY_IDS.has(company?.id);
+  const isRoof=company?.id==='company-rfg-servicios';
+  if(!isAntenna && !isRoof)return y;
+
+  const companyName=String(company?.name||'').trim();
+  const text=isAntenna
+    ? `Quedan excluidos de la garantía los trabajos en los que exista manipulación posterior sin autorización de ${companyName}, así como los problemas ocasionados por el mal uso de los elementos que son objetos de esta garantía tanto como fenómenos atmosféricos, rayos, alteraciones eléctricas y cortocircuitos. Es imprescindible la presentación de este documento para cualquier reclamación o consulta relacionada con el mismo. Garantía de instalación 2 años.`
+    : `Quedan excluidos de la garantía los trabajos que hayan sido manipulados o modificados posteriormente por terceros sin autorización de ${companyName}, así como los daños ocasionados por falta de mantenimiento, uso inadecuado, temporales, viento, granizo u otras causas externas ajenas al trabajo realizado. Es imprescindible presentar este documento para cualquier reclamación relacionada con la intervención realizada.`;
+
+  doc.setFont('helvetica','normal');doc.setFontSize(4.8);doc.setTextColor(...VPDF.muted);
+  const lines=doc.splitTextToSize(text,vContentW()-5),h=2.2+lines.length*1.55;
+  doc.setDrawColor(...VPDF.line);doc.rect(VPDF.m,y,vContentW(),h);
+  doc.text(lines,VPDF.m+2.5,y+2.25,{lineHeightFactor:1.0});
+  doc.setTextColor(...VPDF.ink);return y+h;
 }
 function vDescription(doc,y,f){
     const title='DESCRIPCIÓN DEL SERVICIO SOLICITADO';
@@ -1967,7 +1974,7 @@ function vDescription(doc,y,f){
   }
 
   function vRepairWarrantyLine(doc,y,company){
-if(!ANTENNA_COMPANY_IDS.has(company?.id))return y;
+if(!ANTENNA_COMPANY_IDS.has(company?.id) && company?.id!=='company-rfg-servicios')return y;
 doc.setFont('helvetica','normal');doc.setFontSize(5.0);doc.setTextColor(...VPDF.muted);
 doc.text('Todas las reparaciones tienen una garantía de 3 meses, sobre piezas y mano de obra, de la reparación efectuada.',VPDF.m,y,{maxWidth:vContentW()});
 doc.setTextColor(...VPDF.ink);return y+2.8;
