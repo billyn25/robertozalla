@@ -651,27 +651,40 @@
     return `${y}-${m}-${day}`;
   }
 
-  function companyNumberKey(companyId, year = new Date().getFullYear()) {
-    return `${companyId}:${year}`;
+  function documentDayCode(date = new Date()) {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yy = String(date.getFullYear()).slice(-2);
+    return `${dd}${mm}${yy}`;
+  }
+
+  function companyNumberKey(companyId, dayCode = documentDayCode()) {
+    return `${companyId}:${dayCode}`;
   }
 
   function nextDocumentNumber(companyId) {
-    const year = new Date().getFullYear();
-    const key = companyNumberKey(companyId, year);
-    const stored = Number(state.counters[key] || 0);
-    let highest = stored;
+    const dayCode = documentDayCode();
+    const key = companyNumberKey(companyId, dayCode);
+    let highest = Number(state.counters[key] || 0);
+
+    // El contador se reconstruye también desde los guardados:
+    // evita repetir número aunque localStorage de contadores se haya quedado atrás.
     for (const documentData of state.documents) {
       if (documentData.companyId !== companyId) continue;
-      const n = String(documentData.fields?.documentNumber || '').match(new RegExp(`^${year}-(\\d{4,})$`));
-      if (n) highest = Math.max(highest, Number(n[1]) || 0);
+      const number = String(documentData.fields?.documentNumber || '').trim();
+      const match = number.match(/^(\d{6})-(\d{2,})$/);
+      if (match && match[1] === dayCode) {
+        highest = Math.max(highest, Number(match[2]) || 0);
+      }
     }
-    return `${year}-${String(highest + 1).padStart(4, '0')}`;
+
+    return `${dayCode}-${String(highest + 1).padStart(2, '0')}`;
   }
 
   function commitDocumentNumber(companyId, documentNumber) {
-    const match = String(documentNumber || '').trim().match(/^(\d{4})-(\d{4,})$/);
-    if (!match) return; // los números manuales se respetan sin alterar el contador
-    const key = companyNumberKey(companyId, Number(match[1]));
+    const match = String(documentNumber || '').trim().match(/^(\d{6})-(\d{2,})$/);
+    if (!match) return; // numeraciones antiguas/manuales se conservan sin alterar el contador nuevo
+    const key = companyNumberKey(companyId, match[1]);
     state.counters[key] = Math.max(Number(state.counters[key] || 0), Number(match[2]) || 0);
     saveJSON(STORAGE.counters, state.counters);
   }
