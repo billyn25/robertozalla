@@ -1527,24 +1527,44 @@
   function vImageFormat(dataUrl){if(/^data:image\/png/i.test(dataUrl))return'PNG';if(/^data:image\/webp/i.test(dataUrl))return'WEBP';return'JPEG';}
 
   async function buildVectorPdf(doc,data,company){
-    const f=data.fields||{};
+    const f=data.fields||{}, pageBottom=VPDF.h-VPDF.m;
     let y=VPDF.m;
-    y=await vHeader(doc,y,f,company); y+=2.4;
-    y=vClient(doc,y,f); y+=2.4;
-    y=vServiceGroups(doc,y,f,company); y+=2.4;
-    y=vDescription(doc,y,f); y+=2.6;
+    y=await vHeader(doc,y,f,company);y+=2.2;
+    y=vClient(doc,y,f);y+=2.2;
+    y=vServiceGroups(doc,y,f,company);y+=2.2;
+    y=vDescription(doc,y,f);y+=2.4;
 
     const rows=(data.items||[]).filter(i=>[i.qty,i.concept,i.price,i.amount].some(v=>String(v||'').trim()));
-    y=vItems(doc,y,rows);
 
-    // Para un parte normal (hasta 10 conceptos) todo cabe en una sola A4.
-    // Sólo se permite otra página cuando la tabla de conceptos realmente lo necesita.
-    const bottomNeed=92;
-    if(y+bottomNeed>VPDF.h-VPDF.m){doc.addPage();y=VPDF.m;}
-    else y+=3;
+    // Exact measured lower area: vBottom 52 + gap 2.8 + consent/signatures 36 + gap/footer.
+    const finalNeed=96;
+    const tableLimit=pageBottom-finalNeed;
 
-    y=vBottom(doc,y,f); y+=2.8;
-    y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=2;
+    // Use up to 10 visual rows only when they genuinely fit; otherwise keep the real rows.
+    const minRows=(y+5.6+10*5.35<=tableLimit)?10:rows.length;
+    let table=vItems(doc,y,rows,tableLimit,minRows);
+    y=table.y;
+
+    if(!table.remaining.length && y+finalNeed<=pageBottom){
+      y+=2.5;
+      y=vBottom(doc,y,f);y+=2.8;
+      y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=2;
+      if(y+4.5>pageBottom) throw new Error('El contenido final supera el área segura del A4.');
+      vFooter(doc,y,company);
+      return;
+    }
+
+    // Page 2 only when page 1 physically cannot contain the full document.
+    doc.addPage();y=VPDF.m;
+    const page2FinalNeed=96;
+    const page2TableLimit=pageBottom-page2FinalNeed;
+    if(table.remaining.length){
+      y=vItemsPage2(doc,y,table.remaining,page2TableLimit);
+      y+=2.5;
+    }
+    y=vBottom(doc,y,f);y+=2.8;
+    y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=2;
+    if(y+4.5>pageBottom) throw new Error('El documento supera dos páginas A4. Reduce texto o líneas de concepto.');
     vFooter(doc,y,company);
   }
 
@@ -1660,56 +1680,24 @@
   }
 
 
-  function vServiceTextLines(doc,value,maxWidth){
+  function vServiceTextLines(doc,value,maxWidth,fontSize=7.5){
     const raw=String(value||'').replace(/\r\n?/g,'\n');
     const out=[];
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(fontSize);
     raw.split('\n').forEach(part=>{
-      if(part===''){
-        out.push('');
-        return;
-      }
-
-      // jsPDF puede dejar una palabra/frase demasiado larga sin cortar.
-      // Primero envolvemos normalmente y después verificamos cada línea.
-      const firstPass=doc.splitTextToSize(part,maxWidth);
-      const lines=Array.isArray(firstPass)?firstPass:[String(firstPass)];
-
-      lines.forEach(line=>{
-        let current=String(line);
-        if(doc.getTextWidth(current)<=maxWidth){
-          out.push(current);
-          return;
+      if(part===''){out.push('');return;}
+      const wrapped=doc.splitTextToSize(part,maxWidth);
+      (Array.isArray(wrapped)?wrapped:[String(wrapped)]).forEach(line=>{
+        // Final physical-width guard: shrink line by characters only if jsPDF still reports it too wide.
+        let rest=String(line);
+        while(rest && doc.getTextWidth(rest)>maxWidth){
+          let cut=rest.length;
+          while(cut>1 && doc.getTextWidth(rest.slice(0,cut))>maxWidth) cut--;
+          out.push(rest.slice(0,cut));
+          rest=rest.slice(cut);
         }
-
-        // Fallback robusto: construir la línea palabra a palabra.
-        const words=current.split(/\s+/);
-        let row='';
-        words.forEach(word=>{
-          const candidate=row ? `${row} ${word}` : word;
-          if(doc.getTextWidth(candidate)<=maxWidth){
-            row=candidate;
-          }else{
-            if(row) out.push(row);
-
-            // Si una única palabra supera el ancho, cortarla por caracteres.
-            if(doc.getTextWidth(word)>maxWidth){
-              let chunk='';
-              for(const ch of word){
-                const next=chunk+ch;
-                if(doc.getTextWidth(next)>maxWidth && chunk){
-                  out.push(chunk);
-                  chunk=ch;
-                }else{
-                  chunk=next;
-                }
-              }
-              row=chunk;
-            }else{
-              row=word;
-            }
-          }
-        });
-        if(row) out.push(row);
+        if(rest) out.push(rest);
       });
     });
     return out;
@@ -1725,41 +1713,90 @@
   function vServiceGroups(doc,y,f,company){const gap=3,w=(vContentW()-gap)/2;const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];const work=workTypesForCompany(company);vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+22;}
   function vDescription(doc,y,f){
     const title='DESCRIPCIÓN DEL SERVICIO SOLICITADO';
-    const x=VPDF.m;
-    const width=vContentW();
-    const padX=2.5;
-    const maxTextWidth=width-(padX*2);
-    const lines=vServiceTextLines(doc,f.serviceDescription||'',maxTextWidth);
-
-    const fontSize=7.5;
-    const lineH=3.7;
-    const textTop=8.0;
-    const bottomPad=3.2;
-    const h=Math.max(14, textTop + Math.max(1,lines.length)*lineH + bottomPad);
-
+    const x=VPDF.m, width=vContentW();
+    const padX=3.2, fontSize=7.35;
+    // Extra safety gutter: text never approaches the physical right border.
+    const maxTextWidth=width-(padX*2)-2.5;
+    const lines=vServiceTextLines(doc,f.serviceDescription||'',maxTextWidth,fontSize);
+    const lineH=3.55, textTop=7.6, bottomPad=2.6;
+    const h=Math.max(13.5,textTop+Math.max(1,lines.length)*lineH+bottomPad);
     vBox(doc,x,y,width,h);
-    vLabel(doc,title,x+padX,y+3.6);
-
+    vLabel(doc,title,x+padX,y+3.5);
     if(lines.length){
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(fontSize);
-      doc.setTextColor(...VPDF.ink);
+      doc.setFont('helvetica','normal');doc.setFontSize(fontSize);doc.setTextColor(...VPDF.ink);
       let ty=y+textTop;
-      for(const line of lines){
-        if(line!=='') doc.text(line,x+padX,ty);
-        ty+=lineH;
-      }
+      for(const line of lines){if(line!=='')doc.text(line,x+padX,ty);ty+=lineH;}
     }
     return y+h;
   }
 
-  function vItems(doc,y,items){
-    const source=(items.length?items:[{qty:'',concept:'',price:'',amount:''}]).map(i=>[String(i.qty||''),String(i.concept||''),i.price?vMoney(i.price):'',i.amount?vMoney(i.amount):'']);
-    const body=source.slice();
-    if(body.length<10){while(body.length<10)body.push(['','','','']);}
-    doc.autoTable({startY:y,margin:{left:VPDF.m,right:VPDF.m,top:VPDF.m,bottom:VPDF.m},head:[['CANTIDAD','CONCEPTO','PRECIO','IMPORTE']],body,theme:'grid',showHead:'everyPage',styles:{font:'helvetica',fontSize:7.7,textColor:VPDF.ink,lineColor:VPDF.line,lineWidth:.18,cellPadding:1.45,valign:'middle',minCellHeight:5.0},headStyles:{fillColor:VPDF.head,textColor:VPDF.muted,fontStyle:'bold',fontSize:6.6,halign:'center',minCellHeight:5.8},columnStyles:{0:{cellWidth:17,halign:'center'},1:{cellWidth:'auto',halign:'left'},2:{cellWidth:25,halign:'right'},3:{cellWidth:27,halign:'right'}},rowPageBreak:'avoid'});
+  function vItems(doc,y,items,availableBottom=VPDF.h-VPDF.m,minVisualRows=0){
+    const real=(items||[]).map(i=>[
+      String(i.qty||''),String(i.concept||''),i.price?vMoney(i.price):'',i.amount?vMoney(i.amount):''
+    ]);
+    const headerH=5.6,rowH=5.35;
+    const room=Math.max(0,availableBottom-y-headerH);
+    const maxRows=Math.max(0,Math.floor(room/rowH));
+    const wanted=Math.max(real.length,minVisualRows);
+    const take=Math.min(wanted,maxRows);
+    const body=[];
+    for(let i=0;i<take;i++) body.push(real[i]||['','','','']);
+
+    doc.autoTable({
+      startY:y,margin:{left:VPDF.m,right:VPDF.m,top:VPDF.m,bottom:VPDF.m},
+      head:[['CANTIDAD','CONCEPTO','PRECIO','IMPORTE']],body,
+      theme:'grid',showHead:'firstPage',pageBreak:'avoid',rowPageBreak:'avoid',
+      styles:{font:'helvetica',fontSize:7.15,textColor:VPDF.ink,lineColor:VPDF.line,lineWidth:.18,
+        cellPadding:1.05,valign:'middle',minCellHeight:rowH,overflow:'linebreak'},
+      headStyles:{fillColor:VPDF.head,textColor:VPDF.muted,fontStyle:'bold',fontSize:6.4,
+        halign:'center',minCellHeight:headerH},
+      columnStyles:{0:{cellWidth:17,halign:'center'},1:{cellWidth:'auto',halign:'left',overflow:'linebreak'},
+        2:{cellWidth:25,halign:'right'},3:{cellWidth:27,halign:'right'}}
+    });
+    const consumedReal=Math.min(real.length,take);
+    return {y:doc.lastAutoTable.finalY,remaining:real.slice(consumedReal)};
+  }
+
+
+  function vItemsPage2(doc,y,rows,maxBottom){
+    if(!rows.length) return y;
+    const available=Math.max(0,maxBottom-y-6);
+    const headerH=5.8;
+    const rowH=5.4;
+    const maxRows=Math.max(0,Math.floor((available-headerH)/rowH));
+
+    if(rows.length>maxRows){
+      throw new Error(`Demasiados conceptos para un PDF de 2 páginas (${rows.length} pendientes; caben ${maxRows}). Reduce líneas o divide el trabajo.`);
+    }
+
+    doc.autoTable({
+      startY:y,
+      margin:{left:VPDF.m,right:VPDF.m,top:VPDF.m,bottom:VPDF.m},
+      head:[['CANTIDAD','CONCEPTO','PRECIO','IMPORTE']],
+      body:rows,
+      theme:'grid',
+      showHead:'firstPage',
+      pageBreak:'avoid',
+      rowPageBreak:'avoid',
+      styles:{
+        font:'helvetica',fontSize:7.1,textColor:VPDF.ink,
+        lineColor:VPDF.line,lineWidth:.18,cellPadding:1.1,
+        valign:'middle',minCellHeight:rowH,overflow:'linebreak'
+      },
+      headStyles:{
+        fillColor:VPDF.head,textColor:VPDF.muted,fontStyle:'bold',
+        fontSize:6.4,halign:'center',minCellHeight:headerH
+      },
+      columnStyles:{
+        0:{cellWidth:17,halign:'center'},
+        1:{cellWidth:'auto',halign:'left',overflow:'linebreak'},
+        2:{cellWidth:25,halign:'right'},
+        3:{cellWidth:27,halign:'right'}
+      }
+    });
     return doc.lastAutoTable.finalY;
   }
+
 
   function vBottom(doc,y,f){
     const gap=3,rightW=60,leftW=vContentW()-rightW-gap;
