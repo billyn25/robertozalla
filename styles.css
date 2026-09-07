@@ -1913,3 +1913,596 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     display:none !important;
   }
 }
+
+
+/* =========================================================
+   V90 — V82 + limpieza final de líneas móviles
+   SOLO móvil. Sin rediseñar ni mover bloques.
+   ========================================================= */
+@media screen and (max-width:760px){
+
+  /*
+   * La hoja no debe conservar ningún borde estructural negro.
+   * Se fuerza un único tono suave también sobre reglas heredadas.
+   */
+  .paper *,
+  .paper *::before,
+  .paper *::after{
+    border-color:#d2ddd7 !important;
+  }
+
+  /* Divisiones internas: todavía más suaves */
+  .paper table,
+  .paper thead,
+  .paper tbody,
+  .paper tr,
+  .paper th,
+  .paper td,
+  .paper fieldset,
+  .paper .boxed,
+  .paper .document-meta,
+  .paper .document-meta > label,
+  .paper .field,
+  .paper .payment-row,
+  .paper .payment-row > label,
+  .paper .bank-row,
+  .paper .bank-row > label,
+  .paper .time-row,
+  .paper .time-row > label,
+  .paper .total-row{
+    border-color:#dbe4df !important;
+  }
+
+  /*
+   * CUENTA / IBAN igual que FORMA DE PAGO, RECIBÍ y FECHA:
+   * etiqueta superior + campo completo debajo.
+   */
+  .paper .bank-row{
+    display:block !important;
+    width:100% !important;
+  }
+
+  .paper .bank-row > label{
+    display:block !important;
+    width:100% !important;
+    padding:0 !important;
+    border:0 !important;
+  }
+
+  .paper .bank-row > label > span{
+    display:block !important;
+    width:100% !important;
+    margin:0 !important;
+    padding:8px 10px 5px !important;
+    border:0 !important;
+    border-bottom:1px solid #dbe4df !important;
+    background:inherit !important;
+    color:inherit !important;
+    font-family:inherit !important;
+    font-size:10px !important;
+    line-height:1.2 !important;
+    font-weight:700 !important;
+    letter-spacing:0 !important;
+  }
+
+  .paper .bank-row > label > input{
+    display:block !important;
+    width:calc(100% - 16px) !important;
+    min-height:50px !important;
+    margin:8px !important;
+    padding:9px 11px !important;
+    border:1px solid #cfdad4 !important;
+    border-radius:9px !important;
+    background:#fbfdfc !important;
+    box-shadow:none !important;
+  }
+
+  /*
+   * Extras manuales: misma señal visual de edición que los demás campos.
+   */
+  .paper #materialsAmount,
+  .paper #laborAmount,
+  .paper #travelAmount,
+  .paper #extraAmount{
+    border:1px solid #cfdad4 !important;
+    border-radius:9px !important;
+    background:#fbfdfc !important;
+    box-shadow:none !important;
+  }
+
+  .paper #materialsAmount:focus,
+  .paper #laborAmount:focus,
+  .paper #travelAmount:focus,
+  .paper #extraAmount:focus,
+  .paper .bank-row input:focus{
+    outline:none !important;
+    border-color:#6eaa87 !important;
+    box-shadow:0 0 0 2px rgba(36,132,78,.08) !important;
+    background:#fff !important;
+  }
+}
+
+
+/* =========================================================
+   V91 — separación visual de bloques móvil
+   Sobre V90. Solo móvil. Sin tocar PC, PDF ni lógica.
+   ========================================================= */
+@media screen and (max-width:760px){
+
+  /* Separación clara entre bloques principales */
+  .paper .payment-row,
+  .paper .bank-row,
+  .paper .time-row,
+  .paper .observations,
+  .paper .totals-panel,
+  .paper .consent-box,
+  .paper .signature-box{
+    margin-top:10px !important;
+    background:#f7f9f8 !important;
+    border:1px solid #d5dfda !important;
+    border-radius:10px !important;
+  }
+
+  /* Forma de pago / Recibí: campos blancos dentro del bloque */
+  .paper .payment-row > label{
+    background:#f7f9f8 !important;
+  }
+
+  .paper .payment-row > label > input,
+  .paper .payment-row > label > select{
+    background:#fff !important;
+  }
+
+  /* CUENTA / IBAN: misma jerarquía visual y tipografía que el resto */
+  .paper .bank-row > label > span{
+    font-family:inherit !important;
+    font-size:10px !important;
+    line-height:1.2 !important;
+    font-weight:700 !important;
+    letter-spacing:0 !important;
+    text-transform:none !important;
+    color:#2f4037 !important;
+    background:#f7f9f8 !important;
+  }
+
+  .paper .bank-row > label > input{
+    background:#fff !important;
+  }
+
+  /* Fecha / Llegada / Salida: separar del bloque anterior sin líneas negras */
+  .paper .time-row > label{
+    background:#f7f9f8 !important;
+  }
+
+  .paper .time-row > label > input{
+    background:#fff !important;
+  }
+
+  /* Observaciones como bloque reconocible */
+  .paper .observations{
+    padding:8px !important;
+  }
+
+  .paper .observations > textarea{
+    background:#fff !important;
+  }
+
+  /* Mantener divisores suaves dentro de bloques */
+  .paper .payment-row > label + label,
+  .paper .time-row > label + label,
+  .paper .bank-row > label > span{
+    border-color:#dfe7e2 !important;
+  }
+
+  /* Un poco de aire entre bloque izquierdo y totales */
+  .paper .bottom-left + .totals-panel{
+    margin-top:10px !important;
+  }
+}
+
+
+/* =========================================================
+   V92 — afinado de ritmo móvil sobre V91
+   Más aire entre secciones + checks compactos a 2 columnas.
+   ========================================================= */
+@media screen and (max-width:760px){
+
+  /* Ritmo entre los bloques principales de la zona superior */
+  .paper .paper-header{
+    margin-bottom:10px !important;
+  }
+
+  .paper .client-box{
+    margin-bottom:11px !important;
+  }
+
+  .paper .service-boxes{
+    gap:10px !important;
+    margin-bottom:11px !important;
+  }
+
+  .paper .service-description{
+    margin-top:10px !important;
+    margin-bottom:10px !important;
+  }
+
+  /* Un poco más de presencia para títulos, sin agrandarlos demasiado */
+  .paper .client-box > legend,
+  .paper .check-box > legend{
+    padding-left:7px !important;
+    padding-right:7px !important;
+    font-weight:800 !important;
+  }
+
+  /* SOLICITUD / TIPO DE TRABAJO: 2 columnas, misma altura visual */
+  .paper .check-box{
+    padding:9px !important;
+  }
+
+  .paper .check-list{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:6px !important;
+  }
+
+  .paper .check-list > label{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 22px !important;
+    align-items:center !important;
+    gap:6px !important;
+    width:100% !important;
+    min-width:0 !important;
+    height:44px !important;
+    min-height:44px !important;
+    margin:0 !important;
+    padding:6px 7px !important;
+    border:1px solid #dbe4df !important;
+    border-radius:8px !important;
+    background:#fbfdfc !important;
+  }
+
+  .paper .check-list > label > span{
+    min-width:0 !important;
+    display:flex !important;
+    align-items:center !important;
+    height:100% !important;
+    font-size:9px !important;
+    line-height:1.12 !important;
+    text-align:left !important;
+    overflow-wrap:anywhere !important;
+  }
+
+  .paper .check-list > label > input[type="checkbox"]{
+    width:20px !important;
+    height:20px !important;
+    margin:0 !important;
+    justify-self:end !important;
+    align-self:center !important;
+  }
+
+  .paper .check-list > label:has(input:checked){
+    background:#f1f8f4 !important;
+    border-color:#a8cdb7 !important;
+  }
+
+  /* En pantallas muy estrechas mantenemos 2 columnas,
+     reduciendo solo texto y hueco, no la altura táctil. */
+  @media (max-width:360px){
+    .paper .check-list{
+      gap:5px !important;
+    }
+    .paper .check-list > label{
+      grid-template-columns:minmax(0,1fr) 20px !important;
+      padding:5px 6px !important;
+    }
+    .paper .check-list > label > span{
+      font-size:8.4px !important;
+    }
+    .paper .check-list > label > input[type="checkbox"]{
+      width:19px !important;
+      height:19px !important;
+    }
+  }
+}
+
+
+/* =========================================================
+   V93 — UNIDAD VISUAL MÓVIL
+   Mantiene la distribución de V92.
+   Solo unifica contenedores, títulos y ritmo.
+   ========================================================= */
+@media screen and (max-width:760px){
+
+  .paper{
+    --u-border:#d6e0da;
+    --u-border-soft:#e3e9e5;
+    --u-bg:#ffffff;
+    --u-bg-soft:#f7f9f8;
+    --u-title:#26372e;
+    --u-muted:#5f6e66;
+    --u-radius:10px;
+    --u-gap:10px;
+  }
+
+  /* Una única familia exterior */
+  .paper .paper-header,
+  .paper .client-box,
+  .paper .check-box,
+  .paper .service-description,
+  .paper .payment-row,
+  .paper .bank-row,
+  .paper .time-row,
+  .paper .observations,
+  .paper .totals-panel,
+  .paper .consent-box,
+  .paper .signature-box{
+    border:1px solid var(--u-border) !important;
+    border-radius:var(--u-radius) !important;
+    background:var(--u-bg) !important;
+    box-shadow:none !important;
+  }
+
+  /* Mismo ritmo vertical entre secciones */
+  .paper .paper-header,
+  .paper .client-box,
+  .paper .service-boxes,
+  .paper .service-description,
+  .paper .items-section,
+  .paper .payment-row,
+  .paper .bank-row,
+  .paper .time-row,
+  .paper .observations,
+  .paper .totals-panel,
+  .paper .consent-box,
+  .paper .signature-box{
+    margin-bottom:var(--u-gap) !important;
+  }
+
+  /* Títulos de bloque coherentes */
+  .paper .client-box > legend,
+  .paper .check-box > legend,
+  .paper .service-description > label,
+  .paper .observations > label,
+  .paper .signature-title{
+    color:var(--u-title) !important;
+    font-weight:800 !important;
+    letter-spacing:0 !important;
+  }
+
+  .paper .client-box > legend,
+  .paper .check-box > legend{
+    font-size:13px !important;
+    padding:0 6px !important;
+  }
+
+  .paper .service-description > label,
+  .paper .observations > label,
+  .paper .signature-title{
+    font-size:12px !important;
+  }
+
+  /* Etiquetas interiores: misma escala */
+  .paper .field > span,
+  .paper .payment-row label > span,
+  .paper .bank-row label > span,
+  .paper .time-row label > span{
+    color:#3f5047 !important;
+    font-size:10px !important;
+    line-height:1.2 !important;
+    font-weight:700 !important;
+    letter-spacing:0 !important;
+  }
+
+  /* Divisores interiores siempre suaves */
+  .paper .document-meta > label + label,
+  .paper .payment-row > label + label,
+  .paper .time-row > label + label,
+  .paper .items-table th,
+  .paper .items-table td,
+  .paper .total-row,
+  .paper .bank-row > label > span{
+    border-color:var(--u-border-soft) !important;
+  }
+
+  /* Mismo fondo tenue para subáreas */
+  .paper .payment-row > label,
+  .paper .bank-row,
+  .paper .time-row > label,
+  .paper .observations{
+    background:var(--u-bg-soft) !important;
+  }
+
+  /* Los controles siguen blancos dentro de la subárea */
+  .paper .payment-row input,
+  .paper .payment-row select,
+  .paper .bank-row input,
+  .paper .time-row input,
+  .paper .observations textarea{
+    background:#fff !important;
+  }
+
+  /* Documento mantiene estructura pero comparte lenguaje */
+  .paper .document-meta{
+    border:1px solid var(--u-border) !important;
+    border-radius:var(--u-radius) !important;
+    overflow:hidden !important;
+    background:#fff !important;
+  }
+
+  /* Checks: conservar 2 columnas V92, solo mismo borde/radio */
+  .paper .check-list > label{
+    border-color:var(--u-border-soft) !important;
+    border-radius:8px !important;
+    background:#fbfdfc !important;
+  }
+
+  /* Firmas: mismo lenguaje exterior */
+  .paper .signature-canvas{
+    border-color:#cbd8d1 !important;
+    border-radius:8px !important;
+    background:#fff !important;
+  }
+
+  /* Totales: conservar jerarquía, unificar contenedor */
+  .paper .totals-panel{
+    overflow:hidden !important;
+  }
+
+  /* No tocar controles calculados ni concepto: solo estilo de familia */
+}
+
+
+/* =========================================================
+   V94 — acabado móvil tras auditoría con capturas reales
+   ========================================================= */
+@media screen and (max-width:760px){
+
+  /* Cabecera de empresa: aire respecto al borde + nombre menos apretado */
+  .paper .company-brand{
+    min-height:auto !important;
+    padding:10px 12px 8px !important;
+    box-sizing:border-box !important;
+  }
+  .paper .company-brand--no-logo{
+    padding-left:12px !important;
+    padding-right:12px !important;
+  }
+  .paper .company-title-row{
+    align-items:flex-start !important;
+    gap:7px !important;
+  }
+  .paper .company-brand h1{
+    font-size:21px !important;
+    line-height:1.08 !important;
+    letter-spacing:-.015em !important;
+  }
+  .paper .company-activity-icon{
+    width:20px !important;
+    height:20px !important;
+    margin-top:2px !important;
+  }
+  .paper .company-brand__text p{
+    margin-top:6px !important;
+    line-height:1.28 !important;
+  }
+
+  /* Documento: menos dominante */
+  .paper .document-meta label,
+  .paper .document-meta label:last-child{
+    min-height:42px !important;
+  }
+  .paper .document-meta input,
+  .paper .document-meta select{
+    height:42px !important;
+    min-height:42px !important;
+    font-size:16px !important;
+  }
+  .paper .document-meta label > span{
+    font-size:10px !important;
+  }
+
+  /* Separación real entre Cliente y Solicitud */
+  .paper .client-box{
+    margin-bottom:14px !important;
+  }
+  .paper .client-box + .service-boxes,
+  .paper .client-box + fieldset{
+    margin-top:4px !important;
+  }
+
+  /* Cobro / IBAN / fecha y horas: menos altura vacía */
+  .paper .payment-row > label > input,
+  .paper .payment-row > label > select,
+  .paper .bank-row input,
+  .paper .time-row input{
+    min-height:48px !important;
+    height:48px !important;
+  }
+
+  /* Observaciones sigue siendo útil pero no tan grande */
+  .paper .observations textarea{
+    min-height:82px !important;
+  }
+
+  /* Totales: jerarquía visual */
+  .paper .totals-panel{
+    background:#fff !important;
+    border-color:#d3ded8 !important;
+  }
+  .paper .total-row{
+    border-color:#e0e7e3 !important;
+  }
+
+  /* Extras manuales */
+  .paper .total-row--detail{
+    min-height:48px !important;
+  }
+  .paper .total-row--detail label{
+    font-size:11px !important;
+    font-weight:700 !important;
+  }
+  .paper .total-row--detail input{
+    min-height:40px !important;
+    height:40px !important;
+    margin:4px 6px !important;
+    border:1px solid #ccd9d2 !important;
+    border-radius:8px !important;
+    background:#fbfdfc !important;
+  }
+
+  /* Total importe automático */
+  .paper .total-row--strong{
+    background:#f2f7f4 !important;
+    border-top:1px solid #cbd9d1 !important;
+  }
+  .paper .total-row--strong label{
+    font-size:12px !important;
+    font-weight:850 !important;
+  }
+  .paper .total-row--strong input{
+    background:transparent !important;
+    font-weight:700 !important;
+  }
+
+  /* IVA */
+  .paper .total-row--vat{
+    min-height:52px !important;
+    background:#fff !important;
+  }
+
+  /* Total factura: cierre visual del bloque */
+  .paper .total-row--grand{
+    min-height:58px !important;
+    background:#eaf4ee !important;
+    border-top:1px solid #c4d7cb !important;
+  }
+  .paper .total-row--grand label{
+    font-size:13px !important;
+    font-weight:900 !important;
+    color:#20372b !important;
+  }
+  .paper .total-row--grand input{
+    min-height:58px !important;
+    font-size:18px !important;
+    font-weight:800 !important;
+    background:transparent !important;
+  }
+
+  .paper .calculation-mode{
+    padding:4px 8px !important;
+    font-size:8.5px !important;
+    line-height:1.2 !important;
+    color:#738078 !important;
+    background:#fafcfb !important;
+  }
+
+  /* Conformidad y firmas: solo ritmo, sin rediseñarlas */
+  .paper .consent-box{
+    padding:12px !important;
+    margin-top:12px !important;
+    margin-bottom:12px !important;
+  }
+  .paper .signature-box{
+    margin-top:12px !important;
+  }
+}
