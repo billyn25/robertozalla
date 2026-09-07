@@ -1610,3 +1610,41 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     min-width:58mm !important;
   }
 }
+
+
+
+
+/* V63b PC — Nueva, Guardadas y Guardar solo iconos. PDF conserva icono + texto */
+@media screen and (min-width:900px){
+  #newDocumentBtn > span,
+  #documentsBtn > span,
+  #saveDocumentBtn > span{
+    display:none !important;
+  }
+
+  #newDocumentBtn,
+  #documentsBtn,
+  #saveDocumentBtn{
+    width:42px !important;
+    min-width:42px !important;
+    padding:0 !important;
+    justify-content:center !important;
+    gap:0 !important;
+  }
+
+  #newDocumentBtn svg,
+  #documentsBtn svg,
+  #saveDocumentBtn svg{
+    width:18px !important;
+    height:18px !important;
+    margin:0 !important;
+  }
+
+  #pdfBtn{
+    width:auto !important;
+    min-width:auto !important;
+    padding-left:14px !important;
+    padding-right:14px !important;
+    gap:7px !important;
+  }
+}
