@@ -1544,90 +1544,93 @@
   function vImageFormat(dataUrl){if(/^data:image\/png/i.test(dataUrl))return'PNG';if(/^data:image\/webp/i.test(dataUrl))return'WEBP';return'JPEG';}
 
   async function buildVectorPdf(doc,data,company){
-    const f=data.fields||{}, pageBottom=VPDF.h-VPDF.m;
-    let y=VPDF.m;
-
-    y=await vHeader(doc,y,f,company); y+=2.2;
-    y=vClient(doc,y,f); y+=2.2;
-    y=vServiceGroups(doc,y,f,company); y+=2.2;
-    y=vDescription(doc,y,f); y+=2.4;
-
+    const f=data.fields||{};
+    const pageBottom=VPDF.h-VPDF.m;
     const rows=(data.items||[]).filter(i=>[i.qty,i.concept,i.price,i.amount].some(v=>String(v||'').trim()));
 
-    // Zona inferior completa del documento.
-    // Dejamos un pequeño margen de seguridad, pero sin desperdiciar altura.
-    const finalNeed=93;
-    const tableLimit=pageBottom-finalNeed;
+    // Altura REAL reservada para la parte inferior:
+    // vBottom 52 + separaciones + consentimiento/firmas 36 + pie + margen.
+    const finalReserve=97;
 
-    let visualRows=vChooseVisualRows(y,tableLimit,rows.length);
+    async function resetPageOne(){
+      while(doc.getNumberOfPages()>1) doc.deletePage(doc.getNumberOfPages());
+      doc.deletePage(1);
+      doc.addPage();
+      doc.setPage(1);
+    }
 
-    // Si hay pocas líneas reales, las filas vacías son el "colchón" flexible:
-    // 10 -> 9 -> 8 -> 7 -> 6 -> 5 antes de pensar en página 2.
-    visualRows=Math.max(rows.length,Math.min(10,Math.max(5,visualRows)));
+    async function renderTop(){
+      let y=VPDF.m;
+      y=await vHeader(doc,y,f,company); y+=2.2;
+      y=vClient(doc,y,f); y+=2.2;
+      y=vServiceGroups(doc,y,f,company); y+=2.2;
+      y=vDescription(doc,y,f); y+=2.4;
+      return y;
+    }
 
-    let table=vItems(doc,y,rows,tableLimit,visualRows);
-    y=table.y;
-
-    if(!table.remaining.length && y+finalNeed<=pageBottom){
+    async function renderFinal(y){
       y+=2.2;
       y=vBottom(doc,y,f); y+=2.5;
       y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=1.7;
+      if(y+4.2>pageBottom) return {fits:false,y};
+      vFooter(doc,y,company);
+      return {fits:true,y};
+    }
 
-      if(y+4.2<=pageBottom){
-        vFooter(doc,y,company);
-        if(visualRows<10){
-          showToast(`PDF ajustado a ${visualRows} filas de conceptos para aprovechar el A4.`);
+    // 1) Intentar una sola página.
+    // Reducimos ÚNICAMENTE filas vacías: 10 -> ... -> 5.
+    // Si hay 7 filas reales, jamás probamos menos de 7.
+    const minVisual=Math.max(5,rows.length);
+    const maxVisual=Math.max(10,rows.length);
+
+    for(let candidate=maxVisual; candidate>=minVisual; candidate--){
+      await resetPageOne();
+      let y=await renderTop();
+
+      // Dejamos que AutoTable mida la altura real de las filas.
+      const table=vItems(doc,y,rows,pageBottom-2,candidate);
+      y=table.y;
+
+      // Si quedaron filas reales pendientes, esta prueba no puede ser de una sola página.
+      if(table.remaining.length) continue;
+
+      // No dibujamos el bloque inferior hasta saber que cabe.
+      if(y+finalReserve>pageBottom) continue;
+
+      const finalResult=await renderFinal(y);
+      if(finalResult.fits){
+        if(candidate<10){
+          showToast(`PDF ajustado a ${candidate} filas de conceptos para mantener una sola página.`);
         }
         return;
       }
     }
 
-    // Si el cálculo final quedó muy justo, reintentamos página 1 desde cero
-    // reduciendo SOLO filas vacías hasta 5.
-    if(rows.length<=5){
-      for(let candidate=Math.min(visualRows-1,9); candidate>=5; candidate--){
-        // No podemos borrar lo ya dibujado de forma fiable: reconstruimos la página.
-        doc.deletePage(doc.getNumberOfPages());
-        doc.addPage();
-        y=VPDF.m;
-        y=await vHeader(doc,y,f,company); y+=2.2;
-        y=vClient(doc,y,f); y+=2.2;
-        y=vServiceGroups(doc,y,f,company); y+=2.2;
-        y=vDescription(doc,y,f); y+=2.4;
+    // 2) Si no cabe en una página, reconstruir LIMPIAMENTE la página 1.
+    // Nunca dejamos el bloque inferior dibujado y luego lo repetimos.
+    await resetPageOne();
+    let y=await renderTop();
 
-        table=vItems(doc,y,rows,tableLimit,candidate);
-        y=table.y;
+    // En página 1 aprovechamos todo el espacio para conceptos reales.
+    // Las filas vacías son secundarias; mínimo visual 5 solo si caben.
+    const firstPageTable=vItems(doc,y,rows,pageBottom-2,Math.max(5,rows.length));
+    const remaining=firstPageTable.remaining;
 
-        if(!table.remaining.length && y+finalNeed<=pageBottom){
-          y+=2.2;
-          y=vBottom(doc,y,f); y+=2.5;
-          y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=1.7;
-          if(y+4.2<=pageBottom){
-            vFooter(doc,y,company);
-            showToast(`PDF ajustado a ${candidate} filas de conceptos para mantener una sola página.`);
-            return;
-          }
-        }
-      }
-    }
+    // 3) Página 2: solo lo que realmente falta + bloque inferior una única vez.
+    doc.addPage();
+    doc.setPage(2);
+    y=VPDF.m;
 
-    // Solo aquí usamos página 2: ya no queda espacio vacío razonable que sacrificar.
-    doc.addPage(); y=VPDF.m;
-    const page2FinalNeed=93;
-    const page2TableLimit=pageBottom-page2FinalNeed;
-
-    if(table.remaining.length){
-      y=vItemsPage2(doc,y,table.remaining,page2TableLimit);
+    if(remaining.length){
+      const table2Bottom=pageBottom-finalReserve;
+      y=vItemsPage2(doc,y,remaining,table2Bottom);
       y+=2.2;
     }
 
-    y=vBottom(doc,y,f); y+=2.5;
-    y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=1.7;
-
-    if(y+4.2>pageBottom){
+    const finalResult=await renderFinal(y);
+    if(!finalResult.fits){
       throw new Error('El documento supera dos páginas A4. Reduce texto o líneas de concepto.');
     }
-    vFooter(doc,y,company);
   }
 
 
