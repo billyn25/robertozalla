@@ -1563,3 +1563,38 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     margin-right:auto !important;
   }
 }
+
+
+/* V61 PC — texto editable más legible; no afecta móvil ni PDF/impresión */
+@media screen and (min-width:900px){
+  .paper input:not([type="checkbox"]):not([type="radio"]),
+  .paper textarea,
+  .paper select{
+    font-size:13.5px !important;
+    line-height:1.35 !important;
+  }
+
+  /* Campos económicos y fechas, un poco más visibles */
+  .paper input[data-field="qty"],
+  .paper input[data-field="price"],
+  .paper input[data-field="amount"],
+  .paper #documentNumber,
+  .paper #documentDate,
+  .paper #serviceDate{
+    font-size:14px !important;
+    font-weight:500 !important;
+  }
+
+  /* Textareas largos: mantener buena densidad sin hacerse enormes */
+  .paper textarea{
+    font-size:13px !important;
+  }
+}
+
+@media print{
+  .paper input,
+  .paper textarea,
+  .paper select{
+    font-size:inherit !important;
+  }
+}
