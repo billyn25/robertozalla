@@ -1598,3 +1598,15 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     font-size:inherit !important;
   }
 }
+
+
+/* V62 PC — tabla Documento / N.º / Fecha un poco más ancha */
+@media screen and (min-width:900px){
+  .paper-header{
+    grid-template-columns:minmax(0,1fr) 58mm !important;
+  }
+  .document-meta{
+    width:58mm !important;
+    min-width:58mm !important;
+  }
+}
