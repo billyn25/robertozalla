@@ -1518,27 +1518,33 @@
   }
 
 
-  function vDrawActivityIcon(doc,type,x,y,size=8){
-    doc.setDrawColor(...VPDF.green);
-    doc.setTextColor(...VPDF.green);
-    doc.setLineWidth(.45);
 
-    if(type==='antenna'){
-      const cx=x+size/2, top=y+1, base=y+size-1;
-      doc.line(cx,top+2,cx,base);
-      doc.line(cx,top+4,x+2,base);
-      doc.line(cx,top+4,x+size-2,base);
-      doc.line(x+2,base,x+size-2,base);
-      doc.line(cx-2.2,y+size*.58,cx+2.2,y+size*.58);
-      doc.circle(cx,top+1.1,.65,'F');
-      doc.arc?.(cx,top+1.1,2.4,200,340);
-      doc.arc?.(cx,top+1.1,3.8,200,340);
-    } else if(type==='roof'){
-      doc.line(x+1,y+size*.48,x+size/2,y+1.2);
-      doc.line(x+size/2,y+1.2,x+size-1,y+size*.48);
-      doc.rect(x+2.2,y+size*.45,size-4.4,size*.38);
-      doc.line(x+size-2.2,y+size*.5,x+size-2.2,y+size*.78);
-      doc.circle(x+size-1.2,y+size*.87,.55,'S');
+
+
+  async function activitySvgToPng(type, px=128){
+    const raw = getActivityIconSvg(type);
+    if(!raw) return '';
+    const svg = raw
+      .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
+      .replaceAll('currentColor', '#244d39');
+    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    try{
+      const img = await new Promise((resolve,reject)=>{
+        const el = new Image();
+        el.onload = ()=>resolve(el);
+        el.onerror = reject;
+        el.src = url;
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = px;
+      canvas.height = px;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,px,px);
+      ctx.drawImage(img,0,0,px,px);
+      return canvas.toDataURL('image/png');
+    } finally {
+      URL.revokeObjectURL(url);
     }
   }
 
@@ -1550,8 +1556,14 @@
     const activityType=getActivityIconType(company);
 
     if(!company?.logo && activityType){
-      vDrawActivityIcon(doc,activityType,VPDF.m,y+4.0,7.5);
-      tx=VPDF.m+10.5;
+      try{
+        const activityPng = await activitySvgToPng(activityType,128);
+        if(activityPng){
+          const iconSize = 8.5;
+          doc.addImage(activityPng,'PNG',VPDF.m,y+3.0,iconSize,iconSize,undefined,'FAST');
+          tx=VPDF.m+11.0;
+        }
+      }catch(_){}
     }
 
     if(company?.logo){
