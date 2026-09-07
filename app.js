@@ -1584,7 +1584,7 @@
 
     // Altura REAL reservada para la parte inferior:
     // vBottom 52 + separaciones + consentimiento/firmas 36 + pie + margen.
-    const finalReserve=105;
+    const finalReserve=94;
 
     async function resetPageOne(){
       while(doc.getNumberOfPages()>1) doc.deletePage(doc.getNumberOfPages());
@@ -1597,11 +1597,11 @@
       let y=VPDF.m;
       y=await vHeader(doc,y,f,company); y+=2.2;
       y=vClient(doc,y,f); y+=2.2;
-      y=vServiceGroups(doc,y,f,company); y+=1.2; y=vAntennaWarrantyNotice(doc,y,company); y+=1.2; y=vDescription(doc,y,f); y+=2.4;
+      y=vServiceGroups(doc,y,f,company); y+=0.8; y=vAntennaWarrantyNotice(doc,y,company); y+=0.8; y=vDescription(doc,y,f); y+=2.4;
       return y;
     }
 
-    async function renderFinal(y){y+=2.0;y=vBottom(doc,y,f);y+=1.8;y=vRepairWarrantyLine(doc,y,company);y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=1.2;if(y+4.2>pageBottom)return {fits:false,y};vFooter(doc,y,company);return {fits:true,y};}
+    async function renderFinal(y){y+=1.2;y=vBottom(doc,y,f);y+=1.2;y=vRepairWarrantyLine(doc,y,company);y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=0.8;if(y+4.2>pageBottom)return {fits:false,y};vFooter(doc,y,company);return {fits:true,y};}
 
     // 1) Intentar una sola página.
     // Reducimos ÚNICAMENTE filas vacías: 10 -> ... -> 5.
@@ -1823,9 +1823,9 @@
 if(!ANTENNA_COMPANY_IDS.has(company?.id))return y;
 const text='Quedan excluidos de la garantía los trabajos en los que exista manipulación posterior sin autorización de ANTENA CITY, así como los problemas ocasionados por el mal uso de los elementos que son objetos de esta garantía tanto como fenómenos atmosféricos, rayos, alteraciones eléctricas y cortocircuitos. Es imprescindible la presentación de este documento para cualquier reclamación o consulta relacionada con el mismo. Garantía de instalación 2 años.';
 doc.setFont('helvetica','normal');doc.setFontSize(4.8);doc.setTextColor(...VPDF.muted);
-const lines=doc.splitTextToSize(text,vContentW()-5),h=2.8+lines.length*1.72;
+const lines=doc.splitTextToSize(text,vContentW()-5),h=2.2+lines.length*1.55;
 doc.setDrawColor(...VPDF.line);doc.rect(VPDF.m,y,vContentW(),h);
-doc.text(lines,VPDF.m+2.5,y+2.8,{lineHeightFactor:1.05});
+doc.text(lines,VPDF.m+2.5,y+2.25,{lineHeightFactor:1.0});
 doc.setTextColor(...VPDF.ink);return y+h;
 }
 function vDescription(doc,y,f){
@@ -1953,7 +1953,7 @@ doc.setTextColor(...VPDF.ink);return y+2.8;
 }
 async function vConsentSignatures(doc,y,f,sigs){
     const consentH=11;vBox(doc,VPDF.m,y,vContentW(),consentH);vCheck(doc,VPDF.m+2.5,y+2.2,!!f.waivesEstimate);vText(doc,'Renuncia a presupuesto previo y autoriza la reparación',VPDF.m+7,y+4.5,6.8);vCheck(doc,VPDF.m+2.5,y+6.3,!!f.repairAccepted);vText(doc,'Conforme con la reparación / presupuesto',VPDF.m+7,y+8.6,6.8);vLabel(doc,'Presupuesto n.º',VPDF.m+125,y+3.8);vText(doc,f.acceptedEstimateNumber||'',VPDF.m+125,y+8.2,7.5);
-    y+=consentH+2;const gap=3,w=(vContentW()-gap)/2,h=20;await vSignature(doc,VPDF.m,y,w,h,'Firma del cliente',sigs.clientSignature);await vSignature(doc,VPDF.m+w+gap,y,w,h,'Recibí / firma del técnico',sigs.technicianSignature);return y+h;
+    y+=consentH+2;const gap=3,w=(vContentW()-gap)/2,h=16.5;await vSignature(doc,VPDF.m,y,w,h,'Firma del cliente',sigs.clientSignature);await vSignature(doc,VPDF.m+w+gap,y,w,h,'Recibí / firma del técnico',sigs.technicianSignature);return y+h;
   }
   async function vSignature(doc,x,y,w,h,title,dataUrl){vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+3.8);if(dataUrl){try{const sz=await vImageSize(dataUrl);if(sz){const aw=w-5,ah=h-7,sc=Math.min(aw/sz.w,ah/sz.h);const iw=sz.w*sc,ih=sz.h*sc;doc.addImage(dataUrl,'PNG',x+(w-iw)/2,y+5+(ah-ih)/2,iw,ih,undefined,'FAST');}}catch(_){}}}
   function vFooter(doc,y,company){const terms=String(company?.terms||'').trim();doc.setFont('helvetica','normal');doc.setFontSize(5.8);doc.setTextColor(...VPDF.muted);if(terms){const lines=doc.splitTextToSize(terms,vContentW()-55).slice(0,2);doc.text(lines,VPDF.m,y+2);}doc.setFont('helvetica','bold');doc.setTextColor(...VPDF.ink);doc.text('EL EJEMPLAR TIENE EFECTOS DE RECIBO',VPDF.w-VPDF.m,y+2,{align:'right'});}
