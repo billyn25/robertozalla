@@ -350,6 +350,23 @@
 
   window.addEventListener('load', forceTopOnEntry, { once: true });
 
+
+  function initServiceDescriptionAutosize(){
+    const field = document.getElementById('serviceDescription');
+    if(!field) return;
+    const resize = ()=>{
+      field.style.height = 'auto';
+      const max = window.matchMedia('(max-width:760px)').matches ? 118 : 128;
+      field.style.height = `${Math.min(field.scrollHeight, max)}px`;
+      field.style.overflowY = field.scrollHeight > max ? 'auto' : 'hidden';
+    };
+    if(!field.dataset.autosizeBound){
+      field.addEventListener('input', resize);
+      field.dataset.autosizeBound = '1';
+    }
+    requestAnimationFrame(resize);
+  }
+
   function bindEvents() {
     els.companySelect.addEventListener('change', () => {
       const previousCompanyId = state.activeCompanyId;
@@ -934,7 +951,8 @@
     state.dirty = false;
     updateDraftStatus();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+      initServiceDescriptionAutosize();
+}
 
   function renderCompanySelect() {
     const current = state.activeCompanyId;
@@ -1641,6 +1659,19 @@
     return end+1;
   }
 
+
+  function vServiceTextLines(doc,value,maxWidth){
+    const raw=String(value||'').replace(/\r\n?/g,'\n');
+    const out=[];
+    raw.split('\n').forEach(part=>{
+      if(part===''){ out.push(''); return; }
+      const wrapped=doc.splitTextToSize(part,maxWidth);
+      if(Array.isArray(wrapped)) out.push(...wrapped);
+      else out.push(String(wrapped));
+    });
+    return out;
+  }
+
   function vClient(doc,y,f){
     const h=34;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Datos del cliente',VPDF.m+2.8,y+5.2);
     const vals=[['CLIENTE / EMPRESA',f.clientCompany],['NOMBRE',f.clientName],['TELÉFONO',f.clientPhone],['CORREO',f.clientEmail],['DIRECCIÓN',f.clientAddress],['POBLACIÓN',f.clientCity],['PROVINCIA',f.clientProvince],['NIF / DNI',f.clientTaxId]];
@@ -1649,7 +1680,22 @@
   function vCheck(doc,x,y,checked){doc.setDrawColor(...VPDF.muted);doc.setLineWidth(.25);if(checked){doc.setFillColor(...VPDF.green);doc.rect(x,y,3,3,'FD');doc.setDrawColor(255,255,255);doc.setLineWidth(.35);doc.line(x+.6,y+1.6,x+1.3,y+2.3);doc.line(x+1.3,y+2.3,x+2.5,y+.7);}else doc.rect(x,y,3,3);}
   function vGroup(doc,x,y,w,title,items,f){const h=22;vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+4.3);items.forEach((it,i)=>{const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+9.2+row*4.3;vCheck(doc,cx,cy-2.5,!!f[it[0]]);vText(doc,it[1],cx+5,cy,7.1);});return h;}
   function vServiceGroups(doc,y,f,company){const gap=3,w=(vContentW()-gap)/2;const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];const work=workTypesForCompany(company);vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+22;}
-  function vDescription(doc,y,f){const h=12;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Descripción del servicio solicitado',VPDF.m+2.5,y+4);const t=String(f.serviceDescription||'').trim();if(t){const lines=doc.splitTextToSize(t,vContentW()-5).slice(0,2);vText(doc,lines,VPDF.m+2.5,y+7.5,7.4);}return y+h;}
+  function vDescription(doc,y,f){
+    const title='DESCRIPCIÓN DEL SERVICIO SOLICITADO';
+    const lines=vServiceTextLines(doc,f.serviceDescription||'',w-5);
+    const lineH=3.6;
+    const contentH=Math.max(10, lines.length ? lines.length*lineH+4.5 : 10);
+    const h=5.8+contentH;
+    vBox(doc,x,y,w,h);
+    vLabel(doc,title,x+2.5,y+3.6);
+    if(lines.length){
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(...VPDF.ink);
+      doc.text(lines,x+2.5,y+8.0,{lineHeightFactor:1.15});
+    }
+    return y+h;
+  }
 
   function vItems(doc,y,items){
     const source=(items.length?items:[{qty:'',concept:'',price:'',amount:''}]).map(i=>[String(i.qty||''),String(i.concept||''),i.price?vMoney(i.price):'',i.amount?vMoney(i.amount):'']);

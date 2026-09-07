@@ -1746,3 +1746,39 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     height:22px;
   }
 }
+
+
+/* V70 — descripción multilínea y controles iPhone sin zoom al enfocar */
+#serviceDescription{
+  display:block;
+  width:100%;
+  min-height:72px;
+  resize:none;
+  overflow-y:hidden;
+  white-space:pre-wrap;
+}
+
+@media screen and (min-width:900px){
+  #serviceDescription{
+    min-height:78px;
+    font-size:13.5px !important;
+    line-height:1.4 !important;
+  }
+}
+
+@media screen and (max-width:760px){
+  .paper input:not([type="checkbox"]):not([type="radio"]),
+  .paper textarea,
+  .paper select{
+    font-size:17px !important;
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+    touch-action:manipulation;
+  }
+
+  #serviceDescription{
+    min-height:78px;
+    font-size:17px !important;
+    line-height:1.4 !important;
+  }
+}
