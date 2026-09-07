@@ -1916,60 +1916,50 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 
 
 /* =========================================================
-   V89 — LIMPIEZA MÓVIL SOBRE V82
-   Sin rediseño: bordes suaves + IBAN coherente + extras editables
+   V90 — V82 + limpieza final de líneas móviles
+   SOLO móvil. Sin rediseñar ni mover bloques.
    ========================================================= */
 @media screen and (max-width:760px){
 
-  /* 1. Unificar TODAS las líneas estructurales visibles de la hoja.
-     No cambia geometría ni distribución. */
+  /*
+   * La hoja no debe conservar ningún borde estructural negro.
+   * Se fuerza un único tono suave también sobre reglas heredadas.
+   */
+  .paper *,
+  .paper *::before,
+  .paper *::after{
+    border-color:#d2ddd7 !important;
+  }
+
+  /* Divisiones internas: todavía más suaves */
+  .paper table,
+  .paper thead,
+  .paper tbody,
+  .paper tr,
+  .paper th,
+  .paper td,
   .paper fieldset,
   .paper .boxed,
   .paper .document-meta,
   .paper .document-meta > label,
-  .paper .client-box,
-  .paper .service-boxes,
-  .paper .check-box,
-  .paper .service-description,
-  .paper .items-table,
-  .paper .items-table thead,
-  .paper .items-table tbody,
-  .paper .items-table tr,
-  .paper .items-table th,
-  .paper .items-table td,
+  .paper .field,
   .paper .payment-row,
   .paper .payment-row > label,
   .paper .bank-row,
   .paper .bank-row > label,
   .paper .time-row,
   .paper .time-row > label,
-  .paper .observations,
-  .paper .totals-panel,
-  .paper .total-row,
-  .paper .consent-box,
-  .paper .signature-box{
-    border-color:#cfdad4 !important;
-  }
-
-  /* Separadores internos aún más discretos */
-  .paper .document-meta > label + label,
-  .paper .payment-row > label + label,
-  .paper .time-row > label + label,
-  .paper .items-table th,
-  .paper .items-table td,
   .paper .total-row{
-    border-color:#dde5e0 !important;
+    border-color:#dbe4df !important;
   }
 
-  /* Legends: evitar que parezca una raya negra cortada */
-  .paper fieldset > legend{
-    color:#26372e !important;
-  }
-
-  /* 2. CUENTA / IBAN como los bloques RECIBÍ / FECHA:
-        etiqueta arriba + campo completo debajo. */
+  /*
+   * CUENTA / IBAN igual que FORMA DE PAGO, RECIBÍ y FECHA:
+   * etiqueta superior + campo completo debajo.
+   */
   .paper .bank-row{
     display:block !important;
+    width:100% !important;
   }
 
   .paper .bank-row > label{
@@ -1982,12 +1972,17 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   .paper .bank-row > label > span{
     display:block !important;
     width:100% !important;
+    margin:0 !important;
     padding:8px 10px 5px !important;
-    border-bottom:1px solid #dde5e0 !important;
-    background:#f7f9f8 !important;
-    color:#304238 !important;
+    border:0 !important;
+    border-bottom:1px solid #dbe4df !important;
+    background:inherit !important;
+    color:inherit !important;
+    font-family:inherit !important;
     font-size:10px !important;
-    font-weight:800 !important;
+    line-height:1.2 !important;
+    font-weight:700 !important;
+    letter-spacing:0 !important;
   }
 
   .paper .bank-row > label > input{
@@ -1999,25 +1994,20 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     border:1px solid #cfdad4 !important;
     border-radius:9px !important;
     background:#fbfdfc !important;
+    box-shadow:none !important;
   }
 
-  /* 3. Materiales / mano de obra / desplazamiento / plus:
-        mismos indicadores visuales de campo editable. */
+  /*
+   * Extras manuales: misma señal visual de edición que los demás campos.
+   */
   .paper #materialsAmount,
   .paper #laborAmount,
   .paper #travelAmount,
   .paper #extraAmount{
-    display:block !important;
-    width:calc(100% - 16px) !important;
-    min-height:42px !important;
-    margin:7px 8px !important;
-    padding:8px 10px !important;
     border:1px solid #cfdad4 !important;
     border-radius:9px !important;
     background:#fbfdfc !important;
     box-shadow:none !important;
-    text-align:right !important;
-    font-size:16px !important;
   }
 
   .paper #materialsAmount:focus,
@@ -2026,15 +2016,8 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   .paper #extraAmount:focus,
   .paper .bank-row input:focus{
     outline:none !important;
-    border-color:#69a883 !important;
+    border-color:#6eaa87 !important;
     box-shadow:0 0 0 2px rgba(36,132,78,.08) !important;
     background:#fff !important;
-  }
-
-  /* Los totales calculados conservan su aspecto propio:
-     no añadirles burbuja de edición. */
-  .paper #subtotalAmount,
-  .paper #grandTotalAmount{
-    box-shadow:none !important;
   }
 }
