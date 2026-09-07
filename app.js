@@ -1584,7 +1584,7 @@
 
     // Altura REAL reservada para la parte inferior:
     // vBottom 52 + separaciones + consentimiento/firmas 36 + pie + margen.
-    const finalReserve=111;
+    const finalReserve=101;
 
     async function resetPageOne(){
       while(doc.getNumberOfPages()>1) doc.deletePage(doc.getNumberOfPages());
@@ -1809,10 +1809,9 @@ y=legalBottom+1.2;vFooter(doc,y,company);return {fits:true,y};
     return out;
   }
 
-  function vClient(doc,y,f){
-    const h=34;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Datos del cliente',VPDF.m+2.8,y+5.2);
+  function vClient(doc,y,f){ const h=31;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Datos del cliente',VPDF.m+2.8,y+5.2);
     const vals=[['CLIENTE / EMPRESA',f.clientCompany],['NOMBRE',f.clientName],['TELÉFONO',f.clientPhone],['CORREO',f.clientEmail],['DIRECCIÓN',f.clientAddress],['POBLACIÓN',f.clientCity],['PROVINCIA',f.clientProvince],['NIF / DNI',f.clientTaxId]];
-    const cw=(vContentW()-6)/2; vals.forEach((r,i)=>{const c=i%2,rr=Math.floor(i/2),x=VPDF.m+3+c*cw,yy=y+10.0+rr*5.45;vLabel(doc,r[0],x,yy);vText(doc,r[1]||'',x+30,yy,7.7,'normal',{maxWidth:cw-32});}); return y+h;
+    const cw=(vContentW()-6)/2; vals.forEach((r,i)=>{const c=i%2,rr=Math.floor(i/2),x=VPDF.m+3+c*cw,yy=y+8.8+rr*5.05;vLabel(doc,r[0],x,yy);vText(doc,r[1]||'',x+30,yy,7.5,'normal',{maxWidth:cw-32});}); return y+h;
   }
   function vCheck(doc,x,y,checked){doc.setDrawColor(...VPDF.muted);doc.setLineWidth(.25);if(checked){doc.setFillColor(...VPDF.green);doc.rect(x,y,3,3,'FD');doc.setDrawColor(255,255,255);doc.setLineWidth(.35);doc.line(x+.6,y+1.6,x+1.3,y+2.3);doc.line(x+1.3,y+2.3,x+2.5,y+.7);}else doc.rect(x,y,3,3);}
   function vGroup(doc,x,y,w,title,items,f){
@@ -1856,7 +1855,7 @@ y=legalBottom+1.2;vFooter(doc,y,company);return {fits:true,y};
 
 
   function vChooseVisualRows(startY,tableLimit,realRows){
-    const headerH=5.6,rowH=5.35;
+    const headerH=5.2,rowH=4.85;
     const available=Math.max(0,tableLimit-startY-headerH);
     const fit=Math.max(0,Math.floor(available/rowH));
     const minimumVisual=5;
@@ -1883,8 +1882,8 @@ y=legalBottom+1.2;vFooter(doc,y,company);return {fits:true,y};
       startY:y,margin:{left:VPDF.m,right:VPDF.m,top:VPDF.m,bottom:VPDF.m},
       head:[['CANTIDAD','CONCEPTO','PRECIO','IMPORTE']],body,
       theme:'grid',showHead:'firstPage',pageBreak:'avoid',rowPageBreak:'avoid',
-      styles:{font:'helvetica',fontSize:7.15,textColor:VPDF.ink,lineColor:VPDF.line,lineWidth:.18,
-        cellPadding:1.05,valign:'middle',minCellHeight:rowH,overflow:'linebreak'},
+      styles:{font:'helvetica',fontSize:7.0,textColor:VPDF.ink,lineColor:VPDF.line,lineWidth:.18,
+        cellPadding:.82,valign:'middle',minCellHeight:rowH,overflow:'linebreak'},
       headStyles:{fillColor:VPDF.head,textColor:VPDF.muted,fontStyle:'bold',fontSize:6.4,
         halign:'center',minCellHeight:headerH},
       columnStyles:{0:{cellWidth:17,halign:'center'},1:{cellWidth:'auto',halign:'left',overflow:'linebreak'},
@@ -1938,14 +1937,11 @@ y=legalBottom+1.2;vFooter(doc,y,company);return {fits:true,y};
   function vBottom(doc,y,f){
     const gap=3,rightW=60,leftW=vContentW()-rightW-gap;
     let ly=y;
-    const payH=13;vBox(doc,VPDF.m,ly,leftW,payH);const third=leftW/3;
-    [['Anotaciones para cobro',f.collectionNotes],['Forma de pago',f.paymentMethod],['Recibí',f.receivedBy]].forEach((r,i)=>{if(i){doc.setDrawColor(...VPDF.line);doc.line(VPDF.m+i*third,ly,VPDF.m+i*third,ly+payH);}vLabel(doc,r[0],VPDF.m+i*third+2,ly+3.5);vText(doc,r[1]||'',VPDF.m+i*third+2,ly+8,7.3,'normal',{maxWidth:third-4});});ly+=payH+2;
-    const ibanH=10;vBox(doc,VPDF.m,ly,leftW,ibanH);vLabel(doc,'Cuenta / IBAN',VPDF.m+2,ly+3.3);vText(doc,f.bankAccount||'',VPDF.m+2,ly+7.3,7.6,'normal',{maxWidth:leftW-4});ly+=ibanH+2;
-    const timeH=10;vBox(doc,VPDF.m,ly,leftW,timeH);const t3=leftW/3;[['Fecha',formatDateForDisplay(f.serviceDate)],['Llegada',f.arrivalTime],['Salida',f.departureTime]].forEach((r,i)=>{if(i){doc.setDrawColor(...VPDF.line);doc.line(VPDF.m+i*t3,ly,VPDF.m+i*t3,ly+timeH);}vLabel(doc,r[0],VPDF.m+i*t3+2,ly+3.3);vText(doc,r[1]||'',VPDF.m+i*t3+2,ly+7.2,7.4);});ly+=timeH+2;
-    const obsH=17;vBox(doc,VPDF.m,ly,leftW,obsH);vLabel(doc,'Observaciones generales',VPDF.m+2,ly+3.5);const obs=String(f.generalObservations||'').trim();if(obs){const lines=doc.splitTextToSize(obs,leftW-4).slice(0,3);vText(doc,lines,VPDF.m+2,ly+7.3,7.2);}ly+=obsH;
+    const payH=11.5;vBox(doc,VPDF.m,ly,leftW,payH);const third=leftW/3;
+    [['Anotaciones para cobro',f.collectionNotes],['Forma de pago',f.paymentMethod],['Recibí',f.receivedBy]].forEach((r,i)=>{if(i){doc.setDrawColor(...VPDF.line);doc.line(VPDF.m+i*third,ly,VPDF.m+i*third,ly+payH);}vLabel(doc,r[0],VPDF.m+i*third+2,ly+3.5);vText(doc,r[1]||'',VPDF.m+i*third+2,ly+8,7.3,'normal',{maxWidth:third-4});});ly+=payH+1.5; const ibanH=9;vBox(doc,VPDF.m,ly,leftW,ibanH);vLabel(doc,'Cuenta / IBAN',VPDF.m+2,ly+3.3);vText(doc,f.bankAccount||'',VPDF.m+2,ly+7.3,7.6,'normal',{maxWidth:leftW-4});ly+=ibanH+1.5; const timeH=9;vBox(doc,VPDF.m,ly,leftW,timeH);const t3=leftW/3;[['Fecha',formatDateForDisplay(f.serviceDate)],['Llegada',f.arrivalTime],['Salida',f.departureTime]].forEach((r,i)=>{if(i){doc.setDrawColor(...VPDF.line);doc.line(VPDF.m+i*t3,ly,VPDF.m+i*t3,ly+timeH);}vLabel(doc,r[0],VPDF.m+i*t3+2,ly+3.3);vText(doc,r[1]||'',VPDF.m+i*t3+2,ly+7.2,7.4);});ly+=timeH+1.5; const obsH=15;vBox(doc,VPDF.m,ly,leftW,obsH);vLabel(doc,'Observaciones generales',VPDF.m+2,ly+3.5);const obs=String(f.generalObservations||'').trim();if(obs){const lines=doc.splitTextToSize(obs,leftW-4).slice(0,3);vText(doc,lines,VPDF.m+2,ly+7.3,7.2);}ly+=obsH;
 
     const rx=VPDF.m+leftW+gap;vTotals(doc,rx,y,rightW,f);
-    return Math.max(ly,y+52);
+    return Math.max(ly,y+46.5);
   }
   function vTotals(doc,x,y,w,f){
     let cy=y;const split=x+w-24;
@@ -1958,7 +1954,7 @@ y=legalBottom+1.2;vFooter(doc,y,company);return {fits:true,y};
 
   async function vConsentSignatures(doc,y,f,sigs){
     const consentH=11;vBox(doc,VPDF.m,y,vContentW(),consentH);vCheck(doc,VPDF.m+2.5,y+2.2,!!f.waivesEstimate);vText(doc,'Renuncia a presupuesto previo y autoriza la reparación',VPDF.m+7,y+4.5,6.8);vCheck(doc,VPDF.m+2.5,y+6.3,!!f.repairAccepted);vText(doc,'Conforme con la reparación / presupuesto',VPDF.m+7,y+8.6,6.8);vLabel(doc,'Presupuesto n.º',VPDF.m+125,y+3.8);vText(doc,f.acceptedEstimateNumber||'',VPDF.m+125,y+8.2,7.5);
-    y+=consentH+2;const gap=3,w=(vContentW()-gap)/2,h=23;await vSignature(doc,VPDF.m,y,w,h,'Firma del cliente',sigs.clientSignature);await vSignature(doc,VPDF.m+w+gap,y,w,h,'Recibí / firma del técnico',sigs.technicianSignature);return y+h;
+    y+=consentH+2;const gap=3,w=(vContentW()-gap)/2,h=20;await vSignature(doc,VPDF.m,y,w,h,'Firma del cliente',sigs.clientSignature);await vSignature(doc,VPDF.m+w+gap,y,w,h,'Recibí / firma del técnico',sigs.technicianSignature);return y+h;
   }
   async function vSignature(doc,x,y,w,h,title,dataUrl){vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+3.8);if(dataUrl){try{const sz=await vImageSize(dataUrl);if(sz){const aw=w-5,ah=h-7,sc=Math.min(aw/sz.w,ah/sz.h);const iw=sz.w*sc,ih=sz.h*sc;doc.addImage(dataUrl,'PNG',x+(w-iw)/2,y+5+(ah-ih)/2,iw,ih,undefined,'FAST');}}catch(_){}}}
   function vFooter(doc,y,company){const terms=String(company?.terms||'').trim();doc.setFont('helvetica','normal');doc.setFontSize(5.8);doc.setTextColor(...VPDF.muted);if(terms){const lines=doc.splitTextToSize(terms,vContentW()-55).slice(0,2);doc.text(lines,VPDF.m,y+2);}doc.setFont('helvetica','bold');doc.setTextColor(...VPDF.ink);doc.text('EL EJEMPLAR TIENE EFECTOS DE RECIBO',VPDF.w-VPDF.m,y+2,{align:'right'});}
