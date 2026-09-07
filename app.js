@@ -1597,8 +1597,7 @@
       let y=VPDF.m;
       y=await vHeader(doc,y,f,company); y+=2.2;
       y=vClient(doc,y,f); y+=2.2;
-      y=vServiceGroups(doc,y,f,company); y+=2.2;
-      y=vDescription(doc,y,f); y+=2.4;
+      y=vServiceGroups(doc,y,f,company); y+=1.2; y=vAntennaWarrantyNotice(doc,y,company); y+=1.2; y=vDescription(doc,y,f); y+=2.4;
       return y;
     }
 
