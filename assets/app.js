@@ -1529,42 +1529,59 @@
   async function buildVectorPdf(doc,data,company){
     const f=data.fields||{}, pageBottom=VPDF.h-VPDF.m;
     let y=VPDF.m;
-    y=await vHeader(doc,y,f,company);y+=2.2;
-    y=vClient(doc,y,f);y+=2.2;
-    y=vServiceGroups(doc,y,f,company);y+=2.2;
-    y=vDescription(doc,y,f);y+=2.4;
+
+    y=await vHeader(doc,y,f,company); y+=2.2;
+    y=vClient(doc,y,f); y+=2.2;
+    y=vServiceGroups(doc,y,f,company); y+=2.2;
+    y=vDescription(doc,y,f); y+=2.4;
 
     const rows=(data.items||[]).filter(i=>[i.qty,i.concept,i.price,i.amount].some(v=>String(v||'').trim()));
 
-    // Exact measured lower area: vBottom 52 + gap 2.8 + consent/signatures 36 + gap/footer.
+    // Espacio final real para cobro, totales, conformidad, firmas y pie.
     const finalNeed=96;
     const tableLimit=pageBottom-finalNeed;
 
-    // Use up to 10 visual rows only when they genuinely fit; otherwise keep the real rows.
-    const minRows=(y+5.6+10*5.35<=tableLimit)?10:rows.length;
-    let table=vItems(doc,y,rows,tableLimit,minRows);
+    // Las filas VACÍAS son flexibles: 10 si cabe, luego 9, luego 8.
+    // Las filas con datos nunca se eliminan.
+    const visualRows=vChooseVisualRows(y,tableLimit,rows.length);
+    const table=vItems(doc,y,rows,tableLimit,visualRows);
     y=table.y;
 
     if(!table.remaining.length && y+finalNeed<=pageBottom){
       y+=2.5;
-      y=vBottom(doc,y,f);y+=2.8;
-      y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=2;
-      if(y+4.5>pageBottom) throw new Error('El contenido final supera el área segura del A4.');
+      y=vBottom(doc,y,f); y+=2.8;
+      y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=2;
+
+      if(y+4.5>pageBottom){
+        throw new Error('El contenido final supera el área segura del A4.');
+      }
+
       vFooter(doc,y,company);
+
+      // Aviso solo si se han reducido filas vacías del diseño habitual.
+      if(visualRows<10 && visualRows>=8){
+        showToast(`PDF ajustado a ${visualRows} filas de conceptos para mantener todo dentro del A4.`);
+      }
       return;
     }
 
-    // Page 2 only when page 1 physically cannot contain the full document.
-    doc.addPage();y=VPDF.m;
+    // Si ni reduciendo filas vacías cabe, página 2 de forma controlada.
+    doc.addPage(); y=VPDF.m;
     const page2FinalNeed=96;
     const page2TableLimit=pageBottom-page2FinalNeed;
+
     if(table.remaining.length){
       y=vItemsPage2(doc,y,table.remaining,page2TableLimit);
       y+=2.5;
     }
-    y=vBottom(doc,y,f);y+=2.8;
-    y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=2;
-    if(y+4.5>pageBottom) throw new Error('El documento supera dos páginas A4. Reduce texto o líneas de concepto.');
+
+    y=vBottom(doc,y,f); y+=2.8;
+    y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=2;
+
+    if(y+4.5>pageBottom){
+      throw new Error('El documento supera dos páginas A4. Reduce texto o líneas de concepto.');
+    }
+
     vFooter(doc,y,company);
   }
 
@@ -1728,6 +1745,20 @@
       for(const line of lines){if(line!=='')doc.text(line,x+padX,ty);ty+=lineH;}
     }
     return y+h;
+  }
+
+
+  function vChooseVisualRows(startY,tableLimit,realRows){
+    const headerH=5.6,rowH=5.35;
+    const available=Math.max(0,tableLimit-startY-headerH);
+    const fit=Math.floor(available/rowH);
+
+    // Never hide real rows. Empty visual rows are the flexible part.
+    const minNeeded=Math.max(1,realRows);
+    if(fit>=10) return 10;
+    if(fit>=9) return Math.max(9,minNeeded);
+    if(fit>=8) return Math.max(8,minNeeded);
+    return Math.max(minNeeded,Math.max(0,fit));
   }
 
   function vItems(doc,y,items,availableBottom=VPDF.h-VPDF.m,minVisualRows=0){
