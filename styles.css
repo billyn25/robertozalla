@@ -2506,3 +2506,34 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     margin-top:12px !important;
   }
 }
+
+
+/* =========================================================
+   V96 — fix desborde campos editables de extras en móvil
+   ========================================================= */
+@media screen and (max-width:760px){
+
+  /* La columna derecha de los extras no puede crecer más que su celda */
+  .paper .total-row--detail{
+    min-width:0 !important;
+  }
+
+  .paper .total-row--detail > *{
+    min-width:0 !important;
+  }
+
+  .paper .total-row--detail input{
+    box-sizing:border-box !important;
+    width:calc(100% - 12px) !important;
+    max-width:calc(100% - 12px) !important;
+    min-width:0 !important;
+    margin:4px 6px !important;
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+
+  /* Evita cualquier overflow horizontal del panel de totales */
+  .paper .totals-panel{
+    overflow:hidden !important;
+  }
+}
