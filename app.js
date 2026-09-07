@@ -72,6 +72,24 @@
     ['workVideoIntercom', 'Videoportero']
   ];
 
+  const ANTENNA_EXTRA_WORK_TYPES = [
+    ['workCableExterior', 'Cableado exterior'],
+    ['workCableInterior', 'Cableado interior'],
+    ['workTvOutlets', 'Tomas TV'],
+    ['workAmplification', 'Amplificación']
+  ];
+
+  const ANTENNA_WORK_TYPES = [
+    ...STANDARD_WORK_TYPES,
+    ...ANTENNA_EXTRA_WORK_TYPES
+  ];
+
+  const ANTENNA_COMPANY_IDS = new Set([
+    'company-antena-city',
+    'company-antenas-abaso',
+    'company-antenas-zalla'
+  ]);
+
   const RFG_WORK_TYPES = [
     ['workAntennaIndividual', 'Limpieza de canalones'],
     ['workAntennaCollective', 'Reparación de tejados'],
@@ -629,7 +647,9 @@
 
   function workTypesForCompany(companyOrId) {
     const id = typeof companyOrId === 'string' ? companyOrId : companyOrId?.id;
-    return id === 'company-rfg-servicios' ? RFG_WORK_TYPES : STANDARD_WORK_TYPES;
+    if (id === 'company-rfg-servicios') return RFG_WORK_TYPES;
+    if (ANTENNA_COMPANY_IDS.has(id)) return ANTENNA_WORK_TYPES;
+    return STANDARD_WORK_TYPES;
   }
 
   function workProfileForCompany(companyOrId) {
@@ -638,7 +658,8 @@
   }
 
   function clearWorkTypeChecks() {
-    [...STANDARD_WORK_TYPES].forEach(([name]) => {
+    const allWorkTypes = [...STANDARD_WORK_TYPES, ...ANTENNA_EXTRA_WORK_TYPES];
+    allWorkTypes.forEach(([name]) => {
       const field = els.documentForm.elements.namedItem(name);
       if (field) field.checked = false;
     });
@@ -646,10 +667,19 @@
 
   function renderWorkTypeLabels() {
     const fields = workTypesForCompany(getActiveCompany());
-    fields.forEach(([name, label]) => {
+    const activeNames = new Set(fields.map(([name]) => name));
+    const allWorkTypes = [...STANDARD_WORK_TYPES, ...ANTENNA_EXTRA_WORK_TYPES];
+
+    allWorkTypes.forEach(([name]) => {
+      const input = els.documentForm.elements.namedItem(name);
+      const label = input?.closest('label');
+      if (label) label.hidden = !activeNames.has(name);
+    });
+
+    fields.forEach(([name, labelText]) => {
       const input = els.documentForm.elements.namedItem(name);
       const span = input?.closest('label')?.querySelector('span');
-      if (span) span.textContent = label;
+      if (span) span.textContent = labelText;
     });
   }
 
@@ -752,6 +782,10 @@
         workSatelliteCollective: false,
         workIntercom: false,
         workVideoIntercom: false,
+        workCableExterior: false,
+        workCableInterior: false,
+        workTvOutlets: false,
+        workAmplification: false,
         serviceDescription: '',
         collectionNotes: '',
         paymentMethod: '',
@@ -1550,7 +1584,7 @@
 
     // Altura REAL reservada para la parte inferior:
     // vBottom 52 + separaciones + consentimiento/firmas 36 + pie + margen.
-    const finalReserve=97;
+    const finalReserve=111;
 
     async function resetPageOne(){
       while(doc.getNumberOfPages()>1) doc.deletePage(doc.getNumberOfPages());
@@ -1568,14 +1602,21 @@
       return y;
     }
 
-    async function renderFinal(y){
-      y+=2.2;
-      y=vBottom(doc,y,f); y+=2.5;
-      y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=1.7;
-      if(y+4.2>pageBottom) return {fits:false,y};
-      vFooter(doc,y,company);
-      return {fits:true,y};
-    }
+    function vFixedLegalNote(doc,y){
+const text='OBSERVACIONES: Si pasados 30 días no se retiran los materiales sustituidos, podrán ser eliminados. Los materiales de instalación que son objeto de esta garantía sólo serán reparados o sustituidos. Para cualquier reclamación o consulta deberán presentar la factura correspondiente, debidamente sellada por el instalador. 2 años.';
+doc.setFont('helvetica','normal');doc.setFontSize(5.2);doc.setTextColor(...VPDF.muted);
+const lines=doc.splitTextToSize(text,vContentW()-5),lineH=2.05,h=3.4+(lines.length*lineH);
+doc.setDrawColor(220,228,223);doc.setFillColor(250,252,251);
+doc.roundedRect(VPDF.m,y,vContentW(),h,1.2,1.2,'FD');
+doc.text(lines,VPDF.m+2.5,y+3.2,{lineHeightFactor:1.15});
+return y+h;
+}
+async function renderFinal(y){
+y+=2.2;y=vBottom(doc,y,f);y+=2.5;y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=1.7;
+const legalBottom=vFixedLegalNote(doc,y);
+if(legalBottom+5.4>pageBottom)return {fits:false,y};
+y=legalBottom+1.2;vFooter(doc,y,company);return {fits:true,y};
+}
 
     // 1) Intentar una sola página.
     // Reducimos ÚNICAMENTE filas vacías: 10 -> ... -> 5.
@@ -1774,8 +1815,26 @@
     const cw=(vContentW()-6)/2; vals.forEach((r,i)=>{const c=i%2,rr=Math.floor(i/2),x=VPDF.m+3+c*cw,yy=y+10.0+rr*5.45;vLabel(doc,r[0],x,yy);vText(doc,r[1]||'',x+30,yy,7.7,'normal',{maxWidth:cw-32});}); return y+h;
   }
   function vCheck(doc,x,y,checked){doc.setDrawColor(...VPDF.muted);doc.setLineWidth(.25);if(checked){doc.setFillColor(...VPDF.green);doc.rect(x,y,3,3,'FD');doc.setDrawColor(255,255,255);doc.setLineWidth(.35);doc.line(x+.6,y+1.6,x+1.3,y+2.3);doc.line(x+1.3,y+2.3,x+2.5,y+.7);}else doc.rect(x,y,3,3);}
-  function vGroup(doc,x,y,w,title,items,f){const h=22;vBox(doc,x,y,w,h);vLabel(doc,title,x+2.5,y+4.3);items.forEach((it,i)=>{const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+9.2+row*4.3;vCheck(doc,cx,cy-2.5,!!f[it[0]]);vText(doc,it[1],cx+5,cy,7.1);});return h;}
-  function vServiceGroups(doc,y,f,company){const gap=3,w=(vContentW()-gap)/2;const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];const work=workTypesForCompany(company);vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);return y+22;}
+  function vGroup(doc,x,y,w,title,items,f){
+    const rows=Math.ceil(items.length/2);
+    const h=Math.max(22,10.0+rows*4.3);
+    vBox(doc,x,y,w,h);
+    vLabel(doc,title,x+2.5,y+4.3);
+    items.forEach((it,i)=>{
+      const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+9.2+row*4.3;
+      vCheck(doc,cx,cy-2.5,!!f[it[0]]);
+      vText(doc,it[1],cx+5,cy,7.1);
+    });
+    return h;
+  }
+  function vServiceGroups(doc,y,f,company){
+    const gap=3,w=(vContentW()-gap)/2;
+    const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];
+    const work=workTypesForCompany(company);
+    const reqH=vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);
+    const workH=vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);
+    return y+Math.max(reqH,workH);
+  }
   function vDescription(doc,y,f){
     const title='DESCRIPCIÓN DEL SERVICIO SOLICITADO';
     const x=VPDF.m, width=vContentW();
