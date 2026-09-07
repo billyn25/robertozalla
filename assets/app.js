@@ -1537,51 +1537,79 @@
 
     const rows=(data.items||[]).filter(i=>[i.qty,i.concept,i.price,i.amount].some(v=>String(v||'').trim()));
 
-    // Espacio final real para cobro, totales, conformidad, firmas y pie.
-    const finalNeed=96;
+    // Zona inferior completa del documento.
+    // Dejamos un pequeño margen de seguridad, pero sin desperdiciar altura.
+    const finalNeed=93;
     const tableLimit=pageBottom-finalNeed;
 
-    // Las filas VACÍAS son flexibles: 10 si cabe, luego 9, luego 8.
-    // Las filas con datos nunca se eliminan.
-    const visualRows=vChooseVisualRows(y,tableLimit,rows.length);
-    const table=vItems(doc,y,rows,tableLimit,visualRows);
+    let visualRows=vChooseVisualRows(y,tableLimit,rows.length);
+
+    // Si hay pocas líneas reales, las filas vacías son el "colchón" flexible:
+    // 10 -> 9 -> 8 -> 7 -> 6 -> 5 antes de pensar en página 2.
+    visualRows=Math.max(rows.length,Math.min(10,Math.max(5,visualRows)));
+
+    let table=vItems(doc,y,rows,tableLimit,visualRows);
     y=table.y;
 
     if(!table.remaining.length && y+finalNeed<=pageBottom){
-      y+=2.5;
-      y=vBottom(doc,y,f); y+=2.8;
-      y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=2;
+      y+=2.2;
+      y=vBottom(doc,y,f); y+=2.5;
+      y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=1.7;
 
-      if(y+4.5>pageBottom){
-        throw new Error('El contenido final supera el área segura del A4.');
+      if(y+4.2<=pageBottom){
+        vFooter(doc,y,company);
+        if(visualRows<10){
+          showToast(`PDF ajustado a ${visualRows} filas de conceptos para aprovechar el A4.`);
+        }
+        return;
       }
-
-      vFooter(doc,y,company);
-
-      // Aviso solo si se han reducido filas vacías del diseño habitual.
-      if(visualRows<10 && visualRows>=8){
-        showToast(`PDF ajustado a ${visualRows} filas de conceptos para mantener todo dentro del A4.`);
-      }
-      return;
     }
 
-    // Si ni reduciendo filas vacías cabe, página 2 de forma controlada.
+    // Si el cálculo final quedó muy justo, reintentamos página 1 desde cero
+    // reduciendo SOLO filas vacías hasta 5.
+    if(rows.length<=5){
+      for(let candidate=Math.min(visualRows-1,9); candidate>=5; candidate--){
+        // No podemos borrar lo ya dibujado de forma fiable: reconstruimos la página.
+        doc.deletePage(doc.getNumberOfPages());
+        doc.addPage();
+        y=VPDF.m;
+        y=await vHeader(doc,y,f,company); y+=2.2;
+        y=vClient(doc,y,f); y+=2.2;
+        y=vServiceGroups(doc,y,f,company); y+=2.2;
+        y=vDescription(doc,y,f); y+=2.4;
+
+        table=vItems(doc,y,rows,tableLimit,candidate);
+        y=table.y;
+
+        if(!table.remaining.length && y+finalNeed<=pageBottom){
+          y+=2.2;
+          y=vBottom(doc,y,f); y+=2.5;
+          y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=1.7;
+          if(y+4.2<=pageBottom){
+            vFooter(doc,y,company);
+            showToast(`PDF ajustado a ${candidate} filas de conceptos para mantener una sola página.`);
+            return;
+          }
+        }
+      }
+    }
+
+    // Solo aquí usamos página 2: ya no queda espacio vacío razonable que sacrificar.
     doc.addPage(); y=VPDF.m;
-    const page2FinalNeed=96;
+    const page2FinalNeed=93;
     const page2TableLimit=pageBottom-page2FinalNeed;
 
     if(table.remaining.length){
       y=vItemsPage2(doc,y,table.remaining,page2TableLimit);
-      y+=2.5;
+      y+=2.2;
     }
 
-    y=vBottom(doc,y,f); y+=2.8;
-    y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=2;
+    y=vBottom(doc,y,f); y+=2.5;
+    y=await vConsentSignatures(doc,y,f,data.signatures||{}); y+=1.7;
 
-    if(y+4.5>pageBottom){
+    if(y+4.2>pageBottom){
       throw new Error('El documento supera dos páginas A4. Reduce texto o líneas de concepto.');
     }
-
     vFooter(doc,y,company);
   }
 
@@ -1751,14 +1779,13 @@
   function vChooseVisualRows(startY,tableLimit,realRows){
     const headerH=5.6,rowH=5.35;
     const available=Math.max(0,tableLimit-startY-headerH);
-    const fit=Math.floor(available/rowH);
+    const fit=Math.max(0,Math.floor(available/rowH));
+    const minimumVisual=5;
 
-    // Never hide real rows. Empty visual rows are the flexible part.
-    const minNeeded=Math.max(1,realRows);
-    if(fit>=10) return 10;
-    if(fit>=9) return Math.max(9,minNeeded);
-    if(fit>=8) return Math.max(8,minNeeded);
-    return Math.max(minNeeded,Math.max(0,fit));
+    // Si hay más de 5 líneas reales, se respetan todas.
+    // Si hay menos, usamos entre 5 y 10 filas según el espacio físico disponible.
+    const desired=Math.min(10,Math.max(minimumVisual,fit));
+    return Math.max(realRows,desired);
   }
 
   function vItems(doc,y,items,availableBottom=VPDF.h-VPDF.m,minVisualRows=0){
