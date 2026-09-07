@@ -1547,6 +1547,12 @@
     const metaX=VPDF.w-VPDF.m-metaW;
     let tx=VPDF.m;
     let logoData=null;
+    const activityType=getActivityIconType(company);
+
+    if(!company?.logo && activityType){
+      vDrawActivityIcon(doc,activityType,VPDF.m,y+4.0,7.5);
+      tx=VPDF.m+10.5;
+    }
 
     if(company?.logo){
       try{
