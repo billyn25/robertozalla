@@ -1913,3 +1913,68 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     display:none !important;
   }
 }
+
+
+/* =========================================================
+   V88 — ajuste mínimo móvil sobre V82
+   1) suaviza líneas negras
+   2) extras con apariencia editable
+   ========================================================= */
+@media screen and (max-width:760px){
+
+  /* Sustituir líneas negras/duras por divisores suaves en la hoja móvil */
+  .paper .boxed,
+  .paper .client-box,
+  .paper .check-box,
+  .paper .service-description,
+  .paper .payment-row,
+  .paper .bank-row,
+  .paper .time-row,
+  .paper .observations,
+  .paper .totals-panel,
+  .paper .consent-box,
+  .paper .signature-box,
+  .paper .items-table,
+  .paper .items-table th,
+  .paper .items-table td,
+  .paper .field,
+  .paper .total-row,
+  .paper .vat-editor,
+  .paper .total-row--vat output{
+    border-color:#d6dfda !important;
+  }
+
+  /* Separadores internos que antes se veían negros */
+  .paper .payment-row label + label,
+  .paper .time-row label + label,
+  .paper .total-row,
+  .paper .items-table th,
+  .paper .items-table td{
+    border-color:#e2e9e5 !important;
+  }
+
+  /* Extras editables: mismo lenguaje visual que el resto de campos */
+  #materialsAmount,
+  #laborAmount,
+  #travelAmount,
+  #extraAmount{
+    background:#f8fbf9 !important;
+    border:1px solid #cfdad4 !important;
+    border-radius:8px !important;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.5) !important;
+    min-height:40px !important;
+    padding:8px 10px !important;
+    text-align:right !important;
+    font-size:16px !important;
+  }
+
+  #materialsAmount:focus,
+  #laborAmount:focus,
+  #travelAmount:focus,
+  #extraAmount:focus{
+    outline:none !important;
+    border-color:#68a984 !important;
+    box-shadow:0 0 0 2px rgba(39,132,78,.08) !important;
+    background:#fff !important;
+  }
+}
