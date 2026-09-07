@@ -1782,3 +1782,134 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     line-height:1.4 !important;
   }
 }
+
+
+/* V77 — acceso PDF fijo en móvil */
+.mobile-pdf-fab{
+  display:none;
+}
+
+@media screen and (max-width:760px){
+  .mobile-pdf-fab{
+    position:fixed;
+    z-index:9998;
+    right:14px;
+    bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    min-width:66px;
+    height:46px;
+    padding:0 14px;
+    border:1px solid rgba(255,255,255,.22);
+    border-radius:15px;
+    background:#238b57;
+    color:#fff;
+    font:700 15px/1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    box-shadow:0 5px 18px rgba(20,55,38,.24);
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+  }
+  .mobile-pdf-fab svg{
+    width:19px;
+    height:19px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  .mobile-pdf-fab:active{
+    transform:translateY(1px);
+  }
+}
+
+
+/* V78 móvil — un solo PDF fijo y más espacio para el selector de empresa */
+@media screen and (max-width:760px){
+  #pdfBtn{
+    display:none !important;
+  }
+
+  .appbar__company{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+  }
+
+  .appbar__company select{
+    width:100% !important;
+    max-width:none !important;
+  }
+
+  .appbar__actions{
+    flex:0 0 auto !important;
+  }
+}
+
+
+/* V79 — botón PDF flotante realmente interactivo */
+@media screen and (max-width:760px){
+  #mobilePdfFab{
+    pointer-events:auto !important;
+    cursor:pointer !important;
+    user-select:none;
+    -webkit-user-select:none;
+    position:fixed !important;
+    z-index:2147483000 !important;
+  }
+  #mobilePdfFab:disabled{
+    opacity:.72;
+    pointer-events:none;
+  }
+}
+
+
+/* V80 móvil — elimina la columna fantasma del PDF superior */
+@media screen and (max-width:760px){
+  .appbar{
+    grid-template-columns:minmax(0,1fr) repeat(4,36px) !important;
+    grid-template-rows:40px !important;
+  }
+
+  /* El bloque Empresa ocupa la primera columna; sus hijos se integran en la rejilla. */
+  .appbar__company{
+    display:contents !important;
+  }
+
+  .appbar__company label{
+    display:none !important;
+  }
+
+  #companySelect{
+    grid-column:1 !important;
+    grid-row:1 !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+  }
+
+  #manageCompaniesBtn{
+    grid-column:2 !important;
+    grid-row:1 !important;
+  }
+
+  #newDocumentBtn{
+    grid-column:3 !important;
+    grid-row:1 !important;
+  }
+
+  #documentsBtn{
+    grid-column:4 !important;
+    grid-row:1 !important;
+  }
+
+  #saveDocumentBtn{
+    grid-column:5 !important;
+    grid-row:1 !important;
+  }
+
+  #pdfBtn{
+    display:none !important;
+  }
+}
