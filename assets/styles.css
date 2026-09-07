@@ -1491,21 +1491,6 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 
 /* CONSOLIDADO V58 — ajustes verificados sobre esta base */
 
-/* Selector empresa: cerrado conserva el aspecto oscuro; opciones desplegadas legibles. */
-#companySelect option {
-  color:#18251f !important;
-  background:#ffffff !important;
-}
-
-/* PC: ampliar únicamente el lienzo/documento un 5%, no la barra ni los controles. */
-@media (min-width: 900px) {
-  .paper {
-    transform:scale(1.05);
-    transform-origin:top center;
-    margin-bottom:5%;
-  }
-}
-
 /* Móvil: fechas. Misma geometría existente; solo alineación del contenido. */
 @media (max-width:760px) {
   #documentDate,
@@ -1529,5 +1514,52 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     justify-content:center !important;
     height:100% !important;
     padding:0 !important;
+  }
+}
+
+
+/* V59 SELECT EMPRESA PC — desplegable nativo legible */
+@media (min-width:761px){
+  #companySelect{
+    color:#f4f8f6 !important;
+    background:#223029 !important;
+  }
+
+  /* Chrome/Edge/Windows toman el esquema del control nativo.
+     Forzamos menú desplegable claro sin cambiar el aspecto cerrado. */
+  #companySelect:focus{
+    color-scheme:light !important;
+  }
+
+  #companySelect option{
+    color:#18251f !important;
+    background-color:#ffffff !important;
+    font-weight:500 !important;
+  }
+}
+
+/* Fallback para motores que aplican el esquema al select incluso sin foco */
+#companySelect{
+  --select-option-text:#18251f;
+}
+#companySelect option,
+#companySelect optgroup{
+  color:#18251f !important;
+  background:#ffffff !important;
+}
+
+
+/* V60 PC — hoja A4 más grande en pantalla, sin transform */
+@media screen and (min-width:900px){
+  .workspace{
+    padding-left:24px !important;
+    padding-right:24px !important;
+  }
+
+  .paper{
+    width:min(96vw, 1110px) !important;
+    max-width:none !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
   }
 }
