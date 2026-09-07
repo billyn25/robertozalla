@@ -1916,65 +1916,125 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 
 
 /* =========================================================
-   V88 — ajuste mínimo móvil sobre V82
-   1) suaviza líneas negras
-   2) extras con apariencia editable
+   V89 — LIMPIEZA MÓVIL SOBRE V82
+   Sin rediseño: bordes suaves + IBAN coherente + extras editables
    ========================================================= */
 @media screen and (max-width:760px){
 
-  /* Sustituir líneas negras/duras por divisores suaves en la hoja móvil */
+  /* 1. Unificar TODAS las líneas estructurales visibles de la hoja.
+     No cambia geometría ni distribución. */
+  .paper fieldset,
   .paper .boxed,
+  .paper .document-meta,
+  .paper .document-meta > label,
   .paper .client-box,
+  .paper .service-boxes,
   .paper .check-box,
   .paper .service-description,
-  .paper .payment-row,
-  .paper .bank-row,
-  .paper .time-row,
-  .paper .observations,
-  .paper .totals-panel,
-  .paper .consent-box,
-  .paper .signature-box,
   .paper .items-table,
+  .paper .items-table thead,
+  .paper .items-table tbody,
+  .paper .items-table tr,
   .paper .items-table th,
   .paper .items-table td,
-  .paper .field,
+  .paper .payment-row,
+  .paper .payment-row > label,
+  .paper .bank-row,
+  .paper .bank-row > label,
+  .paper .time-row,
+  .paper .time-row > label,
+  .paper .observations,
+  .paper .totals-panel,
   .paper .total-row,
-  .paper .vat-editor,
-  .paper .total-row--vat output{
-    border-color:#d6dfda !important;
+  .paper .consent-box,
+  .paper .signature-box{
+    border-color:#cfdad4 !important;
   }
 
-  /* Separadores internos que antes se veían negros */
-  .paper .payment-row label + label,
-  .paper .time-row label + label,
-  .paper .total-row,
+  /* Separadores internos aún más discretos */
+  .paper .document-meta > label + label,
+  .paper .payment-row > label + label,
+  .paper .time-row > label + label,
   .paper .items-table th,
-  .paper .items-table td{
-    border-color:#e2e9e5 !important;
+  .paper .items-table td,
+  .paper .total-row{
+    border-color:#dde5e0 !important;
   }
 
-  /* Extras editables: mismo lenguaje visual que el resto de campos */
-  #materialsAmount,
-  #laborAmount,
-  #travelAmount,
-  #extraAmount{
-    background:#f8fbf9 !important;
+  /* Legends: evitar que parezca una raya negra cortada */
+  .paper fieldset > legend{
+    color:#26372e !important;
+  }
+
+  /* 2. CUENTA / IBAN como los bloques RECIBÍ / FECHA:
+        etiqueta arriba + campo completo debajo. */
+  .paper .bank-row{
+    display:block !important;
+  }
+
+  .paper .bank-row > label{
+    display:block !important;
+    width:100% !important;
+    padding:0 !important;
+    border:0 !important;
+  }
+
+  .paper .bank-row > label > span{
+    display:block !important;
+    width:100% !important;
+    padding:8px 10px 5px !important;
+    border-bottom:1px solid #dde5e0 !important;
+    background:#f7f9f8 !important;
+    color:#304238 !important;
+    font-size:10px !important;
+    font-weight:800 !important;
+  }
+
+  .paper .bank-row > label > input{
+    display:block !important;
+    width:calc(100% - 16px) !important;
+    min-height:50px !important;
+    margin:8px !important;
+    padding:9px 11px !important;
     border:1px solid #cfdad4 !important;
-    border-radius:8px !important;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.5) !important;
-    min-height:40px !important;
+    border-radius:9px !important;
+    background:#fbfdfc !important;
+  }
+
+  /* 3. Materiales / mano de obra / desplazamiento / plus:
+        mismos indicadores visuales de campo editable. */
+  .paper #materialsAmount,
+  .paper #laborAmount,
+  .paper #travelAmount,
+  .paper #extraAmount{
+    display:block !important;
+    width:calc(100% - 16px) !important;
+    min-height:42px !important;
+    margin:7px 8px !important;
     padding:8px 10px !important;
+    border:1px solid #cfdad4 !important;
+    border-radius:9px !important;
+    background:#fbfdfc !important;
+    box-shadow:none !important;
     text-align:right !important;
     font-size:16px !important;
   }
 
-  #materialsAmount:focus,
-  #laborAmount:focus,
-  #travelAmount:focus,
-  #extraAmount:focus{
+  .paper #materialsAmount:focus,
+  .paper #laborAmount:focus,
+  .paper #travelAmount:focus,
+  .paper #extraAmount:focus,
+  .paper .bank-row input:focus{
     outline:none !important;
-    border-color:#68a984 !important;
-    box-shadow:0 0 0 2px rgba(39,132,78,.08) !important;
+    border-color:#69a883 !important;
+    box-shadow:0 0 0 2px rgba(36,132,78,.08) !important;
     background:#fff !important;
+  }
+
+  /* Los totales calculados conservan su aspecto propio:
+     no añadirles burbuja de edición. */
+  .paper #subtotalAmount,
+  .paper #grandTotalAmount{
+    box-shadow:none !important;
   }
 }
