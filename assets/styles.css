@@ -1487,82 +1487,47 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 }
 
 
-/* V56 FECHAS iPHONE: centrado vertical REAL del contenido nativo de type=date */
-@media (max-width:760px){
-  #documentDate,
-  #serviceDate{
-    box-sizing:border-box !important;
-    height:58px !important;
-    min-height:58px !important;
-    padding:0 14px !important;
-    line-height:58px !important;
-    text-align:center !important;
-    vertical-align:middle !important;
-  }
 
-  #documentDate::-webkit-datetime-edit,
-  #serviceDate::-webkit-datetime-edit{
-    display:block !important;
-    box-sizing:border-box !important;
-    height:58px !important;
-    line-height:58px !important;
-    padding:0 !important;
-    text-align:center !important;
-  }
 
-  #documentDate::-webkit-date-and-time-value,
-  #serviceDate::-webkit-date-and-time-value{
-    display:block !important;
-    height:58px !important;
-    line-height:58px !important;
-    padding:0 !important;
-    margin:0 !important;
-    text-align:center !important;
-  }
+/* CONSOLIDADO V58 — ajustes verificados sobre esta base */
 
-  #documentDate::-webkit-datetime-edit-fields-wrapper,
-  #serviceDate::-webkit-datetime-edit-fields-wrapper{
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    height:58px !important;
-    padding:0 !important;
+/* Selector empresa: cerrado conserva el aspecto oscuro; opciones desplegadas legibles. */
+#companySelect option {
+  color:#18251f !important;
+  background:#ffffff !important;
+}
+
+/* PC: ampliar únicamente el lienzo/documento un 5%, no la barra ni los controles. */
+@media (min-width: 900px) {
+  .paper {
+    transform:scale(1.05);
+    transform-origin:top center;
+    margin-bottom:5%;
   }
 }
 
-
-/* V57 SEGUNDA FECHA: conserva tamaño original y centra solo el texto */
-@media (max-width:760px){
-  #serviceDate{
-    display:block !important;
-    width:calc(100% - 16px) !important;
-    max-width:calc(100% - 16px) !important;
-    min-width:0 !important;
-    height:50px !important;
-    min-height:50px !important;
-    margin:6px 8px 8px !important;
-    padding:0 12px !important;
-    box-sizing:border-box !important;
+/* Móvil: fechas. Misma geometría existente; solo alineación del contenido. */
+@media (max-width:760px) {
+  #documentDate,
+  #serviceDate {
     text-align:center !important;
-    line-height:normal !important;
   }
-
-  #serviceDate::-webkit-date-and-time-value{
+  #documentDate::-webkit-date-and-time-value,
+  #serviceDate::-webkit-date-and-time-value {
     text-align:center !important;
     margin:0 !important;
-    padding:0 !important;
   }
-
-  #serviceDate::-webkit-datetime-edit{
+  #documentDate::-webkit-datetime-edit,
+  #serviceDate::-webkit-datetime-edit {
     padding:0 !important;
     text-align:center !important;
   }
-
-  #serviceDate::-webkit-datetime-edit-fields-wrapper{
+  #documentDate::-webkit-datetime-edit-fields-wrapper,
+  #serviceDate::-webkit-datetime-edit-fields-wrapper {
     display:flex !important;
     align-items:center !important;
     justify-content:center !important;
-    height:50px !important;
+    height:100% !important;
     padding:0 !important;
   }
 }
