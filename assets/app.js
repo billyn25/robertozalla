@@ -1664,10 +1664,53 @@
     const raw=String(value||'').replace(/\r\n?/g,'\n');
     const out=[];
     raw.split('\n').forEach(part=>{
-      if(part===''){ out.push(''); return; }
-      const wrapped=doc.splitTextToSize(part,maxWidth);
-      if(Array.isArray(wrapped)) out.push(...wrapped);
-      else out.push(String(wrapped));
+      if(part===''){
+        out.push('');
+        return;
+      }
+
+      // jsPDF puede dejar una palabra/frase demasiado larga sin cortar.
+      // Primero envolvemos normalmente y después verificamos cada línea.
+      const firstPass=doc.splitTextToSize(part,maxWidth);
+      const lines=Array.isArray(firstPass)?firstPass:[String(firstPass)];
+
+      lines.forEach(line=>{
+        let current=String(line);
+        if(doc.getTextWidth(current)<=maxWidth){
+          out.push(current);
+          return;
+        }
+
+        // Fallback robusto: construir la línea palabra a palabra.
+        const words=current.split(/\s+/);
+        let row='';
+        words.forEach(word=>{
+          const candidate=row ? `${row} ${word}` : word;
+          if(doc.getTextWidth(candidate)<=maxWidth){
+            row=candidate;
+          }else{
+            if(row) out.push(row);
+
+            // Si una única palabra supera el ancho, cortarla por caracteres.
+            if(doc.getTextWidth(word)>maxWidth){
+              let chunk='';
+              for(const ch of word){
+                const next=chunk+ch;
+                if(doc.getTextWidth(next)>maxWidth && chunk){
+                  out.push(chunk);
+                  chunk=ch;
+                }else{
+                  chunk=next;
+                }
+              }
+              row=chunk;
+            }else{
+              row=word;
+            }
+          }
+        });
+        if(row) out.push(row);
+      });
     });
     return out;
   }
@@ -1684,22 +1727,29 @@
     const title='DESCRIPCIÓN DEL SERVICIO SOLICITADO';
     const x=VPDF.m;
     const width=vContentW();
-    const maxTextWidth=width-5;
+    const padX=2.5;
+    const maxTextWidth=width-(padX*2);
     const lines=vServiceTextLines(doc,f.serviceDescription||'',maxTextWidth);
-    const lineH=3.6;
-    const contentH=Math.max(10, lines.length ? lines.length*lineH+4.5 : 10);
-    const h=5.8+contentH;
+
+    const fontSize=7.5;
+    const lineH=3.7;
+    const textTop=8.0;
+    const bottomPad=3.2;
+    const h=Math.max(14, textTop + Math.max(1,lines.length)*lineH + bottomPad);
 
     vBox(doc,x,y,width,h);
-    vLabel(doc,title,x+2.5,y+3.6);
+    vLabel(doc,title,x+padX,y+3.6);
 
     if(lines.length){
       doc.setFont('helvetica','normal');
-      doc.setFontSize(7.5);
+      doc.setFontSize(fontSize);
       doc.setTextColor(...VPDF.ink);
-      doc.text(lines,x+2.5,y+8.0,{lineHeightFactor:1.15});
+      let ty=y+textTop;
+      for(const line of lines){
+        if(line!=='') doc.text(line,x+padX,ty);
+        ty+=lineH;
+      }
     }
-
     return y+h;
   }
 
