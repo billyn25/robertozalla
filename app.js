@@ -1940,8 +1940,7 @@ y=legalBottom+1.2;vFooter(doc,y,company);return {fits:true,y};
     const payH=11.5;vBox(doc,VPDF.m,ly,leftW,payH);const third=leftW/3;
     [['Anotaciones para cobro',f.collectionNotes],['Forma de pago',f.paymentMethod],['Recibí',f.receivedBy]].forEach((r,i)=>{if(i){doc.setDrawColor(...VPDF.line);doc.line(VPDF.m+i*third,ly,VPDF.m+i*third,ly+payH);}vLabel(doc,r[0],VPDF.m+i*third+2,ly+3.5);vText(doc,r[1]||'',VPDF.m+i*third+2,ly+8,7.3,'normal',{maxWidth:third-4});});ly+=payH+1.5; const ibanH=9;vBox(doc,VPDF.m,ly,leftW,ibanH);vLabel(doc,'Cuenta / IBAN',VPDF.m+2,ly+3.3);vText(doc,f.bankAccount||'',VPDF.m+2,ly+7.3,7.6,'normal',{maxWidth:leftW-4});ly+=ibanH+1.5; const timeH=9;vBox(doc,VPDF.m,ly,leftW,timeH);const t3=leftW/3;[['Fecha',formatDateForDisplay(f.serviceDate)],['Llegada',f.arrivalTime],['Salida',f.departureTime]].forEach((r,i)=>{if(i){doc.setDrawColor(...VPDF.line);doc.line(VPDF.m+i*t3,ly,VPDF.m+i*t3,ly+timeH);}vLabel(doc,r[0],VPDF.m+i*t3+2,ly+3.3);vText(doc,r[1]||'',VPDF.m+i*t3+2,ly+7.2,7.4);});ly+=timeH+1.5; const obsH=15;vBox(doc,VPDF.m,ly,leftW,obsH);vLabel(doc,'Observaciones generales',VPDF.m+2,ly+3.5);const obs=String(f.generalObservations||'').trim();if(obs){const lines=doc.splitTextToSize(obs,leftW-4).slice(0,3);vText(doc,lines,VPDF.m+2,ly+7.3,7.2);}ly+=obsH;
 
-    const rx=VPDF.m+leftW+gap;vTotals(doc,rx,y,rightW,f);
-    return Math.max(ly,y+46.5);
+    const rx=VPDF.m+leftW+gap; const totalsBottom=vTotals(doc,rx,y,rightW,f); return Math.max(ly,totalsBottom);
   }
   function vTotals(doc,x,y,w,f){
     let cy=y;const split=x+w-24;
