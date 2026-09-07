@@ -1584,7 +1584,7 @@
 
     // Altura REAL reservada para la parte inferior:
     // vBottom 52 + separaciones + consentimiento/firmas 36 + pie + margen.
-    const finalReserve=101;
+    const finalReserve=105;
 
     async function resetPageOne(){
       while(doc.getNumberOfPages()>1) doc.deletePage(doc.getNumberOfPages());
@@ -1602,21 +1602,7 @@
       return y;
     }
 
-    function vFixedLegalNote(doc,y){
-const text='OBSERVACIONES: Si pasados 30 días no se retiran los materiales sustituidos, podrán ser eliminados. Los materiales de instalación que son objeto de esta garantía sólo serán reparados o sustituidos. Para cualquier reclamación o consulta deberán presentar la factura correspondiente, debidamente sellada por el instalador. 2 años.';
-doc.setFont('helvetica','normal');doc.setFontSize(5.2);doc.setTextColor(...VPDF.muted);
-const lines=doc.splitTextToSize(text,vContentW()-5),lineH=2.05,h=3.4+(lines.length*lineH);
-doc.setDrawColor(220,228,223);doc.setFillColor(250,252,251);
-doc.roundedRect(VPDF.m,y,vContentW(),h,1.2,1.2,'FD');
-doc.text(lines,VPDF.m+2.5,y+3.2,{lineHeightFactor:1.15});
-return y+h;
-}
-async function renderFinal(y){
-y+=2.2;y=vBottom(doc,y,f);y+=2.5;y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=1.7;
-const legalBottom=vFixedLegalNote(doc,y);
-if(legalBottom+5.4>pageBottom)return {fits:false,y};
-y=legalBottom+1.2;vFooter(doc,y,company);return {fits:true,y};
-}
+    async function renderFinal(y){y+=2.0;y=vBottom(doc,y,f);y+=1.8;y=vRepairWarrantyLine(doc,y,company);y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=1.2;if(y+4.2>pageBottom)return {fits:false,y};vFooter(doc,y,company);return {fits:true,y};}
 
     // 1) Intentar una sola página.
     // Reducimos ÚNICAMENTE filas vacías: 10 -> ... -> 5.
@@ -1834,7 +1820,16 @@ y=legalBottom+1.2;vFooter(doc,y,company);return {fits:true,y};
     const workH=vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);
     return y+Math.max(reqH,workH);
   }
-  function vDescription(doc,y,f){
+  function vAntennaWarrantyNotice(doc,y,company){
+if(!ANTENNA_COMPANY_IDS.has(company?.id))return y;
+const text='Quedan excluidos de la garantía los trabajos en los que exista manipulación posterior sin autorización de ANTENA CITY, así como los problemas ocasionados por el mal uso de los elementos que son objetos de esta garantía tanto como fenómenos atmosféricos, rayos, alteraciones eléctricas y cortocircuitos. Es imprescindible la presentación de este documento para cualquier reclamación o consulta relacionada con el mismo. Garantía de instalación 2 años.';
+doc.setFont('helvetica','normal');doc.setFontSize(4.8);doc.setTextColor(...VPDF.muted);
+const lines=doc.splitTextToSize(text,vContentW()-5),h=2.8+lines.length*1.72;
+doc.setDrawColor(...VPDF.line);doc.rect(VPDF.m,y,vContentW(),h);
+doc.text(lines,VPDF.m+2.5,y+2.8,{lineHeightFactor:1.05});
+doc.setTextColor(...VPDF.ink);return y+h;
+}
+function vDescription(doc,y,f){
     const title='DESCRIPCIÓN DEL SERVICIO SOLICITADO';
     const x=VPDF.m, width=vContentW();
     const padX=3.2, fontSize=7.35;
@@ -1951,7 +1946,13 @@ y=legalBottom+1.2;vFooter(doc,y,company);return {fits:true,y};
     doc.setTextColor(...VPDF.ink);return cy;
   }
 
-  async function vConsentSignatures(doc,y,f,sigs){
+  function vRepairWarrantyLine(doc,y,company){
+if(!ANTENNA_COMPANY_IDS.has(company?.id))return y;
+doc.setFont('helvetica','normal');doc.setFontSize(5.0);doc.setTextColor(...VPDF.muted);
+doc.text('Todas las reparaciones tienen una garantía de 3 meses, sobre piezas y mano de obra, de la reparación efectuada.',VPDF.m,y,{maxWidth:vContentW()});
+doc.setTextColor(...VPDF.ink);return y+2.8;
+}
+async function vConsentSignatures(doc,y,f,sigs){
     const consentH=11;vBox(doc,VPDF.m,y,vContentW(),consentH);vCheck(doc,VPDF.m+2.5,y+2.2,!!f.waivesEstimate);vText(doc,'Renuncia a presupuesto previo y autoriza la reparación',VPDF.m+7,y+4.5,6.8);vCheck(doc,VPDF.m+2.5,y+6.3,!!f.repairAccepted);vText(doc,'Conforme con la reparación / presupuesto',VPDF.m+7,y+8.6,6.8);vLabel(doc,'Presupuesto n.º',VPDF.m+125,y+3.8);vText(doc,f.acceptedEstimateNumber||'',VPDF.m+125,y+8.2,7.5);
     y+=consentH+2;const gap=3,w=(vContentW()-gap)/2,h=20;await vSignature(doc,VPDF.m,y,w,h,'Firma del cliente',sigs.clientSignature);await vSignature(doc,VPDF.m+w+gap,y,w,h,'Recibí / firma del técnico',sigs.technicianSignature);return y+h;
   }
