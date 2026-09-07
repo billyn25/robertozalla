@@ -31,7 +31,7 @@
       phone: '641 58 93 94 (24h)',
       email: 'antenascity@gmail.com',
       slogan: ANTENNA_DEFAULT_SLOGAN,
-      owner: 'Roberto Fuentes González',
+      owner: '',
       taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     },
     {
@@ -40,7 +40,7 @@
       phone: '670 042 626 (24h)',
       email: 'antenasabaso@gmail.com',
       slogan: ANTENNA_DEFAULT_SLOGAN,
-      owner: 'Roberto Fuentes González',
+      owner: '',
       taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     },
     {
@@ -49,7 +49,7 @@
       phone: '670 042 626 (24h)',
       email: 'antenaszalla@gmail.com',
       slogan: ANTENNA_DEFAULT_SLOGAN,
-      owner: 'Roberto Fuentes González',
+      owner: '',
       taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     },
     {
@@ -58,7 +58,7 @@
       phone: '641 58 93 94',
       email: '',
       slogan: 'Limpieza y mantenimiento de canalones y tejados · Reparación de goteras, filtraciones e impermeabilización de cubiertas',
-      owner: 'Roberto Fuentes González',
+      owner: '',
       taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     }
   ];
