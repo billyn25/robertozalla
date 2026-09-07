@@ -1686,3 +1686,26 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     margin:0 !important;
   }
 }
+
+
+/* V65 PC — modal de documentos guardados más amplio */
+@media screen and (min-width:900px){
+  #documentsModal .modal__dialog--documents{
+    width:min(94vw, 1180px) !important;
+    max-width:1180px !important;
+    max-height:88vh !important;
+  }
+
+  #documentsModal .documents-list{
+    max-height:calc(88vh - 170px) !important;
+  }
+}
+
+/* V65 — SVG de antena integrado en la cabecera de las empresas de antenas */
+.company-logo-placeholder{
+  color:#203f31;
+}
+.company-logo-placeholder svg{
+  width:78% !important;
+  height:78% !important;
+}

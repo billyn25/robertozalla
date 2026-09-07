@@ -47,7 +47,7 @@
       id: 'company-antenas-zalla',
       name: 'ANTENAS ZALLA',
       phone: '670 042 626 (24h)',
-      email: 'antenasabaso@gmail.com',
+      email: 'antenaszalla@gmail.com',
       slogan: ANTENNA_DEFAULT_SLOGAN,
       owner: 'Roberto Fuentes González',
       taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
@@ -578,6 +578,11 @@
       if (['company-antena-city', 'company-antenas-abaso', 'company-antenas-zalla'].includes(defaultCompany.id)) {
         existing.slogan = ANTENNA_DEFAULT_SLOGAN;
       }
+      // Corrige solo el correo heredado/antiguo de Antenas Zalla.
+      if (defaultCompany.id === 'company-antenas-zalla' &&
+          (!existing.email || existing.email === 'antenasabaso@gmail.com')) {
+        existing.email = 'antenaszalla@gmail.com';
+      }
       // Migración muy conservadora de R.F.G.: solo corrige los valores de fábrica antiguos.
       // Si el usuario ya los editó, no se pisan sus datos.
       if (defaultCompany.id === 'company-rfg-servicios') {
@@ -959,6 +964,12 @@
 
     const logoWrap = document.getElementById('companyLogoWrap');
     const brand = document.getElementById('companyBrand');
+    const antennaCompanyIds = new Set([
+      'company-antena-city',
+      'company-antenas-abaso',
+      'company-antenas-zalla'
+    ]);
+
     if (company.logo) {
       els.companyLogo.src = company.logo;
       els.companyLogo.alt = `Logo de ${company.name}`;
@@ -967,7 +978,17 @@
       logoWrap.hidden = false;
       brand.classList.add('company-brand--has-logo');
       brand.classList.remove('company-brand--no-logo');
+    } else if (antennaCompanyIds.has(company.id)) {
+      // Icono SVG integrado: solo forma parte de la cabecera de las empresas de antenas.
+      els.companyLogo.removeAttribute('src');
+      els.companyLogo.alt = '';
+      els.companyLogo.hidden = true;
+      els.companyLogoPlaceholder.hidden = false;
+      logoWrap.hidden = false;
+      brand.classList.add('company-brand--has-logo');
+      brand.classList.remove('company-brand--no-logo');
     } else {
+      // R.F.G. y empresas personalizadas sin logo: cabecera limpia, sin icono provisional.
       els.companyLogo.removeAttribute('src');
       els.companyLogo.alt = '';
       els.companyLogo.hidden = true;
