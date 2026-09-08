@@ -1623,7 +1623,13 @@
       doc.setPage(1);
     }
 
-    async function renderTop(){ let y=VPDF.m; y=await vHeader(doc,y,f,company); y+=1.5; y=vClient(doc,y,f); y+=3.0; y=vServiceGroups(doc,y,f,company); y+=1.2; y=vAntennaWarrantyNotice(doc,y,company); y+=3.0; y=vDescription(doc,y,f); y+=3.0; return y; }
+    async function renderTop(){
+      let y=VPDF.m;
+      y=await vHeader(doc,y,f,company); y+=2.2;
+      y=vClient(doc,y,f); y+=2.2;
+      y=vServiceGroups(doc,y,f,company); y+=1.0; y=vAntennaWarrantyNotice(doc,y,company); y+=1.0; y=vDescription(doc,y,f); y+=2.4;
+      return y;
+    }
 
     async function renderFinal(y){y+=1.5;y=vBottom(doc,y,f);y+=1.5;y=vRepairWarrantyLine(doc,y,company);y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=1.0;if(y+4.2>pageBottom)return {fits:false,y};vFooter(doc,y,company);return {fits:true,y};}
 
@@ -1818,9 +1824,9 @@
     return out;
   }
 
-  function vClient(doc,y,f){ const h=31;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Datos del cliente',VPDF.m+2.8,y+5.2);
+  function vClient(doc,y,f){ const h=31;vBox(doc,VPDF.m,y,vContentW(),h);vLabel(doc,'Datos del cliente',VPDF.m+2.8,y+4.7);
     const vals=[['CLIENTE / EMPRESA',f.clientCompany],['NOMBRE',f.clientName],['TELÉFONO',f.clientPhone],['CORREO',f.clientEmail],['DIRECCIÓN',f.clientAddress],['POBLACIÓN',f.clientCity],['PROVINCIA',f.clientProvince],['NIF / DNI',f.clientTaxId]];
-    const cw=(vContentW()-6)/2; vals.forEach((r,i)=>{const c=i%2,rr=Math.floor(i/2),x=VPDF.m+3+c*cw,yy=y+8.8+rr*5.05;vLabel(doc,r[0],x,yy);vText(doc,r[1]||'',x+30,yy,7.5,'normal',{maxWidth:cw-32});}); return y+h;
+    const cw=(vContentW()-6)/2; vals.forEach((r,i)=>{const c=i%2,rr=Math.floor(i/2),x=VPDF.m+3+c*cw,yy=y+10.2+rr*4.55;vLabel(doc,r[0],x,yy);vText(doc,r[1]||'',x+30,yy,7.5,'normal',{maxWidth:cw-32});}); return y+h;
   }
   function vCheck(doc,x,y,checked){doc.setDrawColor(...VPDF.muted);doc.setLineWidth(.25);if(checked){doc.setFillColor(...VPDF.green);doc.rect(x,y,3,3,'FD');doc.setDrawColor(255,255,255);doc.setLineWidth(.35);doc.line(x+.6,y+1.6,x+1.3,y+2.3);doc.line(x+1.3,y+2.3,x+2.5,y+.7);}else doc.rect(x,y,3,3);}
   function vGroup(doc,x,y,w,title,items,f){
@@ -1829,7 +1835,7 @@
     vBox(doc,x,y,w,h);
     vLabel(doc,title,x+2.5,y+4.3);
     items.forEach((it,i)=>{
-      const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+9.2+row*4.3;
+      const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+10.4+row*4.0;
       vCheck(doc,cx,cy-2.5,!!f[it[0]]);
       vText(doc,it[1],cx+5,cy,7.1);
     });
@@ -1866,7 +1872,7 @@ function vDescription(doc,y,f){
     // Extra safety gutter: text never approaches the physical right border.
     const maxTextWidth=width-(padX*2)-2.5;
     const lines=vServiceTextLines(doc,f.serviceDescription||'',maxTextWidth,fontSize);
-    const lineH=3.55, textTop=7.6, bottomPad=2.6;
+    const lineH=3.35, textTop=8.5, bottomPad=2.1;
     const h=Math.max(13.5,textTop+Math.max(1,lines.length)*lineH+bottomPad);
     vBox(doc,x,y,width,h);
     vLabel(doc,title,x+padX,y+3.5);
