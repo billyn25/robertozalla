@@ -1623,13 +1623,7 @@
       doc.setPage(1);
     }
 
-    async function renderTop(){
-      let y=VPDF.m;
-      y=await vHeader(doc,y,f,company); y+=2.2;
-      y=vClient(doc,y,f); y+=2.2;
-      y=vServiceGroups(doc,y,f,company); y+=1.0; y=vAntennaWarrantyNotice(doc,y,company); y+=1.0; y=vDescription(doc,y,f); y+=2.4;
-      return y;
-    }
+    async function renderTop(){ let y=VPDF.m; y=await vHeader(doc,y,f,company); y+=1.5; y=vClient(doc,y,f); y+=3.0; y=vServiceGroups(doc,y,f,company); y+=1.2; y=vAntennaWarrantyNotice(doc,y,company); y+=3.0; y=vDescription(doc,y,f); y+=3.0; return y; }
 
     async function renderFinal(y){y+=1.5;y=vBottom(doc,y,f);y+=1.5;y=vRepairWarrantyLine(doc,y,company);y=await vConsentSignatures(doc,y,f,data.signatures||{});y+=1.0;if(y+4.2>pageBottom)return {fits:false,y};vFooter(doc,y,company);return {fits:true,y};}
 
