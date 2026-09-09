@@ -1,0 +1,125 @@
+name: Fix PDF mobile return
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-pdf-return.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch mobile PDF return state
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('app.js')
+          s = path.read_text(encoding='utf-8')
+
+          # 1) Recovery key stored only for the current browser tab/session.
+          if "PDF_RETURN_RECOVERY" not in s:
+              m = re.search(r"const STORAGE\s*=\s*\{.*?\};", s, re.S)
+              if not m:
+                  raise SystemExit('STORAGE block not found')
+              s = s[:m.end()] + "\n\n  const PDF_RETURN_RECOVERY = 'parte-digital.pdf-return-recovery.v1';" + s[m.end():]
+
+          # 2) Helpers: snapshot the exact sheet before opening the PDF and recover it once.
+          if 'function savePdfReturnRecovery()' not in s:
+              helpers = r'''
+
+  function savePdfReturnRecovery() {
+    try {
+      sessionStorage.setItem(PDF_RETURN_RECOVERY, JSON.stringify({
+        ts: Date.now(),
+        currentDocumentId: state.currentDocumentId,
+        dirty: state.dirty,
+        data: serializeDocument()
+      }));
+    } catch (_) {}
+  }
+
+  function consumePdfReturnRecovery() {
+    try {
+      const raw = sessionStorage.getItem(PDF_RETURN_RECOVERY);
+      if (!raw) return null;
+      const payload = JSON.parse(raw);
+      // El usuario puede quedarse varios minutos viendo el PDF en iPhone.
+      if (!payload?.data || !payload.ts || Date.now() - payload.ts > 10 * 60 * 1000) {
+        sessionStorage.removeItem(PDF_RETURN_RECOVERY);
+        return null;
+      }
+      sessionStorage.removeItem(PDF_RETURN_RECOVERY);
+      return payload;
+    } catch (_) {
+      try { sessionStorage.removeItem(PDF_RETURN_RECOVERY); } catch (_) {}
+      return null;
+    }
+  }
+'''
+              idx = s.find('function init() {')
+              if idx < 0:
+                  raise SystemExit('init not found')
+              s = s[:idx] + helpers + s[idx:]
+
+          # 3) Normal entry still starts blank; only a return from PDF restores the active sheet.
+          if 'const pdfRecovery = consumePdfReturnRecovery();' not in s:
+              pat = r"(renderCompanySelect\(\);\s*)(?:\/\/[^\n]*\n\s*){0,3}hydrateDocument\(makeBlankDocument\(state\.activeCompanyId\), null\);\s*renderCompanyHeader\(\);"
+              rep = r'''\1const pdfRecovery = consumePdfReturnRecovery();
+    if (pdfRecovery) {
+      hydrateDocument(pdfRecovery.data, pdfRecovery.currentDocumentId || null);
+      state.dirty = Boolean(pdfRecovery.dirty);
+      updateDraftStatus();
+    } else {
+      // Entrada normal: hoja nueva y limpia.
+      hydrateDocument(makeBlankDocument(state.activeCompanyId), null);
+    }
+    renderCompanyHeader();'''
+              s, n = re.subn(pat, rep, s, count=1)
+              if n != 1:
+                  raise SystemExit('init hydrate block not patched')
+
+          # 4) bfcache path used by iOS when returning with Back.
+          pageshow_old = """  window.addEventListener('pageshow', event => {
+    if (event.persisted || window.scrollY > 0) forceTopOnEntry();
+  });"""
+          pageshow_new = """  window.addEventListener('pageshow', event => {
+    const pdfRecovery = consumePdfReturnRecovery();
+    if (pdfRecovery) {
+      hydrateDocument(pdfRecovery.data, pdfRecovery.currentDocumentId || null);
+      state.dirty = Boolean(pdfRecovery.dirty);
+      updateDraftStatus();
+    }
+    if (event.persisted || window.scrollY > 0) forceTopOnEntry();
+  });"""
+          if pageshow_old in s:
+              s = s.replace(pageshow_old, pageshow_new, 1)
+
+          # 5) Take the snapshot immediately before iOS opens/downloads the PDF.
+          if 'savePdfReturnRecovery();\n      doc.save(filename);' not in s:
+              s, n = re.subn(r"\bdoc\.save\(filename\);", "savePdfReturnRecovery();\n      doc.save(filename);", s, count=1)
+              if n != 1:
+                  raise SystemExit('doc.save not patched')
+
+          path.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Validate JavaScript
+        run: node --check app.js
+
+      - name: Remove temporary workflow
+        run: rm .github/workflows/fix-pdf-return.yml
+
+      - name: Commit fix
+        run: |
+          git config user.name "OpenAI"
+          git config user.email "noreply@openai.com"
+          git add app.js .github/workflows/fix-pdf-return.yml
+          git commit -m "Fix mobile PDF return state"
+          git push
