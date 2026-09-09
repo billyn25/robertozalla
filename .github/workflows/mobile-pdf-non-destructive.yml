@@ -1,14 +1,19 @@
 name: Mobile PDF non destructive
+
 on:
   push:
-    paths: ['.github/workflows/mobile-pdf-non-destructive.yml']
+    paths:
+      - '.github/workflows/mobile-pdf-non-destructive.yml'
+
 permissions:
   contents: write
+
 jobs:
   patch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Patch mobile PDF flow
         run: |
           python3 - <<'PY'
@@ -18,17 +23,14 @@ jobs:
           old="""      savePdfReturnRecovery();
       doc.save(filename);
       showToast('PDF generado correctamente.');"""
-          new="""      // PDF nunca finaliza ni limpia la hoja. En móvil intentamos abrir una copia
-      // del PDF en otra pestaña/vista para que el presupuesto original siga vivo y editable.
+          new="""      // PDF no finaliza ni limpia la hoja. En móvil abrimos una copia aparte
+      // para mantener el presupuesto original vivo y editable.
       savePdfReturnRecovery();
       const isMobilePdf = window.matchMedia('(max-width: 760px)').matches || /iP(ad|hone|od)|Android/i.test(navigator.userAgent);
       if (isMobilePdf) {
         const blobUrl = URL.createObjectURL(doc.output('blob'));
         const pdfWindow = window.open(blobUrl, '_blank');
-        if (!pdfWindow) {
-          // Si iOS bloquea la pestaña, descarga normal; la recuperación temporal protege la hoja.
-          doc.save(filename);
-        }
+        if (!pdfWindow) doc.save(filename);
         setTimeout(() => URL.revokeObjectURL(blobUrl), 120000);
       } else {
         doc.save(filename);
@@ -39,14 +41,17 @@ jobs:
           s=s.replace(old,new,1)
           p.write_text(s,encoding='utf-8')
           PY
+
       - name: Validate JavaScript
         run: node --check app.js
-      - name: Remove workflow
+
+      - name: Remove temporary workflow
         run: rm .github/workflows/mobile-pdf-non-destructive.yml
-      - name: Commit
+
+      - name: Commit fix
         run: |
-          git config user.name OpenAI
-          git config user.email noreply@openai.com
+          git config user.name "OpenAI"
+          git config user.email "noreply@openai.com"
           git add app.js .github/workflows/mobile-pdf-non-destructive.yml
           git commit -m "Keep mobile quote editable after PDF"
           git push
