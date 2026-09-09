@@ -2596,3 +2596,10 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
   #documentsModal .documents-list{padding:12px}
   #documentsModal .document-card{padding:13px}
 }
+
+
+/* V111 — tipos de trabajo por empresa */
+.paper .check-list > label[hidden],
+.paper .check-list > label.antenna-extra-work[hidden]{
+  display:none !important;
+}

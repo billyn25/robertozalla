@@ -159,7 +159,8 @@
     draftTimer: null,
     dirty: false,
     signatures: {},
-    outputTextareaHeights: null
+    outputTextareaHeights: null,
+    exportingPdf: false
   };
 
   if (!state.companies.length) state.companies = defaultCompanies.map(normalizeCompany);
@@ -682,7 +683,9 @@
     allWorkTypes.forEach(([name]) => {
       const input = els.documentForm.elements.namedItem(name);
       const label = input?.closest('label');
-      if (label) label.hidden = !activeNames.has(name);
+      const isActive = activeNames.has(name);
+      if (label) label.hidden = !isActive;
+      if (input && !isActive) input.checked = false;
     });
 
     fields.forEach(([name, labelText]) => {
@@ -1558,6 +1561,15 @@
   }
 
   async function exportPdf() {
+    const numberField = els.documentForm.querySelector('[name="documentNumber"]');
+    const dateField = els.documentForm.querySelector('[name="documentDate"]');
+    const identitySnapshot = {
+      number: numberField?.value ?? '',
+      date: dateField?.value ?? '',
+      currentDocumentId: state.currentDocumentId,
+      dirty: state.dirty
+    };
+    state.exportingPdf = true;
     [...els.itemsBody.querySelectorAll('tr')].forEach(row => {
       const price = row.querySelector('[data-field="price"]')?.value?.trim() || '';
       const amount = row.querySelector('[data-field="amount"]')?.value?.trim() || '';
@@ -1584,7 +1596,18 @@
     } catch (error) {
       console.error(error);
       showToast(`No se pudo generar el PDF${error?.message ? ': ' + error.message : ''}`, 'error');
-    } finally {
+     } finally {
+      // iOS can fire input/change while returning from the native PDF/download view.
+      // Restore the document identity explicitly so PDF generation is side-effect free.
+      if (numberField) numberField.value = identitySnapshot.number;
+      if (dateField) dateField.value = identitySnapshot.date;
+      state.currentDocumentId = identitySnapshot.currentDocumentId;
+      state.dirty = identitySnapshot.dirty;
+      state.exportingPdf = false;
+      clearTimeout(state.draftTimer);
+      state.draftTimer = null;
+      saveJSON(STORAGE.draft, serializeDocument());
+      updateDraftStatus();
       els.pdfBtn.disabled = false;
       if (label) label.textContent = originalText;
     }
