@@ -9,6 +9,8 @@
     counters: 'parte-digital.counters.v1'
   };
 
+  const PDF_RETURN_RECOVERY = 'parte-digital.pdf-return-recovery.v1';
+
   const MIN_INITIAL_LINES = 8;
   const memoryStorage = new Map();
   const moneyFormatter = new Intl.NumberFormat('es-ES', {
@@ -340,6 +342,35 @@
     setTimeout(goTop, 500);
   }
 
+
+
+  function savePdfReturnRecovery() {
+    try {
+      sessionStorage.setItem(PDF_RETURN_RECOVERY, JSON.stringify({
+        ts: Date.now(),
+        currentDocumentId: state.currentDocumentId,
+        dirty: state.dirty,
+        data: serializeDocument()
+      }));
+    } catch (_) {}
+  }
+
+  function consumePdfReturnRecovery() {
+    try {
+      const raw = sessionStorage.getItem(PDF_RETURN_RECOVERY);
+      if (!raw) return null;
+      const payload = JSON.parse(raw);
+      if (!payload?.data || !payload.ts || Date.now() - payload.ts > 10 * 60 * 1000) {
+        sessionStorage.removeItem(PDF_RETURN_RECOVERY);
+        return null;
+      }
+      sessionStorage.removeItem(PDF_RETURN_RECOVERY);
+      return payload;
+    } catch (_) {
+      try { sessionStorage.removeItem(PDF_RETURN_RECOVERY); } catch (_) {}
+      return null;
+    }
+  }
   function init() {
     state.signatures.clientSignature = new SignaturePad(
       document.getElementById('clientSignature'),
@@ -356,9 +387,15 @@
     persistCompanies();
     renderCompanySelect();
 
-    // Producción: al abrir, siempre empieza una hoja nueva y limpia.
-    // Los documentos anteriores solo se recuperan desde "Guardadas".
-    hydrateDocument(makeBlankDocument(state.activeCompanyId), null);
+    const pdfRecovery = consumePdfReturnRecovery();
+    if (pdfRecovery) {
+      hydrateDocument(pdfRecovery.data, pdfRecovery.currentDocumentId || null);
+      state.dirty = Boolean(pdfRecovery.dirty);
+      updateDraftStatus();
+    } else {
+      // Entrada normal: hoja nueva y limpia.
+      hydrateDocument(makeBlankDocument(state.activeCompanyId), null);
+    }
 
     renderCompanyHeader();
     calculateTotals();
@@ -366,6 +403,12 @@
   }
 
   window.addEventListener('pageshow', event => {
+    const pdfRecovery = consumePdfReturnRecovery();
+    if (pdfRecovery) {
+      hydrateDocument(pdfRecovery.data, pdfRecovery.currentDocumentId || null);
+      state.dirty = Boolean(pdfRecovery.dirty);
+      updateDraftStatus();
+    }
     if (event.persisted || window.scrollY > 0) forceTopOnEntry();
   });
 
@@ -1591,6 +1634,7 @@
       const company = getActiveCompany();
       await buildVectorPdf(doc, data, company);
       const filename = [data.fields.documentType || 'documento', company?.name || 'empresa', data.fields.documentNumber ? `n-${data.fields.documentNumber}` : '', data.fields.documentDate || new Date().toISOString().slice(0,10)].filter(Boolean).map(slugify).join('_') + '.pdf';
+      savePdfReturnRecovery();
       doc.save(filename);
       showToast('PDF generado correctamente.');
     } catch (error) {
