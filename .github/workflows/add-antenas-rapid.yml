@@ -1,0 +1,123 @@
+name: Add ANTENAS RAPID
+on:
+  push:
+    branches: [maintenance/add-antenas-rapid-20261003]
+    paths: [.github/workflows/add-antenas-rapid.yml]
+permissions:
+  contents: write
+concurrency:
+  group: add-antenas-rapid-20261003
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Verify starting revision
+        run: test "$(git rev-parse HEAD)" = "57af9fc062b1348abe83c0de0b37816fc06101fd"
+      - name: Add company without changing existing companies or layout
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path('app.js')
+          s = p.read_text()
+          Path('/tmp/robertozalla-app-before.js').write_text(s)
+          assert 'company-antenas-rapid' not in s
+          start = s.index("    {\n      id: 'company-antena-city',")
+          end = s.index('\n    },', start) + len('\n    },')
+          city = s[start:end]
+          rapid = city.replace("id: 'company-antena-city'", "id: 'company-antenas-rapid'").replace("name: 'ANTENA CITY'", "name: 'ANTENAS RAPID'").replace("email: 'antenascity@gmail.com'", "email: ''")
+          assert rapid != city and "email: ''" in rapid
+          s = s[:end] + '\n' + rapid + s[end:]
+          def replace_once(old, new):
+              global s
+              assert s.count(old) == 1, ('Unexpected match count', old, s.count(old))
+              s = s.replace(old, new, 1)
+          replace_once("    'company-antena-city',\n    'company-antenas-abaso',", "    'company-antena-city',\n    'company-antenas-rapid',\n    'company-antenas-abaso',")
+          replace_once("      if (!existing) {\n        state.companies.push(normalizeCompany(defaultCompany));\n        return;\n      }", "      if (!existing) {\n        // Rapid copia los datos locales de City una sola vez, siempre sin correo.\n        const city = defaultCompany.id === 'company-antenas-rapid'\n          ? byId.get('company-antena-city')\n          : null;\n        state.companies.push(normalizeCompany(city ? {\n          ...city,\n          id: defaultCompany.id,\n          name: defaultCompany.name,\n          email: ''\n        } : defaultCompany));\n        return;\n      }")
+          replace_once("// Las tres marcas de antenas comparten la línea descriptiva solicitada.", "// Las marcas de antenas comparten la línea descriptiva solicitada.")
+          replace_once("if (['company-antena-city', 'company-antenas-abaso', 'company-antenas-zalla'].includes(defaultCompany.id)) {", "if (ANTENNA_COMPANY_IDS.has(defaultCompany.id)) {")
+          replace_once("if (['company-antena-city','company-antenas-abaso','company-antenas-zalla'].includes(company.id)) return 'antenna';", "if (ANTENNA_COMPANY_IDS.has(company.id)) return 'antenna';")
+          p.write_text(s)
+          p = Path('index.html')
+          html = p.read_text()
+          updated, count = re.subn(r'(?P<prefix><script\b[^>]*\bsrc=[\"\'])app\.js(?:\?[^\"\']*)?(?P<quote>[\"\'])', lambda m: m['prefix'] + 'app.js?v=antenas-rapid-20261003' + m['quote'], html)
+          assert count == 1, ('Expected one app script', count)
+          p.write_text(updated)
+      - name: Check JavaScript and company regressions
+        shell: bash
+        run: |
+          node --check app.js
+          node <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          const assert = require('node:assert/strict');
+          const source = fs.readFileSync('app.js', 'utf8');
+          const original = fs.readFileSync('/tmp/robertozalla-app-before.js', 'utf8');
+          function load(text) {
+            const cut = text.indexOf('  const els = {');
+            assert(cut > 0);
+            const names = ['normalizeCompany', 'ensureBuiltInCompanies', 'workTypesForCompany', 'workProfileForCompany', 'getActivityIconType'];
+            const funcs = names.map(name => {
+              const match = text.match(new RegExp('  function ' + name + '\\([^]*?\\n  \\}'));
+              assert(match, name);
+              return match[0];
+            }).join('\n');
+            const context = {};
+            vm.runInNewContext(text.slice(0, cut) + '\nconst state = {companies: []};\n' + funcs + '\nglobalThis.api = {defaultCompanies, ANTENNA_COMPANY_IDS, BUILT_IN_COMPANY_IDS, state, ' + names.join(',') + '};\n})();', context);
+            return context.api;
+          }
+          const plain = value => JSON.parse(JSON.stringify(value));
+          const api = load(source);
+          const before = load(original);
+          const cityId = 'company-antena-city';
+          const rapidId = 'company-antenas-rapid';
+          const city = api.defaultCompanies.find(c => c.id === cityId);
+          const rapid = api.defaultCompanies.find(c => c.id === rapidId);
+          assert(rapid);
+          assert.deepEqual(plain(rapid), {...plain(city), id: rapidId, name: 'ANTENAS RAPID', email: ''});
+          assert.deepEqual(plain(api.defaultCompanies.filter(c => c.id !== rapidId)), plain(before.defaultCompanies));
+          assert(api.ANTENNA_COMPANY_IDS.has(rapidId));
+          assert(api.BUILT_IN_COMPANY_IDS.has(rapidId));
+          assert.deepEqual(plain(api.workTypesForCompany(rapid)), plain(api.workTypesForCompany(city)));
+          assert.equal(api.workTypesForCompany(rapid).length, 10);
+          assert.equal(api.workProfileForCompany(rapid), api.workProfileForCompany(city));
+          assert.equal(api.getActivityIconType(rapid), 'antenna');
+          assert.equal(api.getActivityIconType(rapid), api.getActivityIconType(city));
+          api.state.companies = plain(before.defaultCompanies);
+          api.ensureBuiltInCompanies();
+          assert.equal(api.state.companies.filter(c => c.id === rapidId).length, 1);
+          assert.deepEqual(plain(api.state.companies.find(c => c.id === rapidId)), plain(rapid));
+          const afterMigration = plain(api.state.companies);
+          api.ensureBuiltInCompanies();
+          assert.deepEqual(plain(api.state.companies), afterMigration);
+          const customizedCity = {...plain(city), phone: '600 000 001', owner: 'Titular de prueba', taxId: 'TEST', iban: 'IBAN de prueba', address: 'Dirección de prueba', legalLine: 'Texto legal de prueba', terms: 'Condiciones de prueba', logo: 'data:image/png;base64,TEST', email: 'prueba@example.test'};
+          api.state.companies = plain(before.defaultCompanies).map(c => c.id === cityId ? customizedCity : c);
+          api.ensureBuiltInCompanies();
+          assert.deepEqual(plain(api.state.companies.find(c => c.id === cityId)), customizedCity);
+          assert.deepEqual(plain(api.state.companies.find(c => c.id === rapidId)), {...customizedCity, id: rapidId, name: 'ANTENAS RAPID', email: ''});
+          api.state.companies.find(c => c.id === rapidId).phone = '600 000 002';
+          api.ensureBuiltInCompanies();
+          assert.equal(api.state.companies.find(c => c.id === rapidId).phone, '600 000 002');
+          assert.equal(api.state.companies.find(c => c.id === rapidId).email, '');
+          assert.equal(api.state.companies.find(c => c.id === cityId).email, 'prueba@example.test');
+          assert.equal(api.getActivityIconType({id: 'company-rfg-servicios'}), 'roof');
+          assert.equal(api.workTypesForCompany('company-rfg-servicios').length, 6);
+          console.log('PASS: defaults cloned, existing companies unchanged, no email, same ten services and icon, migration from existing storage, custom City data copied, no duplicates, independent edits.');
+          NODE
+          git diff --check
+          git diff --stat
+          git diff -- app.js index.html
+          grep -n 'company.email\|getActivityIconType' app.js
+      - name: Publish only validated application changes
+        shell: bash
+        run: |
+          test "$(git status --porcelain | wc -l | tr -d ' ')" = 2
+          git add -- app.js index.html
+          git -c user.name='billyn25' -c user.email='7609341+billyn25@users.noreply.github.com' commit -m "Add ANTENAS RAPID as a City-based company without email"
+          git push origin HEAD:main
+          echo "Published commit: $(git rev-parse HEAD)"
