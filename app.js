@@ -37,6 +37,15 @@
       taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     },
     {
+      id: 'company-antenas-rapid',
+      name: 'ANTENAS RAPID',
+      phone: '641 58 93 94 (24h)',
+      email: '',
+      slogan: ANTENNA_DEFAULT_SLOGAN,
+      owner: '',
+      taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
+    },
+    {
       id: 'company-antenas-abaso',
       name: 'ANTENAS ABASO',
       phone: '670 042 626 (24h)',
@@ -88,6 +97,7 @@
 
   const ANTENNA_COMPANY_IDS = new Set([
     'company-antena-city',
+    'company-antenas-rapid',
     'company-antenas-abaso',
     'company-antenas-zalla'
   ]);
@@ -670,7 +680,16 @@
     defaultCompanies.forEach(defaultCompany => {
       const existing = byId.get(defaultCompany.id);
       if (!existing) {
-        state.companies.push(normalizeCompany(defaultCompany));
+        // Rapid copia los datos locales de City una sola vez, siempre sin correo.
+        const city = defaultCompany.id === 'company-antenas-rapid'
+          ? byId.get('company-antena-city')
+          : null;
+        state.companies.push(normalizeCompany(city ? {
+          ...city,
+          id: defaultCompany.id,
+          name: defaultCompany.name,
+          email: ''
+        } : defaultCompany));
         return;
       }
 
@@ -680,8 +699,8 @@
           String(existing.owner || '').trim().toLowerCase() === 'roberto fuentes gonzalo') {
         existing.owner = '';
       }
-      // Las tres marcas de antenas comparten la línea descriptiva solicitada.
-      if (['company-antena-city', 'company-antenas-abaso', 'company-antenas-zalla'].includes(defaultCompany.id)) {
+      // Las marcas de antenas comparten la línea descriptiva solicitada.
+      if (ANTENNA_COMPANY_IDS.has(defaultCompany.id)) {
         existing.slogan = ANTENNA_DEFAULT_SLOGAN;
       }
       // Corrige solo el correo heredado/antiguo de Antenas Zalla.
@@ -1075,7 +1094,7 @@
 
   function getActivityIconType(company) {
     if (!company) return '';
-    if (['company-antena-city','company-antenas-abaso','company-antenas-zalla'].includes(company.id)) return 'antenna';
+    if (ANTENNA_COMPANY_IDS.has(company.id)) return 'antenna';
     if (company.id === 'company-rfg-servicios') return 'roof';
     return '';
   }
