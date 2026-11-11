@@ -68,7 +68,7 @@
       name: 'R.F.G. SERVICIOS INTEGRALES EN VIVIENDA',
       phone: '641 58 93 94',
       email: '',
-      slogan: 'Limpieza y mantenimiento de canalones y tejados · Reparación de goteras, filtraciones e impermeabilización de cubiertas',
+      slogan: 'Reformas integrales · Tejados y canalones · Pintura · Albañilería · Fontanería · Electricidad · Climatización',
       owner: '',
       taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     }
@@ -725,7 +725,10 @@
       // Si el usuario ya los editó, no se pisan sus datos.
       if (defaultCompany.id === 'company-rfg-servicios') {
         if (!existing.phone || existing.phone === '670 042 626 (24h)') existing.phone = defaultCompany.phone;
-        if (!existing.slogan || existing.slogan === 'Tejados · Limpieza de canalones · Mantenimiento de vivienda') existing.slogan = defaultCompany.slogan;
+        if (!existing.slogan || [
+          'Tejados · Limpieza de canalones · Mantenimiento de vivienda',
+          'Limpieza y mantenimiento de canalones y tejados · Reparación de goteras, filtraciones e impermeabilización de cubiertas'
+        ].includes(existing.slogan)) existing.slogan = defaultCompany.slogan;
       }
     });
   }
