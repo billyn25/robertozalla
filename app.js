@@ -1102,7 +1102,7 @@
     return '';
   }
 
-  const RFG_ICON_PATH = 'assets/rfg-reformas.png';
+  const RFG_ICON_PATH = 'assets/rfg-cabecera.jpg';
 
   function getActivityIconSvg(type) {
     if (type === 'antenna') {
@@ -1151,6 +1151,7 @@
       els.companyActivityIcon.innerHTML = activityType === 'roof'
         ? `<img src="${RFG_ICON_PATH}" alt="">`
         : getActivityIconSvg(activityType);
+      els.companyActivityIcon.classList.toggle('company-activity-icon--rfg', activityType === 'roof');
       els.companyActivityIcon.hidden = !activityType;
     }
 
@@ -1813,14 +1814,14 @@
     if(!company?.logo && activityType){
       try{
         const isRoof = activityType === 'roof';
-        const activityPng = isRoof
+        const activityImage = isRoof
           ? new Uint8Array(await (await fetch(RFG_ICON_PATH)).arrayBuffer())
           : await activitySvgToPng(activityType,128);
-        if(activityPng){
-          const iconSize = 8.5;
-          const iconHeight = isRoof ? iconSize * 0.34 : iconSize;
-          doc.addImage(activityPng,'PNG',VPDF.m,y+3.0+(iconSize-iconHeight)/2,iconSize,iconHeight,undefined,'FAST');
-          tx=VPDF.m+11.0;
+        if(activityImage){
+          const iconWidth = isRoof ? 36 : 8.5;
+          const iconHeight = isRoof ? iconWidth * 445 / 1380 : iconWidth;
+          doc.addImage(activityImage,isRoof?'JPEG':'PNG',VPDF.m,y+(isRoof?6:3),iconWidth,iconHeight,undefined,'FAST');
+          tx=VPDF.m+iconWidth+2.5;
         }
       }catch(_){}
     }

@@ -2641,3 +2641,16 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     min-height: 142px;
   }
 }
+
+.paper .company-activity-icon.company-activity-icon--rfg {
+  width: 100px !important;
+  height: 33px !important;
+  margin-top: 0 !important;
+}
+
+@media screen and (max-width: 760px) {
+  .paper .company-activity-icon.company-activity-icon--rfg {
+    width: 78px !important;
+    height: 26px !important;
+  }
+}
