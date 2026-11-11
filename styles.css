@@ -2603,3 +2603,41 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
 .paper .check-list > label.antenna-extra-work[hidden]{
   display:none !important;
 }
+
+.company-activity-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.paper .check-list:has(> label:not([hidden]) > [name="workRenovation"]) {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  min-height: 27.4mm;
+}
+
+@media screen and (max-width: 760px) {
+  .paper .check-list:has(> label:not([hidden]) > [name="workRenovation"]) {
+    gap: 2px !important;
+    min-height: 144px;
+  }
+
+  .paper .check-list:has(> label:not([hidden]) > [name="workRenovation"]) > label {
+    grid-template-columns: minmax(0, 1fr) 15px !important;
+    gap: 2px !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    padding: 2px 3px !important;
+  }
+
+  .paper .check-list:has(> label:not([hidden]) > [name="workRenovation"]) > label > input[type="checkbox"] {
+    width: 14px !important;
+    height: 14px !important;
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .paper .check-list:has(> label:not([hidden]) > [name="workRenovation"]) {
+    min-height: 142px;
+  }
+}

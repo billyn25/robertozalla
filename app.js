@@ -102,7 +102,18 @@
     'company-antenas-zalla'
   ]);
 
+  const RFG_RENOVATION_WORK_TYPES = [
+    ['workRoofingAndGutters', 'Tejados y canalones'],
+    ['workPainting', 'Pintura'],
+    ['workMasonry', 'Albañilería'],
+    ['workPlumbing', 'Fontanería'],
+    ['workElectrical', 'Electricidad'],
+    ['workClimateControl', 'Climatización'],
+    ['workRenovation', 'Reformas integrales']
+  ];
+
   const RFG_WORK_TYPES = [
+    ...RFG_RENOVATION_WORK_TYPES,
     ['workAntennaIndividual', 'Limpieza de canalones'],
     ['workAntennaCollective', 'Reparación de tejados'],
     ['workSatelliteIndividual', 'Mantenimiento de tejados'],
@@ -110,6 +121,8 @@
     ['workIntercom', 'Revisión de goteras'],
     ['workVideoIntercom', 'Otros trabajos']
   ];
+
+  const ALL_WORK_TYPES = [...ANTENNA_WORK_TYPES, ...RFG_RENOVATION_WORK_TYPES];
 
   const BUILT_IN_COMPANY_IDS = new Set(defaultCompanies.map(company => company.id));
 
@@ -730,8 +743,7 @@
   }
 
   function clearWorkTypeChecks() {
-    const allWorkTypes = [...STANDARD_WORK_TYPES, ...ANTENNA_EXTRA_WORK_TYPES];
-    allWorkTypes.forEach(([name]) => {
+    ALL_WORK_TYPES.forEach(([name]) => {
       const field = els.documentForm.elements.namedItem(name);
       if (field) field.checked = false;
     });
@@ -740,9 +752,8 @@
   function renderWorkTypeLabels() {
     const fields = workTypesForCompany(getActiveCompany());
     const activeNames = new Set(fields.map(([name]) => name));
-    const allWorkTypes = [...STANDARD_WORK_TYPES, ...ANTENNA_EXTRA_WORK_TYPES];
 
-    allWorkTypes.forEach(([name]) => {
+    ALL_WORK_TYPES.forEach(([name]) => {
       const input = els.documentForm.elements.namedItem(name);
       const label = input?.closest('label');
       const isActive = activeNames.has(name);
@@ -850,16 +861,7 @@
         requestInformation: false,
         requestEstimate: false,
         requestSupply: false,
-        workAntennaIndividual: false,
-        workAntennaCollective: false,
-        workSatelliteIndividual: false,
-        workSatelliteCollective: false,
-        workIntercom: false,
-        workVideoIntercom: false,
-        workCableExterior: false,
-        workCableInterior: false,
-        workTvOutlets: false,
-        workAmplification: false,
+        ...Object.fromEntries(ALL_WORK_TYPES.map(([name]) => [name, false])),
         serviceDescription: '',
         collectionNotes: '',
         paymentMethod: '',
@@ -1064,6 +1066,7 @@
       if (field.matches('textarea')) requestAnimationFrame(() => autoGrow(field));
     });
 
+    renderWorkTypeLabels();
     renderItems(data.items);
     state.signatures.clientSignature.load(data.signatures.clientSignature);
     state.signatures.technicianSignature.load(data.signatures.technicianSignature);
@@ -1099,22 +1102,14 @@
     return '';
   }
 
+  const RFG_ICON_PATH = 'assets/rfg-reformas.png';
+
   function getActivityIconSvg(type) {
     if (type === 'antenna') {
       return `<svg viewBox="0 0 32 32" aria-hidden="true">
         <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
           <path d="M16 11v16M11 27h10M16 14l-5 13M16 14l5 13M13 20h6M10.5 9.5a7.5 7.5 0 0 1 0-5M21.5 9.5a7.5 7.5 0 0 0 0-5M7.5 12.5a11.5 11.5 0 0 1 0-11M24.5 12.5a11.5 11.5 0 0 0 0-11" stroke-width="1.7"/>
           <circle cx="16" cy="9" r="1.6" fill="currentColor" stroke="none"/>
-        </g>
-      </svg>`;
-    }
-    if (type === 'roof') {
-      return `<svg viewBox="0 0 32 32" aria-hidden="true">
-        <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8">
-          <path d="M5 15 16 6l11 9M8 14v10h16V14"/>
-          <path d="M7 25h18M9 18h14"/>
-          <path d="M24 18v5c0 2 1.2 3 3 3"/>
-          <path d="M27 26c0 1.6-1 2.8-2.3 2.8S22.5 27.6 22.5 26c0-1.1 1.1-2.5 2.2-3.8 1.1 1.3 2.3 2.7 2.3 3.8Z"/>
         </g>
       </svg>`;
     }
@@ -1153,7 +1148,9 @@
     const brand = document.getElementById('companyBrand');
     const activityType = getActivityIconType(company);
     if (els.companyActivityIcon) {
-      els.companyActivityIcon.innerHTML = getActivityIconSvg(activityType);
+      els.companyActivityIcon.innerHTML = activityType === 'roof'
+        ? `<img src="${RFG_ICON_PATH}" alt="">`
+        : getActivityIconSvg(activityType);
       els.companyActivityIcon.hidden = !activityType;
     }
 
@@ -1815,10 +1812,14 @@
 
     if(!company?.logo && activityType){
       try{
-        const activityPng = await activitySvgToPng(activityType,128);
+        const isRoof = activityType === 'roof';
+        const activityPng = isRoof
+          ? new Uint8Array(await (await fetch(RFG_ICON_PATH)).arrayBuffer())
+          : await activitySvgToPng(activityType,128);
         if(activityPng){
           const iconSize = 8.5;
-          doc.addImage(activityPng,'PNG',VPDF.m,y+3.0,iconSize,iconSize,undefined,'FAST');
+          const iconHeight = isRoof ? iconSize * 0.34 : iconSize;
+          doc.addImage(activityPng,'PNG',VPDF.m,y+3.0+(iconSize-iconHeight)/2,iconSize,iconHeight,undefined,'FAST');
           tx=VPDF.m+11.0;
         }
       }catch(_){}
@@ -1914,16 +1915,31 @@
     const vals=[['CLIENTE / EMPRESA',f.clientCompany],['NOMBRE',f.clientName],['TELÉFONO',f.clientPhone],['CORREO',f.clientEmail],['DIRECCIÓN',f.clientAddress],['POBLACIÓN',f.clientCity],['PROVINCIA',f.clientProvince],['NIF / DNI',f.clientTaxId]];
     const cw=(vContentW()-6)/2; vals.forEach((r,i)=>{const c=i%2,rr=Math.floor(i/2),x=VPDF.m+3+c*cw,yy=y+10.2+rr*4.55;vLabel(doc,r[0],x,yy);vText(doc,r[1]||'',x+30,yy,7.5,'normal',{maxWidth:cw-32});}); return y+h;
   }
-  function vCheck(doc,x,y,checked){doc.setDrawColor(...VPDF.muted);doc.setLineWidth(.25);if(checked){doc.setFillColor(...VPDF.green);doc.rect(x,y,3,3,'FD');doc.setDrawColor(255,255,255);doc.setLineWidth(.35);doc.line(x+.6,y+1.6,x+1.3,y+2.3);doc.line(x+1.3,y+2.3,x+2.5,y+.7);}else doc.rect(x,y,3,3);}
-  function vGroup(doc,x,y,w,title,items,f){
-    const rows=Math.ceil(items.length/2);
-    const h=Math.max(22,10.0+rows*4.3);
+  function vCheck(doc,x,y,checked,size=3){
+    const scale=size/3;
+    doc.setDrawColor(...VPDF.muted);
+    doc.setLineWidth(.25);
+    if(checked){
+      doc.setFillColor(...VPDF.green);
+      doc.rect(x,y,size,size,'FD');
+      doc.setDrawColor(255,255,255);
+      doc.setLineWidth(.35);
+      doc.line(x+.6*scale,y+1.6*scale,x+1.3*scale,y+2.3*scale);
+      doc.line(x+1.3*scale,y+2.3*scale,x+2.5*scale,y+.7*scale);
+    }else doc.rect(x,y,size,size);
+  }
+  function vGroup(doc,x,y,w,title,items,f,compact=false){
+    const columns=compact?3:2;
+    const rows=Math.ceil(items.length/columns);
+    const h=compact?22.9:Math.max(22,10.0+rows*4.3);
     vBox(doc,x,y,w,h);
     vLabel(doc,title,x+2.5,y+4.3);
     items.forEach((it,i)=>{
-      const col=i%2,row=Math.floor(i/2),cx=x+2.5+col*(w/2),cy=y+10.4+row*4.0;
-      vCheck(doc,cx,cy-2.5,!!f[it[0]]);
-      vText(doc,it[1],cx+5,cy,7.1);
+      const col=i%columns,row=Math.floor(i/columns);
+      const cx=x+2.5+col*((w-(compact?4:0))/columns);
+      const cy=y+(compact?8.4+row*2.9:10.4+row*4);
+      vCheck(doc,cx,cy-(compact?2:2.5),!!f[it[0]],compact?2.3:3);
+      vText(doc,it[1],cx+(compact?3.5:5),cy,compact?6:7.1);
     });
     return h;
   }
@@ -1932,7 +1948,7 @@
     const req=[['requestInstallation','Instalación'],['requestRepair','Reparación'],['requestMaintenance','Mantenimiento'],['requestInformation','Información'],['requestEstimate','Presupuesto'],['requestSupply','Suministro']];
     const work=workTypesForCompany(company);
     const reqH=vGroup(doc,VPDF.m,y,w,'Solicitud de',req,f);
-    const workH=vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f);
+    const workH=vGroup(doc,VPDF.m+w+gap,y,w,'Tipo de trabajo',work,f,company?.id==='company-rfg-servicios');
     return y+Math.max(reqH,workH);
   }
   function vAntennaWarrantyNotice(doc,y,company){

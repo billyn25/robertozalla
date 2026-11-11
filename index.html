@@ -7,7 +7,7 @@
   <meta name="description" content="Presupuestos, facturas y partes de trabajo multiempresa, listos para PDF.">
   <title>Parte Digital · Presupuestador multiempresa</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=reformas-rfg-20261111">
 </head>
 <body>
   <header class="appbar screen-only">
@@ -128,6 +128,13 @@
             <fieldset class="check-box boxed">
               <legend>TIPO DE TRABAJO</legend>
               <div class="check-list">
+                <label hidden><input type="checkbox" name="workRoofingAndGutters"><span>Tejados y canalones</span></label>
+                <label hidden><input type="checkbox" name="workPainting"><span>Pintura</span></label>
+                <label hidden><input type="checkbox" name="workMasonry"><span>Albañilería</span></label>
+                <label hidden><input type="checkbox" name="workPlumbing"><span>Fontanería</span></label>
+                <label hidden><input type="checkbox" name="workElectrical"><span>Electricidad</span></label>
+                <label hidden><input type="checkbox" name="workClimateControl"><span>Climatización</span></label>
+                <label hidden><input type="checkbox" name="workRenovation"><span>Reformas integrales</span></label>
                 <label><input type="checkbox" name="workAntennaIndividual"><span>Antena individual</span></label>
                 <label><input type="checkbox" name="workAntennaCollective"><span>Antena colectiva</span></label>
                 <label><input type="checkbox" name="workSatelliteIndividual"><span>Satélite individual</span></label>
@@ -345,6 +352,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="app.js?v=antenas-rapid-20261003"></script>
+  <script src="app.js?v=reformas-rfg-20261111"></script>
 </body>
 </html>
