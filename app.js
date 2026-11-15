@@ -1117,6 +1117,11 @@
   }
 
   const RFG_ICON_PATH = 'assets/rfg-cabecera.jpg';
+  const RAPID_LOGO_PATH = 'assets/logo-antenas-rapid.png';
+
+  function companyHeaderLogo(company) {
+    return company?.logo || (company?.id === 'company-antenas-rapid' ? RAPID_LOGO_PATH : '');
+  }
 
   function getActivityIconSvg(type) {
     if (type === 'antenna') {
@@ -1160,7 +1165,8 @@
 
     const logoWrap = document.getElementById('companyLogoWrap');
     const brand = document.getElementById('companyBrand');
-    const activityType = getActivityIconType(company);
+    const logo = companyHeaderLogo(company);
+    const activityType = logo === RAPID_LOGO_PATH ? '' : getActivityIconType(company);
     if (els.companyActivityIcon) {
       els.companyActivityIcon.innerHTML = activityType === 'roof'
         ? `<img src="${RFG_ICON_PATH}" alt="">`
@@ -1169,8 +1175,8 @@
       els.companyActivityIcon.hidden = !activityType;
     }
 
-    if (company.logo) {
-      els.companyLogo.src = company.logo;
+    if (logo) {
+      els.companyLogo.src = logo;
       els.companyLogo.alt = `Logo de ${company.name}`;
       els.companyLogo.hidden = false;
       els.companyLogoPlaceholder.hidden = true;
@@ -1838,13 +1844,15 @@
   }
 
   async function vHeader(doc,y,f,company){
-    const metaW=51, logoW=28;
+    const logo=companyHeaderLogo(company);
+    const isRapidLogo=logo===RAPID_LOGO_PATH;
+    const metaW=51, logoW=isRapidLogo?37:28;
     const metaX=VPDF.w-VPDF.m-metaW;
     let tx=VPDF.m;
     let logoData=null;
     const activityType=getActivityIconType(company);
 
-    if(!company?.logo && activityType){
+    if(!logo && activityType){
       try{
         const isRoof = activityType === 'roof';
         const activityImage = isRoof
@@ -1859,14 +1867,20 @@
       }catch(_){}
     }
 
-    if(company?.logo){
+    if(logo){
       try{
-        const sz=await vImageSize(company.logo);
+        const sz=await vImageSize(logo);
         if(sz){
+          logoData={...sz, image:logo, format:vImageFormat(logo)};
+          if(isRapidLogo){
+            const response=await fetch(logo);
+            if(!response.ok) throw new Error('No se pudo cargar el logo de Antenas Rapid');
+            logoData.image=new Uint8Array(await response.arrayBuffer());
+            logoData.format='PNG';
+          }
           tx=VPDF.m+logoW+3.5;
-          logoData=sz;
         }
-      }catch(_){}
+      }catch(_){logoData=null;}
     }
 
     const textW=Math.max(44,metaX-tx-4);
@@ -1890,7 +1904,7 @@
     if(logoData){
       const scale=Math.min(logoW/logoData.w,(h-2)/logoData.h);
       const w=logoData.w*scale, hh=logoData.h*scale;
-      doc.addImage(company.logo,vImageFormat(company.logo),VPDF.m+(logoW-w)/2,y+(h-hh)/2,w,hh,undefined,'FAST');
+      doc.addImage(logoData.image,logoData.format,VPDF.m+(logoW-w)/2,y+(h-hh)/2,w,hh,undefined,'FAST');
     }
 
     let ly=y+5.7;
