@@ -1117,7 +1117,7 @@
   }
 
   const RFG_ICON_PATH = 'assets/rfg-cabecera.jpg';
-  const RAPID_LOGO_PATH = 'assets/logo-antenas-rapid-blanco.png';
+  const RAPID_LOGO_PATH = 'assets/logo-antenas-rapid-gris.png';
 
   function companyHeaderLogo(company) {
     return company?.logo || (company?.id === 'company-antenas-rapid' ? RAPID_LOGO_PATH : '');
