@@ -1197,8 +1197,10 @@
   }
 
   function companyContacts(company) {
-    const madridPhone = company?.id === 'company-antenas-rapid' ? 'Madrid: 614 789 945' : '';
-    return [company?.phone, madridPhone, company?.email].filter(Boolean);
+    const isRapid = company?.id === 'company-antenas-rapid';
+    const phone = isRapid && company.phone ? `Zona norte y Castilla y León: ${company.phone}` : company?.phone;
+    const madridPhone = isRapid ? 'Madrid: 614 789 945' : '';
+    return [phone, madridPhone, company?.email].filter(Boolean);
   }
 
   function appendContact(text) {
