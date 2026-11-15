@@ -2656,3 +2656,10 @@ body.pdf-export input[type="date"]::-webkit-calendar-picker-indicator{display:no
     height: 26px !important;
   }
 }
+
+
+.paper .company-logo-wrap.company-logo-wrap--rapid {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}

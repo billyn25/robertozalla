@@ -1117,7 +1117,7 @@
   }
 
   const RFG_ICON_PATH = 'assets/rfg-cabecera.jpg';
-  const RAPID_LOGO_PATH = 'assets/logo-antenas-rapid.png';
+  const RAPID_LOGO_PATH = 'assets/logo-antenas-rapid-blanco.png';
 
   function companyHeaderLogo(company) {
     return company?.logo || (company?.id === 'company-antenas-rapid' ? RAPID_LOGO_PATH : '');
@@ -1166,7 +1166,9 @@
     const logoWrap = document.getElementById('companyLogoWrap');
     const brand = document.getElementById('companyBrand');
     const logo = companyHeaderLogo(company);
-    const activityType = logo === RAPID_LOGO_PATH ? '' : getActivityIconType(company);
+    const isRapidLogo = logo === RAPID_LOGO_PATH;
+    const activityType = isRapidLogo ? '' : getActivityIconType(company);
+    logoWrap.classList.toggle('company-logo-wrap--rapid', isRapidLogo);
     if (els.companyActivityIcon) {
       els.companyActivityIcon.innerHTML = activityType === 'roof'
         ? `<img src="${RFG_ICON_PATH}" alt="">`
