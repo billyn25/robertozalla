@@ -1128,9 +1128,9 @@
     els.companySlogan.hidden = !company.slogan;
 
     els.companyContact.replaceChildren();
-    if (company.phone) appendContact(company.phone);
-    if (company.email) appendContact(company.email);
-    els.companyContact.hidden = !company.phone && !company.email;
+    const contacts = companyContacts(company);
+    contacts.forEach(appendContact);
+    els.companyContact.hidden = !contacts.length;
 
     els.companyOwner.textContent = company.owner || '';
     els.companyOwner.hidden = !company.owner;
@@ -1175,6 +1175,11 @@
       brand.classList.add('company-brand--no-logo');
       brand.classList.remove('company-brand--has-logo');
     }
+  }
+
+  function companyContacts(company) {
+    const madridPhone = company?.id === 'company-antenas-rapid' ? 'Madrid: 614 789 945' : '';
+    return [company?.phone, madridPhone, company?.email].filter(Boolean);
   }
 
   function appendContact(text) {
@@ -1842,7 +1847,7 @@
     const textW=Math.max(44,metaX-tx-4);
     const name=String(company?.name||'EMPRESA').toUpperCase();
     const slogan=String(company?.slogan||'').trim();
-    const contact=[company?.phone,company?.email].filter(Boolean).join('  ·  ');
+    const contact=companyContacts(company).join('  ·  ');
     const owner=String(company?.owner||'').trim();
 
     doc.setFont('helvetica','bold'); doc.setFontSize(11.2);
