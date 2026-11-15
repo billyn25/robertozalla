@@ -10,6 +10,10 @@
   };
 
   const PDF_RETURN_RECOVERY = 'parte-digital.pdf-return-recovery.v1';
+  const pdfModal = document.getElementById('pdfModal');
+  const pdfLink = document.getElementById('pdfOpenLink');
+  let pdfUrl = '';
+  let recoverPdfDraft = false;
 
   const MIN_INITIAL_LINES = 8;
   const memoryStorage = new Map();
@@ -368,32 +372,43 @@
 
 
   function savePdfReturnRecovery() {
-    try {
-      sessionStorage.setItem(PDF_RETURN_RECOVERY, JSON.stringify({
-        ts: Date.now(),
-        currentDocumentId: state.currentDocumentId,
-        dirty: state.dirty,
-        data: serializeDocument()
-      }));
-    } catch (_) {}
+    const payload = JSON.stringify({
+      currentDocumentId: state.currentDocumentId,
+      dirty: state.dirty,
+      data: serializeDocument()
+    });
+    setStorageItem(PDF_RETURN_RECOVERY, payload);
+    try { sessionStorage.setItem(PDF_RETURN_RECOVERY, payload); } catch (_) {}
+  }
+
+  function clearPdfReturnRecovery() {
+    try { sessionStorage.removeItem(PDF_RETURN_RECOVERY); } catch (_) {}
+    try { localStorage.removeItem(PDF_RETURN_RECOVERY); } catch (_) {}
+    memoryStorage.delete(PDF_RETURN_RECOVERY);
   }
 
   function consumePdfReturnRecovery() {
+    let sessionPayload;
+    try { sessionPayload = sessionStorage.getItem(PDF_RETURN_RECOVERY); } catch (_) {}
+    const localPayload = getStorageItem(PDF_RETURN_RECOVERY);
     try {
-      const raw = sessionStorage.getItem(PDF_RETURN_RECOVERY);
-      if (!raw) return null;
-      const payload = JSON.parse(raw);
-      if (!payload?.data || !payload.ts || Date.now() - payload.ts > 10 * 60 * 1000) {
-        sessionStorage.removeItem(PDF_RETURN_RECOVERY);
-        return null;
-      }
-      sessionStorage.removeItem(PDF_RETURN_RECOVERY);
-      return payload;
+      const payload = JSON.parse(sessionPayload || localPayload || 'null');
+      if (payload?.data?.fields && Array.isArray(payload.data.items)) return payload;
     } catch (_) {
-      try { sessionStorage.removeItem(PDF_RETURN_RECOVERY); } catch (_) {}
       return null;
+    } finally {
+      if (!sessionPayload || sessionPayload === localPayload) clearPdfReturnRecovery();
+      else {
+        try { sessionStorage.removeItem(PDF_RETURN_RECOVERY); } catch (_) {}
+      }
     }
+    return null;
   }
+
+  window.addEventListener('pagehide', () => {
+    if (recoverPdfDraft) savePdfReturnRecovery();
+  });
+
   function init() {
     state.signatures.clientSignature = new SignaturePad(
       document.getElementById('clientSignature'),
@@ -412,6 +427,7 @@
 
     const pdfRecovery = consumePdfReturnRecovery();
     if (pdfRecovery) {
+      recoverPdfDraft = true;
       hydrateDocument(pdfRecovery.data, pdfRecovery.currentDocumentId || null);
       state.dirty = Boolean(pdfRecovery.dirty);
       updateDraftStatus();
@@ -426,12 +442,6 @@
   }
 
   window.addEventListener('pageshow', event => {
-    const pdfRecovery = consumePdfReturnRecovery();
-    if (pdfRecovery) {
-      hydrateDocument(pdfRecovery.data, pdfRecovery.currentDocumentId || null);
-      state.dirty = Boolean(pdfRecovery.dirty);
-      updateDraftStatus();
-    }
     if (event.persisted || window.scrollY > 0) forceTopOnEntry();
   });
 
@@ -656,6 +666,7 @@
     els.documentsList.addEventListener('click', handleDocumentListAction);
 
     els.pdfBtn.addEventListener('click', exportPdf);
+    pdfLink.addEventListener('click', () => closeModal(pdfModal));
 
     const mobilePdfFab = document.getElementById('mobilePdfFab');
     if (mobilePdfFab) {
@@ -1407,6 +1418,8 @@
 
   function newDocument() {
     if (hasMeaningfulData() && !confirm('¿Crear una hoja nueva? El borrador actual se reemplazará, aunque los documentos guardados no se borran.')) return;
+    recoverPdfDraft = false;
+    clearPdfReturnRecovery();
     hydrateDocument(makeBlankDocument(state.activeCompanyId), null);
     saveDraftNow();
     showToast('Hoja nueva preparada.');
@@ -1629,6 +1642,7 @@
   }
 
   async function exportPdf() {
+    if (state.exportingPdf) return;
     const numberField = els.documentForm.querySelector('[name="documentNumber"]');
     const dateField = els.documentForm.querySelector('[name="documentDate"]');
     const identitySnapshot = {
@@ -1659,9 +1673,20 @@
       const company = getActiveCompany();
       await buildVectorPdf(doc, data, company);
       const filename = [data.fields.documentType || 'documento', company?.name || 'empresa', data.fields.documentNumber ? `n-${data.fields.documentNumber}` : '', data.fields.documentDate || new Date().toISOString().slice(0,10)].filter(Boolean).map(slugify).join('_') + '.pdf';
+      recoverPdfDraft = true;
       savePdfReturnRecovery();
-      doc.save(filename);
-      showToast('PDF generado correctamente.');
+      const isAppleTouch = /iPhone|iPad|iPod/.test(navigator.userAgent)
+        || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isAppleTouch || window.matchMedia('(max-width: 760px)').matches) {
+        const nextUrl = URL.createObjectURL(doc.output('blob'));
+        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+        pdfUrl = nextUrl;
+        pdfLink.href = pdfUrl;
+        openModal(pdfModal);
+      } else {
+        doc.save(filename);
+        showToast('PDF generado correctamente.');
+      }
     } catch (error) {
       console.error(error);
       showToast(`No se pudo generar el PDF${error?.message ? ': ' + error.message : ''}`, 'error');
