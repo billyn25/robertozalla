@@ -59,6 +59,15 @@
       taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
     },
     {
+      id: 'company-abaso-electronica',
+      name: 'ABASO ELECTRÓNICA',
+      phone: '946 670 819',
+      email: '',
+      slogan: 'Tienda y taller de electrónica · Reparación de televisores y radios · Instalación de TV y resintonización de canales',
+      owner: '',
+      taxId: '', iban: '', address: '', legalLine: '', terms: '', logo: ''
+    },
+    {
       id: 'company-antenas-zalla',
       name: 'ANTENAS ZALLA',
       phone: '670 042 626 (24h)',
@@ -126,7 +135,16 @@
     ['workVideoIntercom', 'Otros trabajos']
   ];
 
-  const ALL_WORK_TYPES = [...ANTENNA_WORK_TYPES, ...RFG_RENOVATION_WORK_TYPES];
+  const ELECTRONICS_WORK_TYPES = [
+    ['workTvRepair', 'Reparación de TV'],
+    ['workRadioRepair', 'Reparación de radios'],
+    ['workTvSetup', 'Instalación de TV'],
+    ['workChannelTuning', 'Resintonización de canales'],
+    ['workDeviceDiagnosis', 'Diagnóstico de averías'],
+    ['workAccessorySale', 'Venta de accesorios']
+  ];
+
+  const ALL_WORK_TYPES = [...ANTENNA_WORK_TYPES, ...RFG_RENOVATION_WORK_TYPES, ...ELECTRONICS_WORK_TYPES];
 
   const BUILT_IN_COMPANY_IDS = new Set(defaultCompanies.map(company => company.id));
 
@@ -746,6 +764,7 @@
 
   function workTypesForCompany(companyOrId) {
     const id = typeof companyOrId === 'string' ? companyOrId : companyOrId?.id;
+    if (id === 'company-abaso-electronica') return ELECTRONICS_WORK_TYPES;
     if (id === 'company-rfg-servicios') return RFG_WORK_TYPES;
     if (ANTENNA_COMPANY_IDS.has(id)) return ANTENNA_WORK_TYPES;
     return STANDARD_WORK_TYPES;
@@ -753,6 +772,7 @@
 
   function workProfileForCompany(companyOrId) {
     const id = typeof companyOrId === 'string' ? companyOrId : companyOrId?.id;
+    if (id === 'company-abaso-electronica') return 'electronics';
     return id === 'company-rfg-servicios' ? 'rfg' : 'standard';
   }
 
@@ -1111,6 +1131,7 @@
 
   function getActivityIconType(company) {
     if (!company) return '';
+    if (company.id === 'company-abaso-electronica') return 'television';
     if (ANTENNA_COMPANY_IDS.has(company.id)) return 'antenna';
     if (company.id === 'company-rfg-servicios') return 'roof';
     return '';
@@ -1124,6 +1145,17 @@
   }
 
   function getActivityIconSvg(type) {
+    if (type === 'television') {
+      return `<svg viewBox="0 0 32 32" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">
+          <path d="m10 3 6 5 6-6M7 28v2m18-2v2"/>
+          <rect x="2" y="8" width="28" height="19" rx="3"/>
+          <rect x="5" y="11" width="17" height="13" rx="3"/>
+          <path d="M7 18h3l2-3 3 6 2-3h3m5 2h2m-2 3h2"/>
+          <circle cx="26" cy="14" r="1.5"/>
+        </g>
+      </svg>`;
+    }
     if (type === 'antenna') {
       return `<svg viewBox="0 0 32 32" aria-hidden="true">
         <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
