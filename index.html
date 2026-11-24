@@ -7,7 +7,7 @@
   <meta name="description" content="Presupuestos, facturas y partes de trabajo multiempresa, listos para PDF.">
   <title>Parte Digital · Presupuestador multiempresa</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=pdf-archivo-20261124">
+  <link rel="stylesheet" href="styles.css?v=pdf-panel-20261124">
 </head>
 <body>
   <header class="appbar screen-only">
@@ -349,17 +349,15 @@
   <div class="modal" id="pdfModal" aria-hidden="true">
     <div class="modal__backdrop" data-close-modal="pdfModal"></div>
     <section class="modal__dialog pdf-dialog" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
-      <header class="modal__header">
-        <div>
-          <h2 id="pdfModalTitle">PDF listo</h2>
-          <p>Descarga el archivo o abre una vista previa.</p>
-        </div>
-        <button class="modal__close" type="button" data-close-modal="pdfModal" aria-label="Cerrar">×</button>
+      <header class="pdf-heading">
+        <span class="pdf-file-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z M14 3v5h4 M9 12h6 M9 16h4"/></svg></span>
+        <div><h2 id="pdfModalTitle">PDF listo</h2><p id="pdfDocumentLabel"></p></div>
+        <button class="pdf-close" type="button" data-close-modal="pdfModal" aria-label="Cerrar">×</button>
       </header>
       <div class="pdf-actions">
-        <button class="action-button action-button--primary" type="button" id="pdfShare" hidden>Compartir PDF</button>
-        <a class="action-button" id="pdfDownload" target="_blank" rel="noopener" download>Descargar PDF</a>
-        <a class="action-button" id="pdfOpenLink" target="_blank" rel="noopener">Vista previa</a>
+        <button type="button" id="pdfShare" hidden><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m-4 4 4-4 4 4 M7 10H5v11h14V10h-2"/></svg>Compartir PDF</button>
+        <a id="pdfDownload" target="_blank" rel="noopener" download><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-5-5 5 5 5-5 M4 16v4h16v-4"/></svg>Descargar</a>
+        <a id="pdfOpenLink" target="_blank" rel="noopener"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="2.5"/></svg>Vista previa</a>
       </div>
     </section>
   </div>
@@ -376,6 +374,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="app.js?v=pdf-archivo-20261124"></script>
+  <script src="app.js?v=pdf-panel-20261124"></script>
 </body>
 </html>

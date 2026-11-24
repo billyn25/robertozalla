@@ -1736,6 +1736,7 @@
         const nextUrl = URL.createObjectURL(blob);
         pdfFile = typeof File === 'function' ? new File([blob], filename, { type: 'application/pdf' }) : null;
         pdfShare.hidden = !(pdfFile && navigator.share && navigator.canShare?.({ files: [pdfFile] }));
+        document.getElementById('pdfDocumentLabel').textContent = [data.fields.documentType, data.fields.documentNumber].filter(Boolean).join(' · ');
         pdfDownload.download = filename;
         pdfDownload.href = nextUrl;
         if (pdfUrl) URL.revokeObjectURL(pdfUrl);

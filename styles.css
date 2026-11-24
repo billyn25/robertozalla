@@ -439,10 +439,33 @@ fieldset legend { margin-left: 2mm; padding: 0 1mm; font-size: 8px; font-weight:
   border-radius: 16px;
   box-shadow: 0 28px 80px rgba(6, 15, 9, .3);
 }
-.pdf-dialog { width: min(380px, calc(100vw - 30px)); }
-.pdf-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 20px; }
-.pdf-actions .action-button { min-height: 44px; text-decoration: none; }
+.modal#pdfModal.is-open { display: grid; place-items: center; padding: 12px; }
+#pdfModal.is-open ~ #mobilePdfFab { visibility: hidden; }
+.pdf-dialog {
+  width: min(100%, 400px); margin: 0; padding: 20px; gap: 20px;
+  border: 0; border-radius: 22px; overflow-y: auto;
+}
+.pdf-heading { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.pdf-file-icon { display: grid; place-items: center; width: 46px; height: 52px; background: #e9f3ec; color: #28603f; border-radius: 13px; }
+.pdf-file-icon svg { width: 28px; height: 28px; }
+.pdf-heading h2 { margin: 0; font-size: 21px; letter-spacing: -.025em; line-height: 1.2; }
+.pdf-heading p { margin: 4px 0 0; font-size: 13px; line-height: 1.4; color: #56665c; overflow-wrap: anywhere; }
+.pdf-close { width: 44px; height: 44px; border: 0; border-radius: 50%; background: #f3f5f3; color: #44554a; font: 24px/1 system-ui; }
+.pdf-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.pdf-actions > * {
+  display: flex; justify-content: center; align-items: center; gap: 7px; min-height: 47px;
+  padding: 8px; border: 1px solid #d6e1d9; border-radius: 12px; background: #f6f9f6;
+  color: #284c36; font: 600 14px/1.25 system-ui, sans-serif; text-decoration: none;
+}
+.pdf-actions svg { flex: none; width: 19px; height: 19px; }
+#pdfShare, #pdfShare[hidden] + #pdfDownload { background: #306848; color: white; border-color: #306848; }
+#pdfShare { grid-column: 1 / -1; }
 .pdf-actions [hidden] { display: none; }
+.pdf-actions > :active { filter: brightness(.92); }
+.pdf-dialog :focus-visible { outline: 3px solid #428160; outline-offset: 2px; }
+@media (max-width: 760px) {
+  .modal#pdfModal.is-open { align-items: end; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+}
 .modal__dialog--wide { width: min(1040px, calc(100vw - 30px)); }
 .modal__dialog--documents { width: min(820px, calc(100vw - 30px)); }
 .modal__header { display: flex; justify-content: space-between; gap: 18px; padding: 18px 20px 15px; background: #f7f9f7; border-bottom: 1px solid #dbe1dd; }
