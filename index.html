@@ -7,7 +7,7 @@
   <meta name="description" content="Presupuestos, facturas y partes de trabajo multiempresa, listos para PDF.">
   <title>Parte Digital · Presupuestador multiempresa</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=logo-rapid-blanco-20261115">
+  <link rel="stylesheet" href="styles.css?v=pdf-archivo-20261124">
 </head>
 <body>
   <header class="appbar screen-only">
@@ -352,11 +352,15 @@
       <header class="modal__header">
         <div>
           <h2 id="pdfModalTitle">PDF listo</h2>
-          <p>Para seguir editando, vuelve a la pestaña de la plantilla.</p>
+          <p>Descarga el archivo o abre una vista previa.</p>
         </div>
         <button class="modal__close" type="button" data-close-modal="pdfModal" aria-label="Cerrar">×</button>
       </header>
-      <a class="action-button action-button--primary pdf-open-link" id="pdfOpenLink" target="_blank" rel="noopener">Abrir PDF en otra pestaña</a>
+      <div class="pdf-actions">
+        <button class="action-button action-button--primary" type="button" id="pdfShare" hidden>Compartir PDF</button>
+        <a class="action-button" id="pdfDownload" target="_blank" rel="noopener" download>Descargar PDF</a>
+        <a class="action-button" id="pdfOpenLink" target="_blank" rel="noopener">Vista previa</a>
+      </div>
     </section>
   </div>
 
@@ -372,6 +376,6 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="app.js?v=abaso-electronica-20261118"></script>
+  <script src="app.js?v=pdf-archivo-20261124"></script>
 </body>
 </html>

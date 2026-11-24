@@ -12,6 +12,9 @@
   const PDF_RETURN_RECOVERY = 'parte-digital.pdf-return-recovery.v1';
   const pdfModal = document.getElementById('pdfModal');
   const pdfLink = document.getElementById('pdfOpenLink');
+  const pdfShare = document.getElementById('pdfShare');
+  const pdfDownload = document.getElementById('pdfDownload');
+  let pdfFile = null;
   let pdfUrl = '';
   let recoverPdfDraft = false;
 
@@ -684,6 +687,15 @@
     els.documentsList.addEventListener('click', handleDocumentListAction);
 
     els.pdfBtn.addEventListener('click', exportPdf);
+    pdfShare.addEventListener('click', async () => {
+      if (!pdfFile) return;
+      try {
+        await navigator.share({ files: [pdfFile] });
+        closeModal(pdfModal);
+      } catch (error) {
+        if (error.name !== 'AbortError') showToast('Para enviar el archivo, pulsa Descargar PDF.', 'error');
+      }
+    });
     pdfLink.addEventListener('click', () => closeModal(pdfModal));
 
     const mobilePdfFab = document.getElementById('mobilePdfFab');
@@ -1720,7 +1732,12 @@
       const isAppleTouch = /iPhone|iPad|iPod/.test(navigator.userAgent)
         || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       if (isAppleTouch || window.matchMedia('(max-width: 760px)').matches) {
-        const nextUrl = URL.createObjectURL(doc.output('blob'));
+        const blob = doc.output('blob');
+        const nextUrl = URL.createObjectURL(blob);
+        pdfFile = typeof File === 'function' ? new File([blob], filename, { type: 'application/pdf' }) : null;
+        pdfShare.hidden = !(pdfFile && navigator.share && navigator.canShare?.({ files: [pdfFile] }));
+        pdfDownload.download = filename;
+        pdfDownload.href = nextUrl;
         if (pdfUrl) URL.revokeObjectURL(pdfUrl);
         pdfUrl = nextUrl;
         pdfLink.href = pdfUrl;
